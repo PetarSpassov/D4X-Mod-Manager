@@ -58,3 +58,9 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
 - **`trait`'s `Count` row must stay last; `attribute`'s may move, since a patch allows custom ones.**
   names: `LAST_ROW`, `Count`, `_keep_last`
   sign: the game misbehaves after a merge that added traits
+
+## D — Nexus
+
+- **Nexus's API answers Python's default User-Agent with 403; send our own.**
+  names: `urlopen`, `User-Agent`, `api.nexusmods.com`
+  sign: curl gets data while the app reports every mod as offline or refused

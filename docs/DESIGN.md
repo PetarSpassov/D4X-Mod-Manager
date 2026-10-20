@@ -20,8 +20,10 @@ and 1,562 rows in `trait`.
 ## Library
 
 One folder chosen by the user. Each mod gets a subfolder: the unpacked zip, plus `mod.json` with its
-Nexus id and version (read from a Nexus file name, `<name>-<id>-<version>-<time>.zip`) and where
-each file goes. Installing never moves anything out of the library. Import sorts files by name:
+Nexus mod id, file id and version, and where each file goes. The ids and version come from Nexus:
+the keyless API lists each mod's files with their exact download name (`uri`), and import matches
+the archive's file name against it. Offline, or not on Nexus, the version is "?" and nothing is
+guessed from the name. Installing never moves anything out of the library. Import sorts files by name:
 
 | In the zip | Goes to |
 |---|---|

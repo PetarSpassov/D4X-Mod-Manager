@@ -18,8 +18,9 @@ or rules must change this file too (pre-commit).
   `hasGroup` (separator ordinals compiled in); which of them bake literal indices is not yet read.
 - Merging Community Patch (`examples/community_patch-1-0-1-4-1760743071.7z`) and QuinnQuest
   (`examples/QuinnQuest-5-v0-4-2-2-1780006924.zip`) instead of hand-made test mods: both import.
-- A Nexus file name whose own name part holds a standalone number ("Mod-2-...") is read with
-  that number as the mod id: the id is the first all-digit part. No such mod seen yet.
+- Import looks each archive up on Nexus by exact download name (`nexus/files.py`). Seen live: both
+  `examples/` names resolve (QuinnQuest id 5 file 48 v0.4.2.2; community_patch id 1 file 28 0.1.4),
+  and `QuinnQuest.zip` is "not_found". A mod imported offline keeps "?" until re-imported.
 
 Debt: the no-console `subprocess.run` is now written three times (unpack, pak, mods).
 
@@ -53,5 +54,6 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   and a trait column it doesn't know (`d4xmmNote`), is unknown.
 - 7z and rar import from the window's file dialog: tested through `import_archive` only (a 7z
   built by 7-Zip, a rar built by WinRAR). Seen live: both `examples/` mods import into a temp library.
+- The "?" version and its tooltip in the window, and a real offline import: unit tests only.
 - The window (`!app.bat`, or `python -m d4xmm.window.app`; home `%LOCALAPPDATA%\D4XModManager`): how it looks and
   every button. Only its Api is tested; seen live, it stays open 8 s with no error.

@@ -57,6 +57,8 @@
 <div id="status"></div>
 <script>
 let mods = [];
+const NO_VERSION = {offline: "You are offline", not_found: "This file is not on Nexus",
+                    refused: "Nexus answered with an error"};
 
 function setStatus(text, warn) {
   const el = document.getElementById("status");
@@ -84,7 +86,9 @@ function render(state) {
       '<button class="small" title="Load later">↓</button>';
     li.querySelector("input").checked = m.enabled;
     li.querySelector(".name").textContent = m.name;
-    li.querySelector(".ver").textContent = m.version ? "v" + m.version : "";
+    const ver = li.querySelector(".ver");
+    ver.textContent = m.version || "?";
+    if (!m.version) ver.title = "Could not determine version. " + (NO_VERSION[m.nexus] || "");
     li.querySelector("input").onchange = e => { m.enabled = e.target.checked; save(); };
     const [up, down] = li.querySelectorAll("button");
     up.disabled = i === 0;

@@ -46,7 +46,8 @@ class Api:
         """What the page shows: the game folder, mods in load order, whether an install is in."""
         records = self._records()
         listed = [dict(e, name=records[e["folder"]]["name"],
-                       version=records[e["folder"]]["version"]) for e in self._order(records)]
+                       version=records[e["folder"]]["version"],
+                       nexus=records[e["folder"]].get("nexus")) for e in self._order(records)]
         installed = os.path.isfile(os.path.join(self._state_dir, deploy.RECORD))
         return {"game_dir": self._game_dir, "mods": listed, "installed": installed}
 

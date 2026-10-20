@@ -9,6 +9,7 @@ import shutil
 import subprocess
 
 from d4xmm.game import hlboot
+from d4xmm.nexus import files as nexus_files
 
 SEVEN_ZIP = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..",
                                          "vendor", "7zip", "7z.exe"))
@@ -17,9 +18,6 @@ RECORD = "mod.json"
 AUDIO_DIR = "res/Audio"
 AUDIO_EXT = (".wem", ".bnk")
 PAK = re.compile(r"res\.compressed\d+\.pak$", re.IGNORECASE)
-# Nexus names a download "<file name>-<mod id>-<version, dots as dashes>-<upload time>". The
-# version may hold letters ("v0-4-2-2"), so the id is taken as the first all-digit part.
-NEXUS_NAME = re.compile(r"^(?P<name>.+?)-(?P<id>\d+)-(?P<version>[^-]+(?:-[^-]+)*)-\d{9,}$")
 
 
 class ModImportError(Exception):
@@ -40,14 +38,24 @@ def target(member):
     return None
 
 
-def describe(zip_path):
-    """Name, Nexus mod id and version, read from the zip's file name when Nexus named it."""
-    stem = os.path.splitext(os.path.basename(zip_path))[0]
-    m = NEXUS_NAME.match(stem)
-    if not m:
-        return {"name": stem, "nexus_id": None, "version": None}
-    return {"name": m["name"], "nexus_id": int(m["id"]),
-            "version": m["version"].replace("-", ".")}
+def describe(archive):
+    """Name, Nexus ids and version from Nexus's own record of this download; `nexus` says how.
+
+    `nexus` is "found", "not_found", "offline" or "refused"; only "found" fills ids and version.
+    """
+    file_name = os.path.basename(archive)
+    unknown = {"name": os.path.splitext(file_name)[0], "nexus_id": None, "file_id": None,
+               "version": None}
+    try:
+        found = nexus_files.lookup(file_name)
+    except nexus_files.Offline:
+        return dict(unknown, nexus="offline")
+    except nexus_files.Refused:
+        return dict(unknown, nexus="refused")
+    if found is None:
+        return dict(unknown, nexus="not_found")
+    return {"name": found["name"], "nexus_id": found["nexus_id"], "file_id": found["file_id"],
+            "version": found["version"], "nexus": "found"}
 
 
 def _extract(archive, dest):

@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 import unittest
 import zipfile
+from unittest import mock
 
 from d4xmm.library import mods
 
@@ -33,26 +34,47 @@ class Target(unittest.TestCase):
 
 
 class Describe(unittest.TestCase):
-    def test_reads_a_nexus_file_name(self):
-        self.assertEqual(mods.describe("C:/dl/QuinnQuest-5-1-2-1752884636.zip"),
-                         {"name": "QuinnQuest", "nexus_id": 5, "version": "1.2"})
+    def _describe(self, path, **lookup):
+        with mock.patch.object(mods.nexus_files, "lookup", **lookup) as asked:
+            info = mods.describe(path)
+        asked.assert_called_once_with(os.path.basename(path))
+        return info
 
-    def test_a_version_with_letters(self):
-        self.assertEqual(mods.describe("QuinnQuest-5-v0-4-2-2-1780006924.zip"),
-                         {"name": "QuinnQuest", "nexus_id": 5, "version": "v0.4.2.2"})
+    def test_a_file_nexus_knows_takes_its_record(self):
+        found = {"nexus_id": 5, "file_id": 30, "name": "QuinnQuest", "version": "v0.4.2.2",
+                 "category": "MAIN"}
+        self.assertEqual(self._describe("C:/dl/QuinnQuest-5-v0-4-2-2-1780006924.zip",
+                                        return_value=found),
+                         {"name": "QuinnQuest", "nexus_id": 5, "file_id": 30,
+                          "version": "v0.4.2.2", "nexus": "found"})
 
-    def test_any_other_name_is_kept_whole(self):
-        self.assertEqual(mods.describe("my mod.zip"),
-                         {"name": "my mod", "nexus_id": None, "version": None})
+    def test_a_file_nexus_doesnt_know_keeps_its_name_and_no_version(self):
+        self.assertEqual(self._describe("C:/dl/my mod.zip", return_value=None),
+                         {"name": "my mod", "nexus_id": None, "file_id": None, "version": None,
+                          "nexus": "not_found"})
+
+    def test_offline_guesses_nothing(self):
+        info = self._describe("QuinnQuest-5-v0-4-2-2-1780006924.zip",
+                              side_effect=mods.nexus_files.Offline("no network"))
+        self.assertEqual((info["name"], info["version"], info["nexus"]),
+                         ("QuinnQuest-5-v0-4-2-2-1780006924", None, "offline"))
+
+    def test_an_error_from_nexus_is_not_called_offline(self):
+        info = self._describe("QuinnQuest-5-v0-4-2-2-1780006924.zip",
+                              side_effect=mods.nexus_files.Refused("HTTP Error 403"))
+        self.assertEqual((info["version"], info["nexus"]), (None, "refused"))
 
 
 class ImportZip(unittest.TestCase):
     def setUp(self):
+        patch = mock.patch.object(mods.nexus_files, "lookup", return_value=None)
+        patch.start()
+        self.addCleanup(patch.stop)
         self.downloads, self.library = tempfile.mkdtemp(), tempfile.mkdtemp()
 
     def _imports_cool_mod(self, archive):
         record = mods.import_archive(archive, self.library)
-        folder = os.path.join(self.library, "Cool_Mod")
+        folder = os.path.join(self.library, "Cool_Mod-7-2-0-1752884636")  # not on Nexus: whole name
         with open(os.path.join(folder, mods.RECORD), encoding="utf-8") as f:
             self.assertEqual(json.load(f), record)
         self.assertEqual(record["files"], {"res.compressed1.pak": "Cool/res.compressed1.pak"})
