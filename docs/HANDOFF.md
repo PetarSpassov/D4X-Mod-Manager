@@ -36,5 +36,8 @@ or rules must change this file too (pre-commit).
 - Merged separators in the editor or game: tests and one live merge of the real `data.cdb` only.
 - `install/flow.install_mods()` with the real merge or a real game folder: its tests stand in a fake
   merge and a temp game folder.
+- The test mods from `tests/merge/make_test_mods.py` (`build/test_mods/`) in the game, alone or
+  merged. Their paks hold only data.cdb and two test files; whether the game takes a pak that small,
+  and a trait column it doesn't know (`d4xmmNote`), is unknown.
 - The window (`!app.bat`, or `python -m d4xmm.window.app`; home `%LOCALAPPDATA%\D4XModManager`): how it looks and
   every button. Only its Api is tested; seen live, it stays open 8 s with no error.
