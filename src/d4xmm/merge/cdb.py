@@ -1,12 +1,11 @@
 """Merging data.cdb: each mod's changes against the base game, applied in load order.
 
-Sheets match by name, rows by `id`, fields one by one; a list field counts as one field.
+Sheets match by name, rows by `id`; a changed row is taken whole, so half-mixed rows can't occur.
 """
 import copy
 import json
 
 ID = "id"
-MISSING = object()  # a field the mod removed from a row
 META = ("props",)  # a sheet's editor settings: taken whole, the later mod wins
 LAST_ROW = {"trait": "Count"}  # the game needs this row last; attribute's Count may move
 
@@ -57,11 +56,6 @@ def _changed(old, new):
     return out
 
 
-def _fields(old, new):
-    keys = list(old) + [k for k in new if k not in old]
-    return {k: new.get(k, MISSING) for k in keys if old.get(k, MISSING) != new.get(k, MISSING)}
-
-
 def _sheet_diff(old, new):
     """What a mod changed in one sheet; dropped rows and rows with no id are reported only."""
     change = {"columns": _changed(old["columns"], new["columns"]),
@@ -74,7 +68,7 @@ def _sheet_diff(old, new):
 
 def _row_changes(old, new):
     base_rows = {r[ID]: r for r in old if r.get(ID)}
-    out = {"add": [], "fields": {}, "no_id": 0}
+    out = {"add": [], "rows": {}, "no_id": 0}
     prev = None
     for row in new:
         rid = row.get(ID)
@@ -83,7 +77,7 @@ def _row_changes(old, new):
         elif rid not in base_rows:
             out["add"].append((prev, row))
         elif row != base_rows[rid]:
-            out["fields"][rid] = _fields(base_rows[rid], row)
+            out["rows"][rid] = row
         prev = rid or prev
     return out
 
@@ -149,14 +143,9 @@ def _apply_seps(sheet, change, base):
 def _apply_sheet(sheet, change, base):
     _place(sheet["columns"], change["columns"], _field("name"), base["columns"])
     sheet.update(copy.deepcopy(change["meta"]))
-    rows = {r.get(ID): r for r in sheet["lines"]}
-    for rid, fields in change["fields"].items():
-        row = rows[rid]
-        for k, v in fields.items():
-            if v is MISSING:
-                row.pop(k, None)
-            else:
-                row[k] = copy.deepcopy(v)
+    at = {r.get(ID): i for i, r in enumerate(sheet["lines"])}
+    for rid, row in change["rows"].items():
+        sheet["lines"][at[rid]] = copy.deepcopy(row)
     _place(sheet["lines"], change["add"], _field(ID), base["lines"])
     _keep_last(sheet)
     _apply_seps(sheet, change, base)

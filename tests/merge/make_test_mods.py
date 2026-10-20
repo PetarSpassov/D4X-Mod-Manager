@@ -103,8 +103,9 @@ def _row_cases(data, p, first, last):
     return {
         "1 same-spot rows, earlier mod first": ids[1:3] == ["D4XMM_T%d_Same" % first,
                                                            "D4XMM_T%d_Same" % last],
-        "2 different fields both kept": (row[p["fields"]]["name"], row[p["fields"]]["desc"])
-        == ("D4XMM field from mod 1", "D4XMM field from mod 2"),
+        "2 row both changed is the later mod's whole row":
+        (row[p["fields"]]["name"] == "D4XMM field from mod 1") == (last == 1)
+        and (row[p["fields"]]["desc"] == "D4XMM field from mod 2") == (last == 2),
         "3 same field, later mod wins": row[p["same"]]["name"] == "D4XMM same field, mod %d" % last,
         "4 near-end row above Count": ids[-2:] == ["D4XMM_T1_End", "Count"],
         "5 attributes in place, Count unmoved": aids[-3:] == ["Count", "Invalid", "D4XMM_A2"]

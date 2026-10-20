@@ -36,10 +36,14 @@ class Merge(unittest.TestCase):
         base = _base()
         return cdb.apply(base, [cdb.diff(base, _mod(e)) for e in edits])
 
-    def test_two_mods_changing_different_fields_of_one_row_both_count(self):
+    def test_a_row_two_mods_change_is_the_later_mods_whole_row(self):
         merged = self.merge(lambda s: s["lines"][0].update(cost=5),
                             lambda s: s["lines"][0].update(type=1))
-        self.assertEqual(_rows(merged)["Fast"], {"id": "Fast", "cost": 5, "type": 1})
+        self.assertEqual(_rows(merged)["Fast"], {"id": "Fast", "cost": 1, "type": 1})
+
+    def test_a_field_the_mod_removed_stays_removed(self):
+        merged = self.merge(lambda s: s["lines"][1].pop("tags"))
+        self.assertNotIn("tags", _rows(merged)["Slow"])
 
     def test_on_the_same_field_the_later_mod_wins(self):
         merged = self.merge(lambda s: s["lines"][0].update(cost=5),
