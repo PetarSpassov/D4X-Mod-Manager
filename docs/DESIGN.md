@@ -60,6 +60,9 @@ The user ticks mods and orders them. **Lower in the list = loaded later = wins.*
 3. **Write the install record**, then copy the files in (pak to the root, audio to `res/Audio`). The
    record holds each file's path, its hash before, and the hash we left there.
 
+Installing over an earlier install restores that one first, after the merge, so a failed merge
+leaves the earlier install in place. For files other than paks, the later mod wins.
+
 **Removing all mods** goes through the record: a file we added is deleted, a file we overwrote gets
 its backup back, and both hlboot files are restored. The game is back to its base state. A file whose
 hash is no longer the one we left (for example after a Steam update) is left alone and reported.

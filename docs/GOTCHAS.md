@@ -27,6 +27,10 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
   names: `settings.json`, `pending_check.md`
   sign: a brand-new guard "works" without ever having fired
 
+- **`on.py` has no flags: anything passed, `--help` included, becomes the new WE ARE ON line.**
+  names: `on.py`, `WE ARE ON`
+  sign: HANDOFF's WE ARE ON reads `--help`
+
 - **A Stop hook never sends a reply back: the user has read it, so a redo only doubles it.**
   names: `journal.py`, `replycap.py`, `Stop`
   sign: the same reply posted twice, the second opening "Short version:"

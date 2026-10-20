@@ -5,7 +5,7 @@ or rules must change this file too (pre-commit).
 
 ## State
 
-**► WE ARE ON:** design doc written (docs/DESIGN.md); next: window toolkit decision, then the install/restore core *(moved only by `python .claude/tools/on.py`)*
+**► WE ARE ON:** backend joined: install_mods() merges and installs library mods (install/flow.py); next: the pywebview window *(moved only by `python .claude/tools/on.py`)*
 
 **► LAST KNOWN GOOD:** none yet *(only the user names this, in their own words; it lives here and nowhere else)*
 
@@ -34,3 +34,5 @@ or rules must change this file too (pre-commit).
 - `merge.merge()` on real mods: only two tiny mods built in the tests have been merged.
 - Row placement (each mod's rows where the mod had them, below earlier mods') in a game: tests only.
 - Merged separators in the editor or game: tests and one live merge of the real `data.cdb` only.
+- `install/flow.install_mods()` with the real merge or a real game folder: its tests stand in a fake
+  merge and a temp game folder.
