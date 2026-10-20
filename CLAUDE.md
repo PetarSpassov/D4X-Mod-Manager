@@ -1,8 +1,8 @@
 # Project instructions
 
 <!-- PROJECT: replace the two lines below, then delete this comment. -->
-**Project:** _what this is, in one sentence._
-**Layout:** _where the source, the docs and each kind of generated output live._
+**Project:** a Dune: Spice Wars mod manager.
+**Layout:** `src/d4xmm/<feature>/`; tests mirror it in `tests/`; design in `docs/DESIGN.md`.
 
 **Rules, not reasons.** The reason for rule N: `python .claude/tools/why.py N` — read it only when tempted
 to break the rule. **(G)** = a hook enforces it.

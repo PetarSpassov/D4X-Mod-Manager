@@ -42,17 +42,17 @@ policy asks.
 
 The user ticks mods and orders them. **Lower in the list = loaded later = wins.**
 
-1. **First install ever:** copy `hlboot.dat` and `hlbootdx.dat` byte for byte into the library's
-   backup folder. Warn if either already carries a known mod mark (`spineTargets`, the mark
-   CodeCracker uses), because then the backup isn't the stock game.
-2. **Merge** (see below) into one `res.compressed1.pak`. One mod with no `data.cdb` clash still goes
+1. **Merge** (see below) into one `res.compressed1.pak`. One mod with no `data.cdb` clash still goes
    through the same path, so there is only one way in.
-3. Copy audio into `res/Audio`. A file that already exists there is backed up first.
-4. Write an install record: every file placed, with its hash.
+2. **Back up** `hlboot.dat`, `hlbootdx.dat` and every game file the install would overwrite, byte for
+   byte. Warn if an hlboot file carries a known mod mark (`spineTargets`, the mark CodeCracker uses),
+   because then the backup isn't the stock game.
+3. **Write the install record**, then copy the files in (pak to the root, audio to `res/Audio`). The
+   record holds each file's path, its hash before, and the hash we left there.
 
-**Removing all mods** deletes exactly the files in the install record, puts back every backed-up
-file, and restores both hlboot files. The game is back to its base state. A file whose hash no longer
-matches the record is left in place and reported, not deleted.
+**Removing all mods** goes through the record: a file we added is deleted, a file we overwrote gets
+its backup back, and both hlboot files are restored. The game is back to its base state. A file whose
+hash is no longer the one we left (for example after a Steam update) is left alone and reported.
 
 ## Merging (splicing)
 
@@ -77,9 +77,10 @@ the game, not the manager.
 One Windows `.exe` built with PyInstaller. It bundles QuickBMS and `pakBuild.hl`, but not the game's
 runtime: it uses the player's `D4X.exe`.
 
+The window is **pywebview**: HTML pages in a native window, as in CodeCracker's app.
+
 ## Not decided yet
 
-- **Window toolkit.** Proposed: PySide6 (Qt). It is a new dependency, so it needs a yes.
 - **Rows with no `id`**, and rows deleted by a mod: how the merge treats them.
 - **Licensing:** whether QuickBMS and `pakBuild.hl` may be bundled.
 - **The first tests** use small controlled mods built for the purpose, before any real Nexus mod.
