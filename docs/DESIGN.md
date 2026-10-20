@@ -84,13 +84,23 @@ the game, not the manager.
 
 ## Shipping
 
-One Windows `.exe` built with PyInstaller. It bundles QuickBMS and `pakBuild.hl`, but not the game's
-runtime: it uses the player's `D4X.exe`.
+One zip of a Nuitka `--standalone` folder, as CodeCracker builds but not `--onefile`: Nuitka
+compiles our code to C, and a folder keeps the licences beside the exe.
+
+```
+D4XModManager/
+  D4XModManager.exe   + the runtime files Nuitka puts beside it
+  vendor/             QuickBMS, d4x_res_pak.bms, pakBuild.hl
+  licences/           QuickBMS's GPL text and source, the README credits
+```
+
+It does not bundle the game's runtime: it uses the player's `D4X.exe`.
 
 The window is **pywebview**: HTML pages in a native window, as in CodeCracker's app.
 
 ## Not decided yet
 
 - **Rows with no `id`**, and rows deleted by a mod: how the merge treats them.
-- **Licensing:** whether QuickBMS and `pakBuild.hl` may be bundled.
+- **Licensing:** whether `pakBuild.hl` and `d4x_res_pak.bms` may be bundled. QuickBMS may: GPL 2.0,
+  shipped with its licence text and source.
 - **The first tests** use small controlled mods built for the purpose, before any real Nexus mod.
