@@ -20,11 +20,13 @@ and has the contents of both. This is a great success, it seems the merge is wor
   `hasGroup` (separator ordinals compiled in); which of them bake literal indices is not yet read.
 - At `42ea256` the user merged Community Patch (`examples/community_patch-1-0-1-4-1760743071.7z`)
   and QuinnQuest (`examples/QuinnQuest-5-v0-4-2-2-1780006924.zip`) from the window: the game boots
-  and has the contents of both. After re-import both show the right version (v0.4.2.2, 0.1.4).
-  In the other load order it also works: the user checked the rows and files the two mods share,
-  and both the overlapping files and the descriptions/values "got flipped to the other one".
+  and has the contents of both. The other load order also works: shared files and rows "got
+  flipped to the other one".
 - Import looks each archive up on Nexus by exact download name (`nexus/files.py`). Seen live:
   `QuinnQuest.zip` is "not_found". A mod imported offline keeps "?" until re-imported.
+
+- Owed, asked for, not built: mod profiles (save/load order and ticks); one ticked mod deployed
+  as-is, unmerged; the Browse tab's Nexus catalog (the tab is empty).
 
 Debt: the no-console `subprocess.run` is now written three times (unpack, pak, mods).
 
@@ -71,6 +73,16 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   window loads it with 4 rows and the pill "Installed" (installed before `last_install.json`
   existed). Drag and the menu seen only in a browser preview with a fake Api. File drop, delete,
   open folder/Nexus and the update note: not seen in the window.
+- Tabs Installed / Browse / Settings replace the header. Settings holds the game folder and the
+  Downloads folder (typed or Choose…; empty means found from Steam / Windows' Shell Folders), kept
+  in `settings.json`. No `D4X.exe` there: Settings shows an error and Install and Remove all refuse
+  with "Can't find the game in the Steam directory. Please adjust it in Settings." Rows read
+  "Name v1.2 by Uploader" (Nexus uploader name, as the user's example "PeterQuinn98"); a click opens
+  the Nexus picture and summary. Api parts tested; tabs, settings error and the open row seen only in
+  a browser preview with a fake Api. Not seen in the window: Choose…, typed folders, pictures.
+- The window reopens where it closed, maximised if it was. Seen live: closed maximised, settings.json
+  kept `"width": 860, "height": 640, "maximized": true`; reopened, closed untouched, the same again.
+  Un-maximising after a restart, and a second monitor, not seen.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.
 - What the window reports when data.cdb couldn't carry rows over, or `trait` passes 2048 rows.
 - The test mods from `tests/merge/make_test_mods.py` (`build/test_mods/`) in the game, alone or

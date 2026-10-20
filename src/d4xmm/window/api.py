@@ -1,6 +1,6 @@
-"""What the window's page can ask for: the mod list and its order, import, install and restore.
+"""What the window's page can ask for: the mod list and its order, import, install and settings.
 
-Under one home folder: library/ (mods), state/ (install record, backups), order.json (load order).
+Under one home: library/ (mods), state/ (install record, backups), order.json, settings.json.
 """
 import json
 import os
@@ -8,18 +8,20 @@ import webbrowser
 
 from d4xmm.install import deploy, flow
 from d4xmm.library import mods
+from d4xmm.window import settings
 
 ORDER = "order.json"
 LAST = "last_install.json"  # under state/: the folders installed and who overrode whom
 NEXUS_PAGE = "https://www.nexusmods.com/dunespicewars/mods/%d"
+NO_GAME = "Can't find the game in the Steam directory. Please adjust it in Settings."
 
 
 class Api:
     """pywebview hands the page every public attribute, so all but the calls start with _."""
 
-    def __init__(self, home, game_dir, pick_archives=None):
-        """pick_archives() returns the paths the user chose; the window supplies a file dialog."""
-        self._home, self._game_dir, self._pick_archives = home, game_dir, pick_archives
+    def __init__(self, home, pick_archives=None, pick_folder=None):
+        """pick_archives() returns the chosen paths, pick_folder(start) one folder or None."""
+        self._home, self._pick_archives, self._pick_folder = home, pick_archives, pick_folder
         self._library = os.path.join(home, "library")
         self._state_dir = os.path.join(home, "state")
         for folder in (self._library, self._state_dir):
@@ -59,11 +61,27 @@ class Api:
                 "clashes": last["clashes"]}
 
     def state(self):
-        """What the page shows: the game folder, mods in load order, the install's status."""
-        records, keys = self._records(), ("name", "version", "latest", "nexus", "nexus_id")
+        """What the page shows: mods in load order, the install's status, the settings."""
+        records = self._records()
+        keys = ("name", "version", "latest", "nexus", "nexus_id", "creator", "summary", "picture")
         order = self._order(records)
         listed = [dict(e, **{k: records[e["folder"]].get(k) for k in keys}) for e in order]
-        return {"game_dir": self._game_dir, "mods": listed, "install": self._install_state(order)}
+        current = settings.load(self._home)
+        folders = {k: current[k] for k in settings.FOLDERS}
+        return {"mods": listed, "install": self._install_state(order),
+                "settings": dict(folders, game_ok=settings.game_ok(current["game_dir"]))}
+
+    def set_folder(self, key, path):
+        """Keep one of settings.FOLDERS; an empty path goes back to the one Steam or Windows has."""
+        if key not in settings.FOLDERS:
+            raise ValueError("no setting %r" % key)
+        settings.save(self._home, **{key: os.path.normpath(path) if path.strip() else None})
+        return self.state()
+
+    def choose_folder(self, key):
+        """Let the user pick the folder for key, starting from the current one."""
+        path = self._pick_folder(settings.load(self._home)[key])
+        return self.set_folder(key, path) if path else self.state()
 
     def save_order(self, entries):
         """Keep the page's order and ticks: a list of {folder, enabled}, first loaded first."""
@@ -102,10 +120,11 @@ class Api:
 
     def install(self):
         """Merge and install the ticked mods in load order; returns install_mods' report."""
+        game = self._game()
         ticked = [e["folder"] for e in self._order(self._records()) if e["enabled"]]
         if not ticked:
             raise RuntimeError("no mods are ticked")
-        report = flow.install_mods(self._game(), self._state_dir, self._library, ticked)
+        report = flow.install_mods(game, self._state_dir, self._library, ticked)
         with open(os.path.join(self._state_dir, LAST), "w", encoding="utf-8") as f:
             json.dump({"folders": ticked, "clashes": report.get("clashes", [])}, f, indent=1)
         return report
@@ -118,6 +137,7 @@ class Api:
         return skipped
 
     def _game(self):
-        if not self._game_dir:
-            raise RuntimeError("Dune: Spice Wars was not found in Steam")
-        return self._game_dir
+        game_dir = settings.load(self._home)["game_dir"]
+        if not settings.game_ok(game_dir):
+            raise RuntimeError(NO_GAME)
+        return game_dir

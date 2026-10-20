@@ -41,18 +41,19 @@ class Describe(unittest.TestCase):
         return info
 
     def test_a_file_nexus_knows_takes_its_record(self):
-        found = {"nexus_id": 5, "file_id": 30, "name": "QuinnQuest", "version": "v0.4.2.2",
-                 "mod_name": "QuinnQuest - Conquest", "category": "MAIN", "latest": "v0.5"}
+        found = dict(Refresh.FOUND, file_id=30, latest="v0.5")
         self.assertEqual(self._describe("C:/dl/QuinnQuest-5-v0-4-2-2-1780006924.zip",
                                         return_value=found),
                          {"name": "QuinnQuest - Conquest", "file": "QuinnQuest", "nexus_id": 5,
                           "file_id": 30, "version": "v0.4.2.2", "latest": "v0.5",
-                          "nexus": "found"})
+                          "creator": "PeterQuinn98", "summary": "A PVE mod.",
+                          "picture": "https://x/5.png", "nexus": "found"})
 
     def test_a_file_nexus_doesnt_know_keeps_its_name_and_no_version(self):
         self.assertEqual(self._describe("C:/dl/my mod.zip", return_value=None),
                          {"name": "my mod", "file": "my mod", "nexus_id": None, "file_id": None,
-                          "version": None, "latest": None, "nexus": "not_found"})
+                          "version": None, "latest": None, "creator": None, "summary": None,
+                          "picture": None, "nexus": "not_found"})
 
     def test_offline_guesses_nothing(self):
         info = self._describe("QuinnQuest-5-v0-4-2-2-1780006924.zip",
@@ -68,7 +69,8 @@ class Describe(unittest.TestCase):
 
 class Refresh(unittest.TestCase):
     FOUND = {"nexus_id": 5, "file_id": 48, "name": "QuinnQuest", "version": "v0.4.2.2",
-             "mod_name": "QuinnQuest - Conquest", "category": "MAIN", "latest": "v0.4.2.2"}
+             "mod_name": "QuinnQuest - Conquest", "category": "MAIN", "latest": "v0.4.2.2",
+             "creator": "PeterQuinn98", "summary": "A PVE mod.", "picture": "https://x/5.png"}
 
     def setUp(self):
         self.library = tempfile.mkdtemp()
@@ -89,8 +91,8 @@ class Refresh(unittest.TestCase):
     def test_a_mod_imported_offline_takes_nexus_info_in_its_own_folder(self):
         self.assertEqual(self._refresh(return_value=self.FOUND), [self.folder])
         record = self._record()
-        self.assertEqual((record["name"], record["version"], record["nexus"]),
-                         ("QuinnQuest - Conquest", "v0.4.2.2", "found"))
+        self.assertEqual((record["name"], record["version"], record["nexus"], record["creator"]),
+                         ("QuinnQuest - Conquest", "v0.4.2.2", "found", "PeterQuinn98"))
         self.assertEqual(record["files"], {"res.compressed1.pak": "res.compressed1.pak"})
         self.assertEqual(self._refresh(return_value=self.FOUND), [])
 

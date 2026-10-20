@@ -46,7 +46,7 @@ def describe(archive):
     file_name = os.path.basename(archive)
     stem = os.path.splitext(file_name)[0]
     unknown = {"name": stem, "file": stem, "nexus_id": None, "file_id": None, "version": None,
-               "latest": None}
+               "latest": None, "creator": None, "summary": None, "picture": None}
     try:
         found = nexus_files.lookup(file_name)
     except nexus_files.Offline:
@@ -57,6 +57,7 @@ def describe(archive):
         return dict(unknown, nexus="not_found")
     return {"name": found["mod_name"], "file": found["name"], "nexus_id": found["nexus_id"],
             "file_id": found["file_id"], "version": found["version"], "latest": found["latest"],
+            "creator": found["creator"], "summary": found["summary"], "picture": found["picture"],
             "nexus": "found"}
 
 

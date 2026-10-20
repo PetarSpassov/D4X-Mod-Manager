@@ -4,14 +4,17 @@ import unittest
 import zipfile
 from unittest import mock
 
-from d4xmm.window.api import Api
+from d4xmm.window import settings
+from d4xmm.window.api import NO_GAME, Api
 
 
 class WindowApi(unittest.TestCase):
     def setUp(self):
-        self.home, self.zips = tempfile.mkdtemp(), tempfile.mkdtemp()
-        self.picked = []
-        self.api = Api(self.home, "C:/Game", lambda: self.picked)
+        self.home, self.zips, self.game = tempfile.mkdtemp(), tempfile.mkdtemp(), tempfile.mkdtemp()
+        open(os.path.join(self.game, "D4X.exe"), "w").close()
+        settings.save(self.home, game_dir=self.game)
+        self.picked, self.folder = [], None
+        self.api = Api(self.home, lambda: self.picked, lambda start: self.folder)
 
     def _zip(self, name):
         path = os.path.join(self.zips, name + ".zip")
@@ -30,7 +33,7 @@ class WindowApi(unittest.TestCase):
         self.picked = [self._zip("A"), self._zip("B")]
         self.api.import_mods()
         self.api.save_order([{"folder": "B", "enabled": True}, {"folder": "A", "enabled": False}])
-        fresh = Api(self.home, "C:/Game")
+        fresh = Api(self.home)
         self.assertEqual(self._names(fresh.state()), [("B", True), ("A", False)])
 
     def test_install_passes_only_ticked_mods_in_load_order(self):
@@ -40,18 +43,19 @@ class WindowApi(unittest.TestCase):
                              {"folder": "B", "enabled": True}])
         with mock.patch("d4xmm.install.flow.install_mods", return_value={}) as run:
             self.api.install()
-        self.assertEqual(run.call_args.args[0], "C:/Game")
+        self.assertEqual(run.call_args.args[0], self.game)
         self.assertEqual(run.call_args.args[3], ["C", "B"])
 
     def test_refresh_returns_the_list_with_what_nexus_says(self):
         self.picked = [self._zip("A")]
         self.api.import_mods()
         found = {"nexus_id": 1, "file_id": 2, "name": "A", "mod_name": "Mod A", "version": "1.0",
-                 "category": "MAIN", "latest": "1.1"}
+                 "category": "MAIN", "latest": "1.1", "creator": "Ann", "summary": None,
+                 "picture": None}
         with mock.patch("d4xmm.nexus.files.lookup", return_value=found):
             state = self.api.refresh()
-        self.assertEqual([(m["folder"], m["name"], m["version"]) for m in state["mods"]],
-                         [("A", "Mod A", "1.0")])
+        self.assertEqual([(m["folder"], m["name"], m["version"], m["creator"])
+                          for m in state["mods"]], [("A", "Mod A", "1.0", "Ann")])
 
     def test_dropped_paths_import_and_delete_takes_a_mod_out(self):
         self.api.import_paths([self._zip("A"), self._zip("B")])
@@ -87,8 +91,27 @@ class WindowApi(unittest.TestCase):
     def test_no_game_or_nothing_ticked_is_an_error_not_an_install(self):
         with self.assertRaises(RuntimeError):
             self.api.install()
-        with self.assertRaises(RuntimeError):
-            Api(self.home, None).restore()
+        self.picked = [self._zip("A")]
+        self.api.import_mods()
+        os.remove(os.path.join(self.game, "D4X.exe"))
+        self.assertFalse(self.api.state()["settings"]["game_ok"])
+        with mock.patch("d4xmm.install.flow.install_mods") as run:
+            with self.assertRaisesRegex(RuntimeError, NO_GAME):
+                self.api.install()
+        run.assert_not_called()
+        with self.assertRaisesRegex(RuntimeError, NO_GAME):
+            self.api.restore()
+
+    def test_a_chosen_or_typed_folder_is_kept_and_an_empty_one_is_found_again(self):
+        self.folder = self.zips
+        self.assertEqual(self.api.choose_folder("downloads")["settings"]["downloads"], self.zips)
+        self.folder = None
+        self.assertEqual(self.api.choose_folder("downloads")["settings"]["downloads"], self.zips)
+        with mock.patch.object(settings, "downloads_dir", return_value="C:\\dl"):
+            state = Api(self.home).set_folder("downloads", " ")
+        self.assertEqual(state["settings"]["downloads"], "C:\\dl")
+        with self.assertRaises(ValueError):
+            self.api.set_folder("window", "x")
 
     def test_the_page_sees_only_the_calls(self):
         public = sorted(n for n in vars(self.api) if not n.startswith("_"))

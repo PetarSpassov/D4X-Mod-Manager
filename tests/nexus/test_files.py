@@ -5,13 +5,13 @@ from d4xmm.nexus import files
 QQ = "QuinnQuest-5-v0-4-2-2-1780006924.zip"
 
 
-def _fake(listing, name=None):
+def _fake(listing, name=None, **about):
     """A stand-in for the API: {mod id: [file records]}, and the ids it was asked for."""
     asked = []
 
     def mod(mod_id):
         asked.append(mod_id)
-        return {"name": name, "files": listing.get(mod_id, [])}
+        return dict(about, name=name, files=listing.get(mod_id, []))
     return mod, asked
 
 
@@ -21,11 +21,14 @@ class Lookup(unittest.TestCase):
             {"fileId": 18, "name": "QuinnQuest", "version": "v0.2.2", "category": "OLD_VERSION",
              "uri": "QuinnQuest-5-v0-2-2-1756549824.zip"},
             {"fileId": 30, "name": "QuinnQuest", "version": "v0.4.2.2", "category": "MAIN",
-             "uri": QQ}]}, name="QuinnQuest - Conquest Additions and Overhauls")
+             "uri": QQ}]}, name="QuinnQuest - Conquest Additions and Overhauls",
+            creator="PeterQuinn98", summary="A PVE mod.", picture="https://x/5.png")
         self.assertEqual(files.lookup(QQ, mod_files),
                          {"nexus_id": 5, "file_id": 30, "name": "QuinnQuest",
                           "mod_name": "QuinnQuest - Conquest Additions and Overhauls",
-                          "version": "v0.4.2.2", "category": "MAIN", "latest": "v0.4.2.2"})
+                          "version": "v0.4.2.2", "category": "MAIN", "latest": "v0.4.2.2",
+                          "creator": "PeterQuinn98", "summary": "A PVE mod.",
+                          "picture": "https://x/5.png"})
         self.assertEqual(asked, ["5"])
 
     def test_latest_is_the_newest_main_file_even_when_this_one_is_older(self):

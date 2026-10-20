@@ -7,7 +7,8 @@ import urllib.request
 API = "https://api.nexusmods.com/v2/graphql"
 GAME_ID = 7811  # Dune: Spice Wars
 TIMEOUT = 10
-QUERY = ("query($mod: ID!, $game: ID!) { mod(modId: $mod, gameId: $game) { name } "
+QUERY = ("query($mod: ID!, $game: ID!) { mod(modId: $mod, gameId: $game) "
+         "{ name summary pictureUrl uploader { name } } "
          "modFiles(modId: $mod, gameId: $game) { fileId name version uri category } }")
 
 
@@ -20,7 +21,7 @@ class Refused(Exception):
 
 
 def _mod(mod_id):
-    """{name: the mod's own name or None, files: [its file records]}."""
+    """{name, creator, summary, picture: the mod's own, each None if missing; files: [records]}."""
     body = json.dumps({"query": QUERY, "variables": {"mod": mod_id, "game": GAME_ID}}).encode()
     # Nexus answers Python's default User-Agent with 403
     req = urllib.request.Request(API, body, {"Content-Type": "application/json",
@@ -32,7 +33,10 @@ def _mod(mod_id):
         raise Refused(str(e)) from e
     except (urllib.error.URLError, TimeoutError) as e:
         raise Offline(str(e)) from e
-    return {"name": (data.get("mod") or {}).get("name"), "files": data.get("modFiles") or []}
+    found = data.get("mod") or {}
+    return {"name": found.get("name"), "creator": (found.get("uploader") or {}).get("name"),
+            "summary": found.get("summary"), "picture": found.get("pictureUrl"),
+            "files": data.get("modFiles") or []}
 
 
 def lookup(file_name, mod=_mod):
@@ -49,5 +53,7 @@ def lookup(file_name, mod=_mod):
             if f["uri"] == file_name:
                 return {"nexus_id": int(mod_id), "file_id": f["fileId"], "name": f["name"],
                         "mod_name": found["name"] or f["name"], "version": f["version"],
-                        "category": f["category"], "latest": latest}
+                        "category": f["category"], "latest": latest,
+                        "creator": found.get("creator"), "summary": found.get("summary"),
+                        "picture": found.get("picture")}
     return None

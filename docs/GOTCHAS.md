@@ -64,3 +64,9 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
 - **Nexus's API answers Python's default User-Agent with 403; send our own.**
   names: `urlopen`, `User-Agent`, `api.nexusmods.com`
   sign: curl gets data while the app reports every mod as offline or refused
+
+## E — Window
+
+- **A maximised form's Bounds and pywebview's resized event give the screen size; save RestoreBounds.**
+  names: `RestoreBounds`, `placement`, `window_args`
+  sign: un-maximising after a restart leaves the window as big as the screen

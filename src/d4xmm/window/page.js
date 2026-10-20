@@ -1,6 +1,7 @@
 // The window's page: renders Api.state() and sends every change back through window.pywebview.api.
 let mods = [];
 let dragFrom = null;
+const expanded = new Set();  // folders whose detail is open; kept across re-renders
 const NO_VERSION = {offline: "You are offline", not_found: "This file is not on Nexus",
                     refused: "Nexus answered with an error"};
 const STATUS = {none: "Not installed", current: "Installed, up to date",
@@ -69,27 +70,58 @@ function menu(m, li) {
   li.appendChild(box);
 }
 
+function meta(m) {
+  const parts = [];
+  if (m.version) parts.push(/^v/i.test(m.version) ? m.version : "v" + m.version);
+  if (m.creator) parts.push("by " + m.creator);
+  return parts.join(" ");
+}
+
+function detail(m) {
+  const box = document.createElement("div");
+  box.className = "detail";
+  if (m.picture) {
+    const img = document.createElement("img");
+    img.src = m.picture;
+    img.alt = "";
+    box.appendChild(img);
+  }
+  const text = document.createElement("p");
+  text.textContent = m.summary || "Nexus has no summary for this mod.";
+  box.appendChild(text);
+  return box;
+}
+
 function row(m, i) {
   const li = document.createElement("li");
-  li.className = m.enabled ? "" : "off";
+  li.className = (m.enabled ? "" : "off") + (expanded.has(m.folder) ? " open" : "");
   li.draggable = true;
   li.dataset.index = i;
-  li.innerHTML = '<span class="handle" title="Drag to reorder">⠿</span><input type="checkbox">' +
-    '<span class="name"></span><span class="ver"></span>';
+  li.innerHTML = '<div class="line"><span class="handle" title="Drag to reorder">⠿</span>' +
+    '<input type="checkbox"><span class="title"><span class="name"></span> ' +
+    '<span class="meta"></span></span></div>';
+  const line = li.querySelector(".line");
   li.querySelector("input").checked = m.enabled;
   li.querySelector("input").onchange = e => { m.enabled = e.target.checked; save(); };
   li.querySelector(".name").textContent = m.name;
-  li.querySelector(".name").title = m.name;
-  li.querySelector(".ver").textContent = m.version || "?";
+  li.querySelector(".meta").textContent = meta(m);
+  li.querySelector(".title").title = m.name + " " + meta(m);
   const n = note(m);
   if (n) {
     const tag = document.createElement("span");
     tag.className = "note " + n.cls;
     tag.textContent = n.text;
     tag.title = n.title;
-    li.appendChild(tag);
+    line.appendChild(tag);
   }
-  menu(m, li);
+  menu(m, line);
+  line.addEventListener("click", e => {
+    if (e.target.closest("input, .menu, .handle")) return;
+    if (!expanded.delete(m.folder)) expanded.add(m.folder);
+    li.classList.toggle("open");
+    if (li.classList.contains("open") && !li.querySelector(".detail")) li.appendChild(detail(m));
+  });
+  if (expanded.has(m.folder)) li.appendChild(detail(m));
   dragEvents(li);
   return li;
 }
@@ -151,10 +183,18 @@ function renderLast(install) {
   }
 }
 
+function renderSettings(s) {
+  for (const key of ["game_dir", "downloads"]) {
+    const input = $("set-" + key);
+    if (document.activeElement !== input) input.value = s[key] || "";
+  }
+  $("game-error").hidden = s.game_ok;
+  $("set-game_dir").classList.toggle("bad", !s.game_ok);
+}
+
 function render(state) {
   mods = state.mods;
-  $("game").textContent = state.game_dir || "Game not found in Steam";
-  $("game").title = state.game_dir || "";
+  renderSettings(state.settings);
   const pill = $("install-state");
   pill.textContent = STATUS[state.install.status];
   pill.className = "pill " + state.install.status;
@@ -194,6 +234,21 @@ function describe(report) {
 async function importDropped(paths) {
   if (await run("import_paths", paths)) setStatus("");
 }
+
+function showTab(name) {
+  document.querySelectorAll(".tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.tab === name);
+  });
+  document.querySelectorAll(".page").forEach(p => { p.hidden = p.id !== "tab-" + name; });
+}
+
+document.querySelectorAll(".tab").forEach(t => { t.onclick = () => showTab(t.dataset.tab); });
+document.querySelectorAll("[data-key]").forEach(input => {
+  input.onchange = () => run("set_folder", input.dataset.key, input.value);
+});
+document.querySelectorAll("[data-choose]").forEach(b => {
+  b.onclick = () => run("choose_folder", b.dataset.choose);
+});
 
 $("import").onclick = async () => { if (await run("import_mods")) setStatus(""); };
 $("search").oninput = renderList;

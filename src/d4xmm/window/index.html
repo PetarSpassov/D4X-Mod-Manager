@@ -6,29 +6,52 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h1>D4X Mod Manager</h1>
-  <span id="game"></span>
+<nav class="tabs">
+  <button class="tab active" data-tab="installed">Installed</button>
+  <button class="tab" data-tab="browse">Browse</button>
+  <button class="tab" data-tab="settings">Settings</button>
+  <span class="spacer"></span>
   <span id="install-state" class="pill"></span>
-</header>
-<div class="toolbar">
-  <button id="import">Import…</button>
-  <span class="drop-hint">or drop archives anywhere</span>
-  <input id="search" type="search" placeholder="Search mods">
-</div>
-<main>
-  <ul id="mods"><li class="empty">Loading…</li></ul>
-  <p class="hint">Drag ⠿ to reorder. Lower in the list loads later and wins.</p>
-  <details id="last" hidden><summary></summary><ul></ul></details>
-</main>
-<footer>
-  <div id="status"></div>
-  <div class="actions">
-    <span class="spacer"></span>
-    <button id="restore">Remove all mods</button>
-    <button id="install" class="primary">Install</button>
+</nav>
+<section id="tab-installed" class="page">
+  <div class="toolbar">
+    <button id="import">Import…</button>
+    <span class="drop-hint">or drop archives anywhere</span>
+    <input id="search" type="search" placeholder="Search mods">
   </div>
-</footer>
+  <main>
+    <ul id="mods"><li class="empty">Loading…</li></ul>
+    <details id="last" hidden><summary></summary><ul></ul></details>
+  </main>
+  <footer>
+    <div id="status"></div>
+    <div class="actions">
+      <span class="spacer"></span>
+      <button id="restore">Remove all mods</button>
+      <button id="install" class="primary">Install</button>
+    </div>
+  </footer>
+</section>
+<section id="tab-browse" class="page" hidden>
+  <main><p class="empty">The Nexus catalog will be here.</p></main>
+</section>
+<section id="tab-settings" class="page" hidden>
+  <main class="settings">
+    <label for="set-game_dir">Game folder</label>
+    <div class="field">
+      <input id="set-game_dir" data-key="game_dir" spellcheck="false">
+      <button data-choose="game_dir">Choose…</button>
+    </div>
+    <p id="game-error" class="error" hidden>D4X.exe is not in this folder.
+      Choose the Dune: Spice Wars folder in your Steam library.</p>
+    <label for="set-downloads">Downloads folder</label>
+    <div class="field">
+      <input id="set-downloads" data-key="downloads" spellcheck="false">
+      <button data-choose="downloads">Choose…</button>
+    </div>
+    <p class="hint">Leave a folder empty to use the one Steam or Windows has.</p>
+  </main>
+</section>
 <script src="page.js"></script>
 </body>
 </html>
