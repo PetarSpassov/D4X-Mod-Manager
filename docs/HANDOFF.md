@@ -36,3 +36,5 @@ or rules must change this file too (pre-commit).
 - Merged separators in the editor or game: tests and one live merge of the real `data.cdb` only.
 - `install/flow.install_mods()` with the real merge or a real game folder: its tests stand in a fake
   merge and a temp game folder.
+- The window (`python -m d4xmm.window.app`, home `%LOCALAPPDATA%\D4XModManager`): how it looks and
+  every button. Only its Api is tested; seen live, it stays open 8 s with no error.
