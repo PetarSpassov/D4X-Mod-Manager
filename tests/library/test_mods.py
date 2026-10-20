@@ -65,6 +65,40 @@ class Describe(unittest.TestCase):
         self.assertEqual((info["version"], info["nexus"]), (None, "refused"))
 
 
+class Refresh(unittest.TestCase):
+    FOUND = {"nexus_id": 5, "file_id": 48, "name": "QuinnQuest", "version": "v0.4.2.2",
+             "mod_name": "QuinnQuest - Conquest", "category": "MAIN"}
+
+    def setUp(self):
+        self.library = tempfile.mkdtemp()
+        archive = _zip(tempfile.mkdtemp(), "QuinnQuest-5-v0-4-2-2-1780006924.zip",
+                       {"res.compressed1.pak": b"pak"})
+        with mock.patch.object(mods.nexus_files, "lookup", side_effect=mods.nexus_files.Offline):
+            mods.import_archive(archive, self.library)
+        self.folder = "QuinnQuest-5-v0-4-2-2-1780006924"
+
+    def _record(self):
+        with open(os.path.join(self.library, self.folder, mods.RECORD), encoding="utf-8") as f:
+            return json.load(f)
+
+    def _refresh(self, **lookup):
+        with mock.patch.object(mods.nexus_files, "lookup", **lookup):
+            return mods.refresh(self.library)
+
+    def test_a_mod_imported_offline_takes_nexus_info_in_its_own_folder(self):
+        self.assertEqual(self._refresh(return_value=self.FOUND), [self.folder])
+        record = self._record()
+        self.assertEqual((record["name"], record["version"], record["nexus"]),
+                         ("QuinnQuest - Conquest", "v0.4.2.2", "found"))
+        self.assertEqual(record["files"], {"res.compressed1.pak": "res.compressed1.pak"})
+        self.assertEqual(self._refresh(return_value=self.FOUND), [])
+
+    def test_offline_keeps_the_record(self):
+        before = self._record()
+        self.assertEqual(self._refresh(side_effect=mods.nexus_files.Offline), [])
+        self.assertEqual(self._record(), before)
+
+
 class ImportZip(unittest.TestCase):
     def setUp(self):
         patch = mock.patch.object(mods.nexus_files, "lookup", return_value=None)

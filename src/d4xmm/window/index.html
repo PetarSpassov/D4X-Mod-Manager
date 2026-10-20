@@ -169,6 +169,8 @@ document.getElementById("restore").onclick = async () => {
 window.addEventListener("pywebviewready", async () => {
   const state = await call("state");
   if (state) render(state);
+  // not through call(): the list stays usable while Nexus answers
+  window.pywebview.api.refresh().then(render, e => setStatus(String(e.message || e), true));
 });
 </script>
 </body>

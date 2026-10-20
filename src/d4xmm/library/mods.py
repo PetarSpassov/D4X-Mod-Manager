@@ -111,3 +111,23 @@ def import_archive(archive, library):
         shutil.rmtree(folder)
     os.replace(staging, folder)
     return record
+
+
+def refresh(library):
+    """Look every imported mod up on Nexus again by its download name, and keep what is found.
+
+    A mod Nexus doesn't answer for keeps its record. Returns the folders whose record changed.
+    """
+    changed = []
+    for folder in sorted(os.listdir(library)):
+        path = os.path.join(library, folder, RECORD)
+        if not os.path.isfile(path):
+            continue
+        with open(path, encoding="utf-8") as f:
+            record = json.load(f)
+        info = describe(record["source"])
+        if info["nexus"] == "found" and any(record.get(k) != v for k, v in info.items()):
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(dict(record, **info), f, indent=1)
+            changed.append(folder)
+    return changed

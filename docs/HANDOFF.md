@@ -58,9 +58,12 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 - A mod is named by its Nexus mod name (e.g. "Dune Spice Wars Community Patch"); offline or not on
   Nexus, by the archive name. The library folder still comes from the Nexus file name, else the
   archive name. Seen live: both `examples/` archives describe with their mod names. Not seen in the
-  window; mods imported earlier keep their old name until re-imported. The user's library holds
-  QuinnQuest as `QuinnQuest-5-v0-4-2-2-1780006924` (imported offline): an online re-import goes to
-  `QuinnQuest`, a second entry, and there is no way to delete a mod from the window yet.
+  window. The user's library holds QuinnQuest as `QuinnQuest-5-v0-4-2-2-1780006924` (imported
+  offline): an online re-import goes to `QuinnQuest`, a second entry, and no window delete exists.
+- On start the window looks every mod up on Nexus again in the background (`mods.refresh`) and
+  re-renders; a found mod's record takes the new name, version and ids, in its own folder. Seen
+  live on a copy of the user's records: QuinnQuest and community_patch took their Nexus names and
+  versions. Not seen in the window; an import or reorder while it runs is untested.
 - The user wants the app's structure seriously revised: "it's ugly and lacks basic features like
   deleting a mod".
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.

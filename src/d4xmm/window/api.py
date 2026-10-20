@@ -63,6 +63,11 @@ class Api:
             mods.import_archive(path, self._library)
         return self.state()
 
+    def refresh(self):
+        """Every mod's name, version and Nexus ids looked up again; the page calls it on start."""
+        mods.refresh(self._library)
+        return self.state()
+
     def install(self):
         """Merge and install the ticked mods in load order; returns install_mods' report."""
         ticked = [e["folder"] for e in self._order(self._records()) if e["enabled"]]

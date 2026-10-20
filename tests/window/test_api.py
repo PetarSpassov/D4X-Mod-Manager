@@ -43,6 +43,16 @@ class WindowApi(unittest.TestCase):
         self.assertEqual(run.call_args.args[0], "C:/Game")
         self.assertEqual(run.call_args.args[3], ["C", "B"])
 
+    def test_refresh_returns_the_list_with_what_nexus_says(self):
+        self.picked = [self._zip("A")]
+        self.api.import_mods()
+        found = {"nexus_id": 1, "file_id": 2, "name": "A", "mod_name": "Mod A", "version": "1.0",
+                 "category": "MAIN"}
+        with mock.patch("d4xmm.nexus.files.lookup", return_value=found):
+            state = self.api.refresh()
+        self.assertEqual([(m["folder"], m["name"], m["version"]) for m in state["mods"]],
+                         [("A", "Mod A", "1.0")])
+
     def test_no_game_or_nothing_ticked_is_an_error_not_an_install(self):
         with self.assertRaises(RuntimeError):
             self.api.install()
