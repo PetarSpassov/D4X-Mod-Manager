@@ -53,6 +53,8 @@
 
 # third-party tools we ship, kept as they came
 !vendor/**
+# binary test inputs no tool here can make
+!tests/**/fixtures/**
 
 # ---- generated things that wear those extensions anyway ----
 
