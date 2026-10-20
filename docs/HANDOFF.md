@@ -98,6 +98,9 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 - A trial the user may drop: the ⋯ menu is replaced by three icons per row (folder, open on Nexus,
   bin). The bin turns red on the first click and deletes on the second; any other click disarms
   it. Seen only in a browser preview with a fake Api.
+- After `29ad90e` the user reports: dragging a mod up moves it, but no drop bar shows, unlike
+  dragging down. The bar above the first row sat in the list's clipped top edge; the list now has
+  6px above it. Not seen since.
 - The window reopens where it closed, maximised if it was. Seen live: closed maximised, settings.json
   kept `"width": 860, "height": 640, "maximized": true`; reopened, closed untouched, the same again.
   Un-maximising after a restart, and a second monitor, not seen.
