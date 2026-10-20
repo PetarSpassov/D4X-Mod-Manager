@@ -54,9 +54,15 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 - A row two mods change is the later mod's whole row. After `141b72e` the user re-merged and says
   "the merge still seems to work without issue"; whether each shared row is exactly the later mod's
   was not reported. Inference: a mod whose editor wrote a column into every row wins every row.
-- The clash list after Install ("X overrides Y on ..."): tests, and seen live in a temp merge of the
-  library's two mods: `QuinnQuest-5-v0-4-2-2-1780006924 over ['community_patch'] 15` items. Not
-  seen in the window. Mod names there are the library folder names, download name included.
+- After `4ce7bf7` the user says "the overrides show correctly" in the window after Install.
+- A mod is named by its Nexus mod name (e.g. "Dune Spice Wars Community Patch"); offline or not on
+  Nexus, by the archive name. The library folder still comes from the Nexus file name, else the
+  archive name. Seen live: both `examples/` archives describe with their mod names. Not seen in the
+  window; mods imported earlier keep their old name until re-imported. The user's library holds
+  QuinnQuest as `QuinnQuest-5-v0-4-2-2-1780006924` (imported offline): an online re-import goes to
+  `QuinnQuest`, a second entry, and there is no way to delete a mod from the window yet.
+- The user wants the app's structure seriously revised: "it's ugly and lacks basic features like
+  deleting a mod".
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.
 - What the window reports when data.cdb couldn't carry rows over, or `trait` passes 2048 rows.
 - The test mods from `tests/merge/make_test_mods.py` (`build/test_mods/`) in the game, alone or

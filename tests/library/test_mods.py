@@ -42,16 +42,16 @@ class Describe(unittest.TestCase):
 
     def test_a_file_nexus_knows_takes_its_record(self):
         found = {"nexus_id": 5, "file_id": 30, "name": "QuinnQuest", "version": "v0.4.2.2",
-                 "category": "MAIN"}
+                 "mod_name": "QuinnQuest - Conquest", "category": "MAIN"}
         self.assertEqual(self._describe("C:/dl/QuinnQuest-5-v0-4-2-2-1780006924.zip",
                                         return_value=found),
-                         {"name": "QuinnQuest", "nexus_id": 5, "file_id": 30,
-                          "version": "v0.4.2.2", "nexus": "found"})
+                         {"name": "QuinnQuest - Conquest", "file": "QuinnQuest", "nexus_id": 5,
+                          "file_id": 30, "version": "v0.4.2.2", "nexus": "found"})
 
     def test_a_file_nexus_doesnt_know_keeps_its_name_and_no_version(self):
         self.assertEqual(self._describe("C:/dl/my mod.zip", return_value=None),
-                         {"name": "my mod", "nexus_id": None, "file_id": None, "version": None,
-                          "nexus": "not_found"})
+                         {"name": "my mod", "file": "my mod", "nexus_id": None, "file_id": None,
+                          "version": None, "nexus": "not_found"})
 
     def test_offline_guesses_nothing(self):
         info = self._describe("QuinnQuest-5-v0-4-2-2-1780006924.zip",

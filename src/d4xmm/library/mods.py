@@ -39,13 +39,13 @@ def target(member):
 
 
 def describe(archive):
-    """Name, Nexus ids and version from Nexus's own record of this download; `nexus` says how.
+    """Mod name, file name, Nexus ids and version from Nexus's record of this download.
 
-    `nexus` is "found", "not_found", "offline" or "refused"; only "found" fills ids and version.
+    `nexus` is "found", "not_found", "offline" or "refused"; only "found" fills all but the names.
     """
     file_name = os.path.basename(archive)
-    unknown = {"name": os.path.splitext(file_name)[0], "nexus_id": None, "file_id": None,
-               "version": None}
+    stem = os.path.splitext(file_name)[0]
+    unknown = {"name": stem, "file": stem, "nexus_id": None, "file_id": None, "version": None}
     try:
         found = nexus_files.lookup(file_name)
     except nexus_files.Offline:
@@ -54,8 +54,8 @@ def describe(archive):
         return dict(unknown, nexus="refused")
     if found is None:
         return dict(unknown, nexus="not_found")
-    return {"name": found["name"], "nexus_id": found["nexus_id"], "file_id": found["file_id"],
-            "version": found["version"], "nexus": "found"}
+    return {"name": found["mod_name"], "file": found["name"], "nexus_id": found["nexus_id"],
+            "file_id": found["file_id"], "version": found["version"], "nexus": "found"}
 
 
 def _extract(archive, dest):
@@ -95,7 +95,7 @@ def import_archive(archive, library):
     Returns the record written to mod.json.
     """
     info = describe(archive)
-    folder = os.path.join(library, re.sub(r"[^\w.-]+", "_", info["name"]).strip("_.") or "mod")
+    folder = os.path.join(library, re.sub(r"[^\w.-]+", "_", info["file"]).strip("_.") or "mod")
     staging = folder + ".importing"
     if os.path.isdir(staging):
         shutil.rmtree(staging)
