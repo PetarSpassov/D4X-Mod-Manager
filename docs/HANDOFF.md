@@ -9,7 +9,8 @@ or rules must change this file too (pre-commit).
 
 **► LAST KNOWN GOOD:** none yet *(only the user names this, in their own words; it lives here and nowhere else)*
 
-**Open threads:** none.
+**Open threads:** `merge.merge()` takes the base game's `data.cdb` as a path; where that comes from
+(it sits in the 5.7 GB `res.compressed.pak`) is not decided.
 
 ## Standing decisions
 
@@ -31,3 +32,4 @@ or rules must change this file too (pre-commit).
 
 - `merge/pak.py` on a full-size merged folder: only a one-file pak has been built, and no game has
   loaded a pak we built.
+- `merge.merge()` on real mods: only two tiny mods built in the tests have been merged.
