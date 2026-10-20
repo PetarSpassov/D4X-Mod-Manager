@@ -49,7 +49,7 @@
 <p class="hint">Lower in the list loads later and wins.</p>
 <ul id="mods"><li class="empty">Loading…</li></ul>
 <div class="actions">
-  <button id="import">Import zips…</button>
+  <button id="import">Import mods…</button>
   <span class="spacer"></span>
   <button id="restore">Remove all mods</button>
   <button id="install" class="primary">Install</button>
@@ -74,7 +74,7 @@ function render(state) {
   const list = document.getElementById("mods");
   list.innerHTML = "";
   if (!mods.length) {
-    list.innerHTML = '<li class="empty">No mods yet. Import a mod\'s zip to start.</li>';
+    list.innerHTML = '<li class="empty">No mods yet. Import a mod\'s zip, 7z or rar to start.</li>';
   }
   mods.forEach((m, i) => {
     const li = document.createElement("li");
@@ -139,7 +139,7 @@ function describe(report) {
 }
 
 document.getElementById("import").onclick = async () => {
-  const state = await call("import_zips");
+  const state = await call("import_mods");
   if (state) { render(state); setStatus(""); }
 };
 

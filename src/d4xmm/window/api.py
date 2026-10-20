@@ -14,9 +14,9 @@ ORDER = "order.json"
 class Api:
     """pywebview hands the page every public attribute, so all but the calls start with _."""
 
-    def __init__(self, home, game_dir, pick_zips=None):
-        """pick_zips() returns the zip paths the user chose; the window supplies a file dialog."""
-        self._home, self._game_dir, self._pick_zips = home, game_dir, pick_zips
+    def __init__(self, home, game_dir, pick_archives=None):
+        """pick_archives() returns the paths the user chose; the window supplies a file dialog."""
+        self._home, self._game_dir, self._pick_archives = home, game_dir, pick_archives
         self._library = os.path.join(home, "library")
         self._state_dir = os.path.join(home, "state")
         for folder in (self._library, self._state_dir):
@@ -57,9 +57,9 @@ class Api:
                       f, indent=1)
         return self.state()
 
-    def import_zips(self):
-        for path in (self._pick_zips() or []):
-            mods.import_zip(path, self._library)
+    def import_mods(self):
+        for path in (self._pick_archives() or []):
+            mods.import_archive(path, self._library)
         return self.state()
 
     def install(self):

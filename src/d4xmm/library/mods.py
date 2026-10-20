@@ -1,4 +1,4 @@
-"""Importing a mod's zip: one library folder per mod, its unpacked files plus a mod.json record.
+"""Importing a mod's archive: one library folder per mod, its unpacked files plus a mod.json record.
 
 The record maps each file the game loads to where it goes in the game folder.
 """
@@ -6,10 +6,13 @@ import json
 import os
 import re
 import shutil
-import zipfile
+import subprocess
 
 from d4xmm.game import hlboot
 
+SEVEN_ZIP = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                                         "vendor", "7zip", "7z.exe"))
+TIMEOUT = 600
 RECORD = "mod.json"
 AUDIO_DIR = "res/Audio"
 AUDIO_EXT = (".wem", ".bnk")
@@ -46,43 +49,53 @@ def describe(zip_path):
             "version": m["version"].replace("-", ".")}
 
 
-def _unpack(zip_path, dest):
-    """Extract the zip into dest; return {game path: path in the mod folder} and the other files."""
+def _extract(archive, dest):
+    """Extract any archive 7-Zip reads into dest; return the files written, relative, with /."""
+    os.makedirs(dest)
+    run = subprocess.run([SEVEN_ZIP, "x", "-y", "-bso0", "-bsp0", "-o" + dest, archive],
+                         capture_output=True, text=True, errors="replace",
+                         stdin=subprocess.DEVNULL, timeout=TIMEOUT,
+                         creationflags=subprocess.CREATE_NO_WINDOW)  # no console from pythonw
+    if run.returncode != 0:
+        raise ModImportError("7-Zip could not unpack %s: %s"
+                             % (os.path.basename(archive), run.stderr.strip()[-300:]))
+    # 7-Zip drops "..", drive letters and leading slashes, so list what it really wrote
+    return sorted(os.path.relpath(os.path.join(root, f), dest).replace(os.sep, "/")
+                  for root, _, names in os.walk(dest) for f in names)
+
+
+def _unpack(archive, dest):
+    """Extract into dest; return {game path: path in the mod folder} and the other files."""
     files, other = {}, []
-    with zipfile.ZipFile(zip_path) as z:
-        for member in z.namelist():
-            if member.endswith("/"):
-                continue
-            # zipfile drops "..", drive letters and leading slashes, so record where it really went
-            written = os.path.relpath(z.extract(member, dest), dest).replace(os.sep, "/")
-            where = target(written)
-            if where is None:
-                other.append(written)
-            elif where.lower() in (k.lower() for k in files):
-                raise ModImportError("two files in the zip go to %s" % where)
-            else:
-                files[where] = written
+    for written in _extract(archive, dest):
+        where = target(written)
+        if where is None:
+            other.append(written)
+        elif where.lower() in (k.lower() for k in files):
+            raise ModImportError("two files in the archive go to %s" % where)
+        else:
+            files[where] = written
     if not files:
-        raise ModImportError("nothing in the zip is a file the game loads")
+        raise ModImportError("nothing in the archive is a file the game loads")
     return files, other
 
 
-def import_zip(zip_path, library):
-    """Unpack a mod's zip into its library folder, replacing an earlier import of the same mod.
+def import_archive(archive, library):
+    """Unpack a mod's zip, 7z or rar into its library folder, replacing an earlier import of it.
 
     Returns the record written to mod.json.
     """
-    info = describe(zip_path)
+    info = describe(archive)
     folder = os.path.join(library, re.sub(r"[^\w.-]+", "_", info["name"]).strip("_.") or "mod")
     staging = folder + ".importing"
     if os.path.isdir(staging):
         shutil.rmtree(staging)
     try:
-        files, other = _unpack(zip_path, staging)
-    except (ModImportError, zipfile.BadZipFile):
+        files, other = _unpack(archive, staging)
+    except ModImportError:
         shutil.rmtree(staging, ignore_errors=True)  # best effort; the error below is what matters
         raise
-    record = dict(info, source=os.path.basename(zip_path), files=files, other=other)
+    record = dict(info, source=os.path.basename(archive), files=files, other=other)
     with open(os.path.join(staging, RECORD), "w", encoding="utf-8") as f:
         json.dump(record, f, indent=1)
     if os.path.isdir(folder):

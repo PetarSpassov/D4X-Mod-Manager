@@ -13,11 +13,12 @@ HOME = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), "D4
 def main():
     holder = {}
 
-    def pick_zips():
+    def pick_archives():
         return holder["window"].create_file_dialog(
-            webview.FileDialog.OPEN, allow_multiple=True, file_types=("Mod zips (*.zip)",))
+            webview.FileDialog.OPEN, allow_multiple=True,
+            file_types=("Mod archives (*.zip;*.7z;*.rar)",))
 
-    api = Api(HOME, steam.find(), pick_zips)
+    api = Api(HOME, steam.find(), pick_archives)
     holder["window"] = webview.create_window("D4X Mod Manager", PAGE, js_api=api,
                                              width=760, height=620, min_size=(520, 420))
     webview.start()

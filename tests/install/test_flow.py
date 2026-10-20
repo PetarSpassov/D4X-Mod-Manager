@@ -31,7 +31,7 @@ class InstallMods(unittest.TestCase):
         with zipfile.ZipFile(path, "w") as z:
             for member, data in files.items():
                 z.writestr(member, data)
-        mods.import_zip(path, self.lib)
+        mods.import_archive(path, self.lib)
         return name  # the library folder, named after the zip
 
     def _fake_merge(self, paks, game_dir, work):

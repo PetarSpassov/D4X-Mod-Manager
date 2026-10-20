@@ -24,18 +24,18 @@ class WindowApi(unittest.TestCase):
 
     def test_imported_mods_join_the_end_of_the_list_ticked(self):
         self.picked = [self._zip("A"), self._zip("B")]
-        self.assertEqual(self._names(self.api.import_zips()), [("A", True), ("B", True)])
+        self.assertEqual(self._names(self.api.import_mods()), [("A", True), ("B", True)])
 
     def test_a_saved_order_and_ticks_come_back(self):
         self.picked = [self._zip("A"), self._zip("B")]
-        self.api.import_zips()
+        self.api.import_mods()
         self.api.save_order([{"folder": "B", "enabled": True}, {"folder": "A", "enabled": False}])
         fresh = Api(self.home, "C:/Game")
         self.assertEqual(self._names(fresh.state()), [("B", True), ("A", False)])
 
     def test_install_passes_only_ticked_mods_in_load_order(self):
         self.picked = [self._zip("A"), self._zip("B"), self._zip("C")]
-        self.api.import_zips()
+        self.api.import_mods()
         self.api.save_order([{"folder": "C", "enabled": True}, {"folder": "A", "enabled": False},
                              {"folder": "B", "enabled": True}])
         with mock.patch("d4xmm.install.flow.install_mods", return_value={}) as run:

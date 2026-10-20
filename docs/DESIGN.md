@@ -30,7 +30,7 @@ each file goes. Installing never moves anything out of the library. Import sorts
 | anything else | kept, listed as "other", not installed |
 
 A zip with nothing the game loads, or two files for one place, is refused. Re-importing a mod
-replaces its old copy. Zip only for now: `.7z` and `.rar` are not read.
+replaces its old copy. Zip, 7z and rar are all unpacked by the 7-Zip in `vendor/7zip`.
 
 ## Getting mods
 

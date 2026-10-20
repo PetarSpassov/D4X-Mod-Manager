@@ -152,7 +152,7 @@ def check(p, built, zips, game, order):
         _read(os.path.join(back, "d4xmm", "only1.txt")) == b"only mod 1")
     lib = os.path.join(work, "library")
     for z in zips:
-        mods.import_zip(z, lib)
+        mods.import_archive(z, lib)
     _, files, _ = flow._gather(lib, [NAMES[n - 1] for n in order])
     cases["13 audio bank, later wins"] = (
         _read(files["res/Audio/D4XMM_Test.bnk"]) == b"bank from mod %d" % last)

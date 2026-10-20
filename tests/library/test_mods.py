@@ -1,10 +1,13 @@
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 import zipfile
 
 from d4xmm.library import mods
+
+FIXTURES = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
 def _zip(folder, name, members):
@@ -43,10 +46,8 @@ class ImportZip(unittest.TestCase):
     def setUp(self):
         self.downloads, self.library = tempfile.mkdtemp(), tempfile.mkdtemp()
 
-    def test_unpacks_and_records(self):
-        z = _zip(self.downloads, "Cool Mod-7-2-0-1752884636.zip",
-                 {"Cool/res.compressed1.pak": b"pak", "Cool/readme.txt": b"hi"})
-        record = mods.import_zip(z, self.library)
+    def _imports_cool_mod(self, archive):
+        record = mods.import_archive(archive, self.library)
         folder = os.path.join(self.library, "Cool_Mod")
         with open(os.path.join(folder, mods.RECORD), encoding="utf-8") as f:
             self.assertEqual(json.load(f), record)
@@ -54,10 +55,35 @@ class ImportZip(unittest.TestCase):
         self.assertEqual(record["other"], ["Cool/readme.txt"])
         self.assertTrue(os.path.isfile(os.path.join(folder, "Cool", "res.compressed1.pak")))
 
+    def test_unpacks_and_records_a_zip(self):
+        self._imports_cool_mod(_zip(self.downloads, "Cool Mod-7-2-0-1752884636.zip",
+                                    {"Cool/res.compressed1.pak": b"pak", "Cool/readme.txt": b"hi"}))
+
+    def test_unpacks_a_7z(self):
+        src = os.path.join(tempfile.mkdtemp(), "Cool")
+        os.makedirs(src)
+        for name, data in (("res.compressed1.pak", b"pak"), ("readme.txt", b"hi")):
+            with open(os.path.join(src, name), "wb") as f:
+                f.write(data)
+        archive = os.path.join(self.downloads, "Cool Mod-7-2-0-1752884636.7z")
+        subprocess.run([mods.SEVEN_ZIP, "a", archive, src], check=True, capture_output=True)
+        self._imports_cool_mod(archive)
+
+    def test_unpacks_a_rar(self):
+        self._imports_cool_mod(os.path.join(FIXTURES, "Cool Mod-7-2-0-1752884636.rar"))
+
+    def test_an_unreadable_archive_is_refused_and_leaves_nothing(self):
+        path = os.path.join(self.downloads, "Broken.7z")
+        with open(path, "wb") as f:
+            f.write(b"not an archive")
+        with self.assertRaises(mods.ModImportError):
+            mods.import_archive(path, self.library)
+        self.assertEqual(os.listdir(self.library), [])
+
     def test_reimport_replaces_the_old_copy(self):
-        mods.import_zip(_zip(self.downloads, "M.zip", {"old/res.compressed1.pak": b"1"}),
+        mods.import_archive(_zip(self.downloads, "M.zip", {"old/res.compressed1.pak": b"1"}),
                         self.library)
-        mods.import_zip(_zip(self.downloads, "M.zip", {"new/res.compressed1.pak": b"2"}),
+        mods.import_archive(_zip(self.downloads, "M.zip", {"new/res.compressed1.pak": b"2"}),
                         self.library)
         self.assertEqual(sorted(os.listdir(os.path.join(self.library, "M"))),
                          ["mod.json", "new"])
@@ -65,17 +91,17 @@ class ImportZip(unittest.TestCase):
     def test_a_zip_with_nothing_to_load_is_refused_and_leaves_nothing(self):
         z = _zip(self.downloads, "Notes.zip", {"readme.txt": b"hi"})
         with self.assertRaises(mods.ModImportError):
-            mods.import_zip(z, self.library)
+            mods.import_archive(z, self.library)
         self.assertEqual(os.listdir(self.library), [])
 
     def test_two_files_for_one_place_are_refused(self):
         z = _zip(self.downloads, "Twice.zip",
                  {"a/res.compressed1.pak": b"1", "b/res.compressed1.pak": b"2"})
         with self.assertRaises(mods.ModImportError):
-            mods.import_zip(z, self.library)
+            mods.import_archive(z, self.library)
 
     def test_paths_escaping_the_folder_stay_inside(self):
         z = _zip(self.downloads, "Evil.zip", {"../../res.compressed1.pak": b"x"})
-        record = mods.import_zip(z, self.library)
+        record = mods.import_archive(z, self.library)
         self.assertEqual(sorted(os.listdir(self.library)), ["Evil"])
         self.assertEqual(record["files"], {"res.compressed1.pak": "res.compressed1.pak"})

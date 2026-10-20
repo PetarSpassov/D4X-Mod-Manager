@@ -9,13 +9,21 @@ or rules must change this file too (pre-commit).
 
 **► LAST KNOWN GOOD:** none yet *(only the user names this, in their own words; it lives here and nowhere else)*
 
-**Open threads:** in the app (opened with `!app.bat`), after importing D4XMM_Test1 and _Test2 and
-pressing Install, a console window opened for a few seconds; after it closed the window showed
-"QuickBMS failed on ...\library\D4XMM_Test1\res.compressed1.pak" and repeated "Last script line
-before the error ...: 16 StartFunction unpack folderName". Pressing Install again did the same.
-Reproduced under `start pythonw`: QuickBMS printed "Press ENTER" in a loop, then exited 0xC0000005.
-QuickBMS and pakBuild now run with CREATE_NO_WINDOW, and the same Install path completes under
-pythonw. Not yet tried in the window.
+**Open threads:**
+- After `0122881` the user reports "the installation works now" (Install of D4XMM_Test1 and _Test2
+  from the window). In the editor they saw the test mods' custom attribute row above `Invalid`
+  "so the attributes broke"; custom attributes go below `Invalid`. Test mods not yet changed.
+- The user says `constant` and `attribute` have baked row indices and crash the game if shuffled;
+  `trait` and `quest` do not (keep trait rows above `Count`). 45 sheets carry `hasIndex`, 31
+  `hasGroup` (separator ordinals compiled in); which of them bake literal indices is not yet read.
+- Merging Community Patch (`examples/community_patch-1-0-1-4-1760743071.7z`) and QuinnQuest
+  (`examples/QuinnQuest-5-v0-4-2-2-1780006924.zip`) instead of hand-made test mods: both import.
+- `describe()` reads `QuinnQuest-5-v0-4-2-2-...` as name "QuinnQuest-5-v0", id 4, version 2.2: a
+  version starting with "v" doesn't match `NEXUS_NAME`.
+
+Debt: `vendor/7zip` is 7-Zip 22.01 copied from the NVIDIA App folder, without 7-Zip's licence
+file; replace it with the official 7-Zip package before any release.
+Debt: the no-console `subprocess.run` is now written three times (unpack, pak, mods).
 
 ## Standing decisions
 
@@ -45,5 +53,7 @@ pythonw. Not yet tried in the window.
 - The test mods from `tests/merge/make_test_mods.py` (`build/test_mods/`) in the game, alone or
   merged. Their paks hold only data.cdb and two test files; whether the game takes a pak that small,
   and a trait column it doesn't know (`d4xmmNote`), is unknown.
+- 7z and rar import from the window's file dialog: tested through `import_archive` only (a 7z
+  built by 7-Zip, a rar built by WinRAR). Seen live: both `examples/` mods import into a temp library.
 - The window (`!app.bat`, or `python -m d4xmm.window.app`; home `%LOCALAPPDATA%\D4XModManager`): how it looks and
   every button. Only its Api is tested; seen live, it stays open 8 s with no error.
