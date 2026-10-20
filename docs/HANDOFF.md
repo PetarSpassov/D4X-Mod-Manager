@@ -5,7 +5,7 @@ or rules must change this file too (pre-commit).
 
 ## State
 
-**► WE ARE ON:** nothing; awaiting direction *(moved only by `python .claude/tools/on.py`)*
+**► WE ARE ON:** design doc written (docs/DESIGN.md); next: window toolkit decision, then the install/restore core *(moved only by `python .claude/tools/on.py`)*
 
 **► LAST KNOWN GOOD:** none yet *(only the user names this, in their own words; it lives here and nowhere else)*
 
