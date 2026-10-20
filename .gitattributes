@@ -1,2 +1,4 @@
 # LF everywhere: a CRLF checkout breaks the `#!/bin/sh` line of .githooks/pre-commit
 * text=auto eol=lf
+# Third-party tools ship exactly as they came.
+vendor/** -text

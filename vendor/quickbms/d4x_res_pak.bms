@@ -1,0 +1,48 @@
+#script for quickbms
+# By Sanctus-Susanin / Original by Allen
+# 2024, Northgard .pak / 2015-9-1 Evoland 2 .pak
+# Should work for most of Shiro's games
+
+idstring "PAK\0"
+get DataOffset long
+get FileSize long
+get Magic256 short
+get RootItems long
+for i = 0 < RootItems
+    set folderName string ""
+    CallFunction unpack 0 folderName
+next i
+
+StartFunction unpack folderName
+    get namelen byte
+    getdstring name namelen
+    get type byte
+    set fname string folderName
+    string fname += /
+    string fname += name
+    if type == 0 # file, 32-bit ulong offset
+        get offset long
+        get size long
+        get dummy long
+        math offset += DataOffset
+        log fname offset size
+    elif type == 1 # folder, followed by item names
+        string folderName += /
+        string folderName += name
+        get numEntry long
+        for j = 0 < numEntry
+            set folderName2 string fname
+            CallFunction unpack 0 folderName2
+        next j
+    elif type == 2 # file, 64-bit double-precision offset
+        get offsetDouble double
+        get size long
+        get dummy long
+        set offsetLong longlong offsetDouble
+        math offsetLong += DataOffset
+        log fname offsetLong size
+    else
+        print "Error for entry %fname%: type %type% is not supported!"
+        cleanexit
+    endif
+EndFunction

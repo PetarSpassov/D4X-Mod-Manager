@@ -51,6 +51,9 @@
 !*.gd
 !*.swift
 
+# third-party tools we ship, kept as they came
+!vendor/**
+
 # ---- generated things that wear those extensions anyway ----
 
 # per-machine and per-session state

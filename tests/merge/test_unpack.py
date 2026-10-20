@@ -3,7 +3,6 @@ import struct
 import tempfile
 import unittest
 
-from d4xmm.game import steam
 from d4xmm.merge import unpack
 
 
@@ -25,37 +24,28 @@ def _pak(path, files):
         f.write(tree + data)
 
 
-class ToolDir(unittest.TestCase):
-    def test_missing_folder_is_none(self):
-        self.assertIsNone(unpack.tool_dir(tempfile.mkdtemp()))
-
-
 class Unpack(unittest.TestCase):
     def setUp(self):
-        game = steam.find()
-        self.tools = game and unpack.tool_dir(game)
-        if not self.tools:
-            self.skipTest("the game's QuickBMS folder is not on this PC")
         self.tmp = tempfile.mkdtemp()
 
     def test_unpacks_files_under_their_folders(self):
         pak = os.path.join(self.tmp, "res.compressed1.pak")
         _pak(pak, {"a.txt": b"hello", "b.txt": b"world!"})
         dest = os.path.join(self.tmp, "out")
-        self.assertEqual(unpack.unpack(pak, dest, self.tools), ["ui/a.txt", "ui/b.txt"])
+        self.assertEqual(unpack.unpack(pak, dest), ["ui/a.txt", "ui/b.txt"])
         with open(os.path.join(dest, "ui", "b.txt"), "rb") as f:
             self.assertEqual(f.read(), b"world!")
 
     def test_refuses_an_existing_dest(self):
         with self.assertRaises(FileExistsError):
-            unpack.unpack("x.pak", self.tmp, self.tools)
+            unpack.unpack("x.pak", self.tmp)
 
     def test_not_a_pak_raises(self):
         bad = os.path.join(self.tmp, "bad.pak")
         with open(bad, "wb") as f:
             f.write(b"nope")
         with self.assertRaises(RuntimeError):
-            unpack.unpack(bad, os.path.join(self.tmp, "out"), self.tools)
+            unpack.unpack(bad, os.path.join(self.tmp, "out"))
 
 
 if __name__ == "__main__":

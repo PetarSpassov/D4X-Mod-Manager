@@ -75,3 +75,13 @@ Write a new rule as prose first. Promote it to a hook only after it has failed m
 being written down, and add its case to `tests/` in the same change. Keep each guard narrow.
 Guards that try to parse the user's English, or that exist to fix other guards, are the sign the set
 has grown past what it buys.
+
+## Credits
+
+D4X Mod Manager ships these third-party tools in `vendor/`, unchanged:
+
+| Tool | By | Licence |
+|---|---|---|
+| QuickBMS (`quickbms_4gb_files.exe`, `quickbms.txt`) | Luigi Auriemma, [aluigi.org](https://aluigi.org) | GPL 2.0 |
+| `d4x_res_pak.bms` | Sanctus-Susanin, from an original by Allen | not stated |
+| `pakBuild.hl` | taken from D4XEditor | not stated |
