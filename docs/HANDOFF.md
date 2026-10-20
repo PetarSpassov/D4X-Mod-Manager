@@ -9,8 +9,7 @@ or rules must change this file too (pre-commit).
 
 **► LAST KNOWN GOOD:** none yet *(only the user names this, in their own words; it lives here and nowhere else)*
 
-**Open threads:** `merge.merge()` takes the base game's `data.cdb` as a path; where that comes from
-(it sits in the 5.7 GB `res.compressed.pak`) is not decided.
+**Open threads:** none.
 
 ## Standing decisions
 

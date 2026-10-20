@@ -70,7 +70,8 @@ For each mod, in load order:
 
 1. Unpack its pak with QuickBMS (`d4x_res_pak.bms`) into a temp folder.
 2. **Assets:** copy into one merged folder; a later mod overwrites the same path.
-3. **data.cdb:** diff it against the base game's `data.cdb`, then apply the diff to the merged
+3. **data.cdb:** diff it against the base game's `data.cdb` (pulled fresh from
+   `res.compressed.pak` on every merge, about a second), then apply the diff to the merged
    result. Sheets match by name, rows by their `id` column, and fields one by one. So two mods that
    change different fields of the same row both keep their changes, and on the same field the later
    mod wins. New rows, columns and sheets are added after the item that precedes them in the mod.

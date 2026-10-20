@@ -3,6 +3,7 @@ import os
 
 from d4xmm.merge import assets, cdb, pak, unpack
 
+BASE_PAK = "res.compressed.pak"
 TRAIT_LIMIT = 2048  # the game crashes past this many rows in `trait`
 
 
@@ -31,7 +32,14 @@ def _merge_cdb(unpacked, base_cdb, dest):
     return report, len(traits[0]["lines"]) if traits else None
 
 
-def merge(mods, base_cdb, game_dir, work):
+def _base_cdb(game_dir, work):
+    """The base game's data.cdb, pulled fresh from its pak so a game update is never missed."""
+    dest = os.path.join(work, "base")
+    unpack.unpack(os.path.join(game_dir, BASE_PAK), dest, only=assets.CDB)
+    return os.path.join(dest, assets.CDB)
+
+
+def merge(mods, game_dir, work):
     """Merge each (name, pak path) in load order into one pak under work, which must not exist.
 
     Returns the pak, asset owners, what data.cdb couldn't carry over, and the trait count.
@@ -46,6 +54,6 @@ def merge(mods, base_cdb, game_dir, work):
     merged = os.path.join(work, "merged")
     owners = assets.combine(unpacked, merged)
     os.makedirs(merged, exist_ok=True)
-    report, traits = _merge_cdb(unpacked, base_cdb, merged)
+    report, traits = _merge_cdb(unpacked, _base_cdb(game_dir, work), merged)
     return {"pak": pak.build(merged, game_dir), "owners": owners, "cdb": report,
             "traits": traits, "traits_over": traits is not None and traits > TRAIT_LIMIT}

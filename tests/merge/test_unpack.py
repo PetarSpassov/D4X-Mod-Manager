@@ -36,6 +36,12 @@ class Unpack(unittest.TestCase):
         with open(os.path.join(dest, "ui", "b.txt"), "rb") as f:
             self.assertEqual(f.read(), b"world!")
 
+    def test_only_unpacks_the_matching_file(self):
+        pak = os.path.join(self.tmp, "res.compressed1.pak")
+        _pak(pak, {"a.txt": b"hello", "b.txt": b"world!"})
+        self.assertEqual(unpack.unpack(pak, os.path.join(self.tmp, "out"), only="ui/b.txt"),
+                         ["ui/b.txt"])
+
     def test_refuses_an_existing_dest(self):
         with self.assertRaises(FileExistsError):
             unpack.unpack("x.pak", self.tmp)
