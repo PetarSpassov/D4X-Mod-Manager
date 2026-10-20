@@ -3,8 +3,12 @@
 A mod manager for **Dune: Spice Wars**. It imports mods from their zips, installs any chosen set
 in load order, merges content mods so they work together, and puts the game back as it was.
 
-Work in progress: the install, restore and import cores exist; merging is being built; there is no
-window yet. The design is in [docs/DESIGN.md](docs/DESIGN.md).
+Work in progress: import, merge, install and restore exist, with a first window that is not yet
+tried on real mods. The design is in [docs/DESIGN.md](docs/DESIGN.md).
+
+## Open the app
+
+Double-click `!app.bat` in this folder. It needs Python 3 with `pywebview` installed.
 
 ## Run the tests
 
