@@ -117,7 +117,13 @@ footer > button { white-space: nowrap; }
                             border: 2px solid var(--bg); }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
-button, input[type=search], .field input { font: inherit; border: 1px solid var(--line);
+.profile, #profile-form { display: flex; gap: 4px; align-items: center; }
+.profile { margin-right: 8px; }
+#profile-form[hidden], .profile [hidden] { display: none; }
+#profile { max-width: 200px; }
+#profile-name { width: 180px; }
+
+button, select, input[type=search], .field input, #profile-name { font: inherit; border: 1px solid var(--line);
                              background: var(--panel); color: var(--text);
                              border-radius: 6px; padding: 5px 12px; }
 button { cursor: pointer; }

@@ -1,6 +1,6 @@
 """What the window's page can ask for: the mod list and its order, import, install and settings.
 
-Under one home: library/ (mods), state/ (install record, backups), order.json, settings.json.
+Under one home: library/ (mods), state/ (install record, backups), profiles.json, settings.json.
 """
 import json
 import os
@@ -9,9 +9,8 @@ import webbrowser
 from d4xmm.install import deploy, flow
 from d4xmm.library import mods
 from d4xmm.nexus import files as nexus_files
-from d4xmm.window import settings
+from d4xmm.window import profiles, settings
 
-ORDER = "order.json"
 LAST = "last_install.json"  # under state/: the folders installed and who overrode whom
 NEXUS_PAGE = "https://www.nexusmods.com/dunespicewars/mods/%d"
 NO_GAME = "Can't find the game in the Steam directory. Please adjust it in Settings."
@@ -38,15 +37,20 @@ class Api:
                     out[folder] = json.load(f)
         return out
 
-    def _order(self, records):
-        """The saved order, minus mods gone from the library, plus new ones at the end, ticked."""
-        path = os.path.join(self._home, ORDER)
-        saved = []
-        if os.path.isfile(path):
-            with open(path, encoding="utf-8") as f:
-                saved = [e for e in json.load(f) if e["folder"] in records]
+    def _order(self, records, data=None):
+        """The active profile's order, minus mods gone from the library, plus others unticked."""
+        data = data or profiles.load(self._home)
+        saved = [e for e in data["profiles"][data["active"]] if e["folder"] in records]
         known = {e["folder"] for e in saved}
-        return saved + [{"folder": f, "enabled": True} for f in records if f not in known]
+        return saved + [{"folder": f, "enabled": False} for f in records if f not in known]
+
+    def _change_profiles(self, change):
+        """Apply change(data, the active order) to the saved profiles; returns the new state."""
+        data = profiles.load(self._home)
+        data["profiles"][data["active"]] = self._order(self._records(), data)
+        change(data, data["profiles"][data["active"]])
+        profiles.save(self._home, data)
+        return self.state()
 
     def _install_state(self, order):
         """{status: none, current, changed or unknown; clashes of the last install}."""
@@ -69,8 +73,10 @@ class Api:
         listed = [dict(e, **{k: records[e["folder"]].get(k) for k in keys}) for e in order]
         current = settings.load(self._home)
         typed = {k: current[k] for k in settings.TYPED}
+        data = profiles.load(self._home)
         return {"mods": listed, "install": self._install_state(order),
-                "settings": dict(typed, game_ok=settings.game_ok(current["game_dir"]))}
+                "settings": dict(typed, game_ok=settings.game_ok(current["game_dir"])),
+                "profiles": {"active": data["active"], "names": list(data["profiles"])}}
 
     def set_setting(self, key, value):
         """Keep one of settings.TYPED; an empty folder goes back to the one Steam or Windows has."""
@@ -88,20 +94,34 @@ class Api:
         return self.set_setting(key, path) if path else self.state()
 
     def save_order(self, entries):
-        """Keep the page's order and ticks: a list of {folder, enabled}, first loaded first."""
-        with open(os.path.join(self._home, ORDER), "w", encoding="utf-8") as f:
-            json.dump([{"folder": e["folder"], "enabled": bool(e["enabled"])} for e in entries],
-                      f, indent=1)
-        return self.state()
+        """Keep the page's order and ticks in the active profile: [{folder, enabled}]."""
+        def keep(data, _):
+            data["profiles"][data["active"]] = profiles.clean(entries)
+        return self._change_profiles(keep)
+
+    def new_profile(self, name):
+        """A profile called name, a copy of the active one's order, made active."""
+        return self._change_profiles(lambda data, order: profiles.create(data, name, order))
+
+    def switch_profile(self, name):
+        return self._change_profiles(lambda data, _: profiles.switch(data, name))
+
+    def delete_profile(self, name):
+        return self._change_profiles(lambda data, _: profiles.delete(data, name))
 
     def import_mods(self):
         return self.import_paths(self._pick_archives() or [])
 
     def import_paths(self, paths):
-        """Import each archive; the window calls it with the files dropped on it."""
+        """Import each archive, ticked at the end of the active profile; also for dropped files."""
+        before = set(self._records())
         for path in paths:
             mods.import_archive(path, self._library)
-        return self.state()
+
+        def tick_new(_, order):
+            for e in order:
+                e["enabled"] = e["enabled"] or e["folder"] not in before
+        return self._change_profiles(tick_new)
 
     def delete(self, folder):
         mods.delete(self._library, folder)

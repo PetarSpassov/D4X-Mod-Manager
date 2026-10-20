@@ -36,6 +36,19 @@ class WindowApi(unittest.TestCase):
         fresh = Api(self.home)
         self.assertEqual(self._names(fresh.state()), [("B", True), ("A", False)])
 
+    def test_each_profile_keeps_its_own_order_and_an_import_ticks_only_in_the_active_one(self):
+        self.picked = [self._zip("A"), self._zip("B")]
+        self.api.import_mods()
+        state = self.api.new_profile("Solo")
+        self.assertEqual(state["profiles"], {"active": "Solo", "names": ["Default", "Solo"]})
+        self.assertEqual(self._names(state), [("A", True), ("B", True)])
+        self.api.save_order([{"folder": "B", "enabled": True}, {"folder": "A", "enabled": False}])
+        self.api.import_paths([self._zip("C")])
+        state = self.api.switch_profile("Default")
+        self.assertEqual(self._names(state), [("A", True), ("B", True), ("C", False)])
+        state = self.api.delete_profile("Default")
+        self.assertEqual(self._names(state), [("B", True), ("A", False), ("C", True)])
+
     def test_install_passes_only_ticked_mods_in_load_order(self):
         self.picked = [self._zip("A"), self._zip("B"), self._zip("C")]
         self.api.import_mods()
