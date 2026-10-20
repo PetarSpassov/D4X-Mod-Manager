@@ -73,7 +73,10 @@ For each mod, in load order:
 3. **data.cdb:** diff it against the base game's `data.cdb`, then apply the diff to the merged
    result. Sheets match by name, rows by their `id` column, and fields one by one. So two mods that
    change different fields of the same row both keep their changes, and on the same field the later
-   mod wins. New rows and new sheets are added.
+   mod wins. New rows, columns and sheets are added after the item that precedes them in the mod.
+   A sheet's `props` and `separators` are taken whole, the later mod winning. For now, rows a mod
+   deletes are kept and reported, rows with no `id` are counted and skipped, and a mod's reordering
+   of existing rows or sheets is not carried over.
 
 Then build the pak with the game's own `pakBuild.hl`, run by the player's `D4X.exe`, as
 `!repackage.ps1` in D4XEditor does. The `-diff` flag it passes is not understood yet.
@@ -100,7 +103,8 @@ The window is **pywebview**: HTML pages in a native window, as in CodeCracker's 
 
 ## Not decided yet
 
-- **Rows with no `id`**, and rows deleted by a mod: how the merge treats them.
+- **Rows deleted by a mod:** whether to delete them (kept and reported for now). The base game has
+  no rows without an `id`.
 - **Licensing:** whether `pakBuild.hl` and `d4x_res_pak.bms` may be bundled. QuickBMS may: GPL 2.0,
   shipped with its licence text and source.
 - **The first tests** use small controlled mods built for the purpose, before any real Nexus mod.
