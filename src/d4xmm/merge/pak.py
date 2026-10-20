@@ -22,7 +22,8 @@ def build(folder, game_dir):
         raise FileExistsError(pak)
     cmd = [exe, PAKBUILD, "-res", name, "-out", OUT]
     run = subprocess.run(cmd, cwd=work, capture_output=True, text=True, errors="replace",
-                         stdin=subprocess.DEVNULL, timeout=TIMEOUT)
+                         stdin=subprocess.DEVNULL, timeout=TIMEOUT,
+                         creationflags=subprocess.CREATE_NO_WINDOW)  # no console pops up
     if run.returncode != 0 or not os.path.isfile(pak):
         raise RuntimeError("pakBuild failed on %s: %s" % (folder, (run.stdout + run.stderr)[-500:]))
     return pak

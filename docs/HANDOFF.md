@@ -9,7 +9,13 @@ or rules must change this file too (pre-commit).
 
 **► LAST KNOWN GOOD:** none yet *(only the user names this, in their own words; it lives here and nowhere else)*
 
-**Open threads:** none.
+**Open threads:** in the app (opened with `!app.bat`), after importing D4XMM_Test1 and _Test2 and
+pressing Install, a console window opened for a few seconds; after it closed the window showed
+"QuickBMS failed on ...\library\D4XMM_Test1\res.compressed1.pak" and repeated "Last script line
+before the error ...: 16 StartFunction unpack folderName". Pressing Install again did the same.
+Reproduced under `start pythonw`: QuickBMS printed "Press ENTER" in a loop, then exited 0xC0000005.
+QuickBMS and pakBuild now run with CREATE_NO_WINDOW, and the same Install path completes under
+pythonw. Not yet tried in the window.
 
 ## Standing decisions
 

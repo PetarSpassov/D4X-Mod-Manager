@@ -49,6 +49,10 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
   names: `quickbms_4gb_files.exe`, `d4x_res_pak.bms`, `QuickBMS`
   sign: a bad pak "unpacks" fine and the merge goes on with no files
 
+- **From pythonw, run console tools with CREATE_NO_WINDOW: in a console of its own QuickBMS waits for ENTER.**
+  names: `CREATE_NO_WINDOW`, `pythonw`, `creationflags`
+  sign: a console flashes, then "Last script line ... StartFunction unpack" repeats and it exits 0xC0000005
+
 ## C — Game data
 
 - **`trait`'s `Count` row must stay last; `attribute`'s may move, since a patch allows custom ones.**

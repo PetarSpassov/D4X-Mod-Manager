@@ -1,7 +1,9 @@
 import os
 import struct
+import subprocess
 import tempfile
 import unittest
+from unittest import mock
 
 from d4xmm.merge import unpack
 
@@ -41,6 +43,14 @@ class Unpack(unittest.TestCase):
         _pak(pak, {"a.txt": b"hello", "b.txt": b"world!"})
         self.assertEqual(unpack.unpack(pak, os.path.join(self.tmp, "out"), only="ui/b.txt"),
                          ["ui/b.txt"])
+
+    def test_quickbms_runs_without_a_console_of_its_own(self):
+        pak = os.path.join(self.tmp, "res.compressed1.pak")
+        _pak(pak, {"a.txt": b"hello"})
+        real = subprocess.run
+        with mock.patch("subprocess.run", side_effect=lambda *a, **k: real(*a, **k)) as run:
+            unpack.unpack(pak, os.path.join(self.tmp, "out"))
+        self.assertEqual(run.call_args.kwargs["creationflags"], subprocess.CREATE_NO_WINDOW)
 
     def test_refuses_an_existing_dest(self):
         with self.assertRaises(FileExistsError):

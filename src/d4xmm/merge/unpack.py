@@ -19,8 +19,10 @@ def unpack(pak, dest, only=None):
     os.makedirs(dest)
     pick = ["-f", only] if only else []
     cmd = [os.path.join(TOOLS, EXE)] + pick + [os.path.join(TOOLS, SCRIPT), pak, dest]
+    # given a console of its own, QuickBMS turns to GUI mode and waits for ENTER until it crashes
     run = subprocess.run(cmd, capture_output=True, text=True, errors="replace",
-                         stdin=subprocess.DEVNULL, timeout=TIMEOUT)
+                         stdin=subprocess.DEVNULL, timeout=TIMEOUT,
+                         creationflags=subprocess.CREATE_NO_WINDOW)
     files = sorted(os.path.relpath(os.path.join(root, f), dest).replace("\\", "/")
                    for root, _, names in os.walk(dest) for f in names)
     # QuickBMS exits 0 on a wrong signature, so an empty result counts as a failure too.
