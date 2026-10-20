@@ -29,4 +29,5 @@ or rules must change this file too (pre-commit).
 
 ## Untested
 
-- nothing yet
+- `merge/pak.py` on a full-size merged folder: only a one-file pak has been built, and no game has
+  loaded a pak we built.

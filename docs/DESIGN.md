@@ -79,7 +79,8 @@ For each mod, in load order:
    of existing rows or sheets is not carried over.
 
 Then build the pak with the game's own `pakBuild.hl`, run by the player's `D4X.exe`, as
-`!repackage.ps1` in D4XEditor does. The `-diff` flag it passes is not understood yet.
+`!repackage.ps1` in D4XEditor does. We pass `-res <merged folder> -out res.compressed1`, but not the
+`-diff` that script passes: in a folder with no pak it built the same pak without it.
 
 **Trait limit:** the game crashes with more than 2,048 rows in `trait`. The base game has 1,562. The
 merge counts them and shows a warning before installing, with an info note that this is a limit of
