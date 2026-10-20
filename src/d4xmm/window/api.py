@@ -8,6 +8,7 @@ import webbrowser
 
 from d4xmm.install import deploy, flow
 from d4xmm.library import mods
+from d4xmm.nexus import files as nexus_files
 from d4xmm.window import settings
 
 ORDER = "order.json"
@@ -63,7 +64,7 @@ class Api:
     def state(self):
         """What the page shows: mods in load order, the install's status, the settings."""
         records = self._records()
-        keys = ("name", "version", "latest", "nexus", "nexus_id", "creator", "summary", "picture")
+        keys = ("name", "version", "latest", "nexus", "nexus_id") + nexus_files.ABOUT
         order = self._order(records)
         listed = [dict(e, **{k: records[e["folder"]].get(k) for k in keys}) for e in order]
         current = settings.load(self._home)

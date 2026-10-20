@@ -22,13 +22,15 @@ class Lookup(unittest.TestCase):
              "uri": "QuinnQuest-5-v0-2-2-1756549824.zip"},
             {"fileId": 30, "name": "QuinnQuest", "version": "v0.4.2.2", "category": "MAIN",
              "uri": QQ}]}, name="QuinnQuest - Conquest Additions and Overhauls",
-            creator="PeterQuinn98", summary="A PVE mod.", picture="https://x/5.png")
+            creator="PeterQuinn98", summary="A PVE mod.", picture="https://x/5.png",
+            downloads=1226, endorsements=29, updated="2026-05-28T22:22:25Z")
         self.assertEqual(files.lookup(QQ, mod_files),
                          {"nexus_id": 5, "file_id": 30, "name": "QuinnQuest",
                           "mod_name": "QuinnQuest - Conquest Additions and Overhauls",
                           "version": "v0.4.2.2", "category": "MAIN", "latest": "v0.4.2.2",
                           "creator": "PeterQuinn98", "summary": "A PVE mod.",
-                          "picture": "https://x/5.png"})
+                          "picture": "https://x/5.png", "downloads": 1226, "endorsements": 29,
+                          "updated": "2026-05-28T22:22:25Z"})
         self.assertEqual(asked, ["5"])
 
     def test_latest_is_the_newest_main_file_even_when_this_one_is_older(self):

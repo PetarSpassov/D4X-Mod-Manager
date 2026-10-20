@@ -7,8 +7,10 @@ import urllib.request
 API = "https://api.nexusmods.com/v2/graphql"
 GAME_ID = 7811  # Dune: Spice Wars
 TIMEOUT = 10
+# what Nexus says about the mod as a whole; `updated` is an ISO time, the others text or counts
+ABOUT = ("creator", "summary", "picture", "downloads", "endorsements", "updated")
 QUERY = ("query($mod: ID!, $game: ID!) { mod(modId: $mod, gameId: $game) "
-         "{ name summary pictureUrl uploader { name } } "
+         "{ name summary pictureUrl uploader { name } downloads endorsements updatedAt } "
          "modFiles(modId: $mod, gameId: $game) { fileId name version uri category } }")
 
 
@@ -21,7 +23,7 @@ class Refused(Exception):
 
 
 def _mod(mod_id):
-    """{name, creator, summary, picture: the mod's own, each None if missing; files: [records]}."""
+    """{name and each of ABOUT: the mod's own, None if missing; files: [its file records]}."""
     body = json.dumps({"query": QUERY, "variables": {"mod": mod_id, "game": GAME_ID}}).encode()
     # Nexus answers Python's default User-Agent with 403
     req = urllib.request.Request(API, body, {"Content-Type": "application/json",
@@ -36,7 +38,8 @@ def _mod(mod_id):
     found = data.get("mod") or {}
     return {"name": found.get("name"), "creator": (found.get("uploader") or {}).get("name"),
             "summary": found.get("summary"), "picture": found.get("pictureUrl"),
-            "files": data.get("modFiles") or []}
+            "downloads": found.get("downloads"), "endorsements": found.get("endorsements"),
+            "updated": found.get("updatedAt"), "files": data.get("modFiles") or []}
 
 
 def lookup(file_name, mod=_mod):
@@ -54,6 +57,5 @@ def lookup(file_name, mod=_mod):
                 return {"nexus_id": int(mod_id), "file_id": f["fileId"], "name": f["name"],
                         "mod_name": found["name"] or f["name"], "version": f["version"],
                         "category": f["category"], "latest": latest,
-                        "creator": found.get("creator"), "summary": found.get("summary"),
-                        "picture": found.get("picture")}
+                        **{k: found.get(k) for k in ABOUT}}
     return None

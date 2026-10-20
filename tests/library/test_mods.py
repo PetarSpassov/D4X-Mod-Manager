@@ -47,13 +47,15 @@ class Describe(unittest.TestCase):
                          {"name": "QuinnQuest - Conquest", "file": "QuinnQuest", "nexus_id": 5,
                           "file_id": 30, "version": "v0.4.2.2", "latest": "v0.5",
                           "creator": "PeterQuinn98", "summary": "A PVE mod.",
-                          "picture": "https://x/5.png", "nexus": "found"})
+                          "picture": "https://x/5.png", "downloads": 1226, "endorsements": 29,
+                          "updated": "2026-05-28T22:22:25Z", "nexus": "found"})
 
     def test_a_file_nexus_doesnt_know_keeps_its_name_and_no_version(self):
         self.assertEqual(self._describe("C:/dl/my mod.zip", return_value=None),
                          {"name": "my mod", "file": "my mod", "nexus_id": None, "file_id": None,
                           "version": None, "latest": None, "creator": None, "summary": None,
-                          "picture": None, "nexus": "not_found"})
+                          "picture": None, "downloads": None, "endorsements": None,
+                          "updated": None, "nexus": "not_found"})
 
     def test_offline_guesses_nothing(self):
         info = self._describe("QuinnQuest-5-v0-4-2-2-1780006924.zip",
@@ -70,7 +72,8 @@ class Describe(unittest.TestCase):
 class Refresh(unittest.TestCase):
     FOUND = {"nexus_id": 5, "file_id": 48, "name": "QuinnQuest", "version": "v0.4.2.2",
              "mod_name": "QuinnQuest - Conquest", "category": "MAIN", "latest": "v0.4.2.2",
-             "creator": "PeterQuinn98", "summary": "A PVE mod.", "picture": "https://x/5.png"}
+             "creator": "PeterQuinn98", "summary": "A PVE mod.", "picture": "https://x/5.png",
+             "downloads": 1226, "endorsements": 29, "updated": "2026-05-28T22:22:25Z"}
 
     def setUp(self):
         self.library = tempfile.mkdtemp()

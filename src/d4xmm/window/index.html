@@ -19,17 +19,16 @@
     <span class="drop-hint">or drop archives anywhere</span>
     <input id="search" type="search" placeholder="Search mods">
   </div>
-  <main>
+  <main id="list">
     <ul id="mods"><li class="empty">Loading…</li></ul>
-    <details id="last" hidden><summary></summary><ul></ul></details>
   </main>
   <footer>
-    <div id="status"></div>
-    <div class="actions">
-      <span class="spacer"></span>
-      <button id="restore">Remove all mods</button>
-      <button id="install" class="primary">Install</button>
-    </div>
+    <details id="last" hidden><summary></summary><ul></ul></details>
+    <div id="status" hidden><span id="status-text"></span>
+      <button id="status-close" title="Dismiss">×</button></div>
+    <span class="spacer"></span>
+    <button id="restore">Remove all mods</button>
+    <button id="install" class="primary">Install</button>
   </footer>
 </section>
 <section id="tab-browse" class="page" hidden>

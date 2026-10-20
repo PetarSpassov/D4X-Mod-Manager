@@ -51,11 +51,11 @@ class WindowApi(unittest.TestCase):
         self.api.import_mods()
         found = {"nexus_id": 1, "file_id": 2, "name": "A", "mod_name": "Mod A", "version": "1.0",
                  "category": "MAIN", "latest": "1.1", "creator": "Ann", "summary": None,
-                 "picture": None}
+                 "picture": None, "downloads": 7, "endorsements": 2, "updated": None}
         with mock.patch("d4xmm.nexus.files.lookup", return_value=found):
             state = self.api.refresh()
-        self.assertEqual([(m["folder"], m["name"], m["version"], m["creator"])
-                          for m in state["mods"]], [("A", "Mod A", "1.0", "Ann")])
+        self.assertEqual([(m["folder"], m["name"], m["version"], m["creator"], m["downloads"])
+                          for m in state["mods"]], [("A", "Mod A", "1.0", "Ann", 7)])
 
     def test_dropped_paths_import_and_delete_takes_a_mod_out(self):
         self.api.import_paths([self._zip("A"), self._zip("B")])

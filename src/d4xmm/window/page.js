@@ -1,16 +1,24 @@
 // The window's page: renders Api.state() and sends every change back through window.pywebview.api.
 let mods = [];
 let dragFrom = null;
+let notes = [];  // the last install's warnings this session; only its overrides are saved
+let statusTimer = null;
 const expanded = new Set();  // folders whose detail is open; kept across re-renders
 const NO_VERSION = {offline: "You are offline", not_found: "This file is not on Nexus",
                     refused: "Nexus answered with an error"};
 const STATUS = {none: "Not installed", current: "Installed, up to date",
                 changed: "Changed since last install", unknown: "Installed"};
+const OK_SECONDS = 5;
+const EDGE = 40;  // px from the list's top or bottom where a drag scrolls it
 const $ = id => document.getElementById(id);
 
-function setStatus(text, warn) {
-  $("status").textContent = text;
-  $("status").className = warn ? "warn" : "";
+// kind: "ok" fades after OK_SECONDS, "warn" stays until closed, "" is plain progress text
+function setStatus(text, kind = "") {
+  clearTimeout(statusTimer);
+  $("status-text").textContent = text;
+  $("status").className = kind;
+  $("status").hidden = !text;
+  if (kind === "ok") statusTimer = setTimeout(() => setStatus(""), OK_SECONDS * 1000);
 }
 
 function busy(on) {
@@ -22,7 +30,7 @@ async function call(name, ...args) {
   try {
     return await window.pywebview.api[name](...args);
   } catch (e) {
-    setStatus(String(e.message || e), true);
+    setStatus(String(e.message || e), "warn");
     return null;
   } finally {
     busy(false);
@@ -50,7 +58,7 @@ function closeMenus(except) {
   document.querySelectorAll(".menu[open]").forEach(o => { if (o !== except) o.open = false; });
 }
 
-function menu(m, li) {
+function menu(m, parent) {
   const box = document.createElement("details");
   box.className = "menu";
   box.innerHTML = '<summary title="More">⋯</summary><div class="items">' +
@@ -67,7 +75,7 @@ function menu(m, li) {
     del.textContent = "Click again to delete";
   };
   box.addEventListener("toggle", () => { if (box.open) closeMenus(box); });
-  li.appendChild(box);
+  parent.appendChild(box);
 }
 
 function meta(m) {
@@ -75,6 +83,18 @@ function meta(m) {
   if (m.version) parts.push(/^v/i.test(m.version) ? m.version : "v" + m.version);
   if (m.creator) parts.push("by " + m.creator);
   return parts.join(" ");
+}
+
+function stats(m) {
+  const parts = [];
+  if (m.downloads != null) parts.push(m.downloads.toLocaleString() + " downloads");
+  if (m.endorsements != null) parts.push(m.endorsements.toLocaleString() + " endorsements");
+  if (m.updated) {
+    const day = new Date(m.updated).toLocaleDateString(undefined,
+      {day: "numeric", month: "short", year: "numeric"});
+    parts.push("updated " + day);
+  }
+  return parts.join(" · ");
 }
 
 function detail(m) {
@@ -86,15 +106,29 @@ function detail(m) {
     img.alt = "";
     box.appendChild(img);
   }
-  const text = document.createElement("p");
-  text.textContent = m.summary || "Nexus has no summary for this mod.";
+  const text = document.createElement("div");
+  text.className = "about";
+  text.innerHTML = '<p class="stats"></p><p class="summary"></p>';
+  text.querySelector(".stats").textContent = stats(m);
+  text.querySelector(".summary").textContent = m.summary || "Nexus has no summary for this mod.";
   box.appendChild(text);
   return box;
 }
 
+function toggle(m, li) {
+  const open = !expanded.delete(m.folder);
+  if (open) {
+    expanded.add(m.folder);
+    li.appendChild(detail(m));
+  } else {
+    li.querySelector(".detail").remove();
+  }
+  li.classList.toggle("open", open);
+}
+
 function row(m, i) {
   const li = document.createElement("li");
-  li.className = (m.enabled ? "" : "off") + (expanded.has(m.folder) ? " open" : "");
+  li.className = m.enabled ? "" : "off";
   li.draggable = true;
   li.dataset.index = i;
   li.innerHTML = '<div class="line"><span class="handle" title="Drag to reorder">⠿</span>' +
@@ -116,41 +150,61 @@ function row(m, i) {
   }
   menu(m, line);
   line.addEventListener("click", e => {
-    if (e.target.closest("input, .menu, .handle")) return;
-    if (!expanded.delete(m.folder)) expanded.add(m.folder);
-    li.classList.toggle("open");
-    if (li.classList.contains("open") && !li.querySelector(".detail")) li.appendChild(detail(m));
+    if (!e.target.closest("input, .menu, .handle")) toggle(m, li);
   });
-  if (expanded.has(m.folder)) li.appendChild(detail(m));
-  dragEvents(li);
-  return li;
-}
-
-function dragEvents(li) {
+  if (expanded.has(m.folder)) {
+    li.classList.add("open");
+    li.appendChild(detail(m));
+  }
   li.addEventListener("dragstart", e => {
-    dragFrom = Number(li.dataset.index);
+    dragFrom = i;
     li.classList.add("dragging");
     e.dataTransfer.effectAllowed = "move";
   });
-  li.addEventListener("dragend", () => { dragFrom = null; li.classList.remove("dragging"); });
-  li.addEventListener("dragover", e => {
-    if (dragFrom === null) return;
-    e.preventDefault();
-    const after = e.offsetY > li.offsetHeight / 2;
-    li.classList.toggle("drop-after", after);
-    li.classList.toggle("drop-before", !after);
+  li.addEventListener("dragend", () => { dragFrom = null; clearMarks(); });
+  return li;
+}
+
+// The gap the pointer is nearest, so anywhere above the first row or below the last still counts.
+function dropSlot(y) {
+  const rows = [...$("mods").querySelectorAll("li[data-index]")];
+  for (const li of rows) {
+    const box = li.getBoundingClientRect();
+    if (y < box.top + box.height / 2) return {li, after: false};
+  }
+  return rows.length ? {li: rows[rows.length - 1], after: true} : null;
+}
+
+function clearMarks() {
+  document.querySelectorAll("#mods li").forEach(li => {
+    li.classList.remove("drop-before", "drop-after", "dragging");
   });
-  li.addEventListener("dragleave", () => li.classList.remove("drop-after", "drop-before"));
-  li.addEventListener("drop", e => {
-    if (dragFrom === null) return;
-    e.preventDefault();
-    let to = Number(li.dataset.index) + (li.classList.contains("drop-after") ? 1 : 0);
-    li.classList.remove("drop-after", "drop-before");
-    const [moved] = mods.splice(dragFrom, 1);
-    if (to > dragFrom) to -= 1;
-    mods.splice(to, 0, moved);
-    save();
-  });
+}
+
+function dragOver(e) {
+  if (dragFrom === null) return;
+  e.preventDefault();
+  const list = $("list"), box = list.getBoundingClientRect();
+  if (e.clientY < box.top + EDGE) list.scrollTop -= 12;
+  if (e.clientY > box.bottom - EDGE) list.scrollTop += 12;
+  clearMarks();
+  $("mods").querySelector(`li[data-index="${dragFrom}"]`).classList.add("dragging");
+  const slot = dropSlot(e.clientY);
+  if (slot) slot.li.classList.add(slot.after ? "drop-after" : "drop-before");
+}
+
+function dropRow(e) {
+  if (dragFrom === null) return;
+  e.preventDefault();
+  const slot = dropSlot(e.clientY);
+  clearMarks();
+  if (!slot) return;
+  let to = Number(slot.li.dataset.index) + (slot.after ? 1 : 0);
+  const [moved] = mods.splice(dragFrom, 1);
+  if (to > dragFrom) to -= 1;
+  mods.splice(to, 0, moved);
+  dragFrom = null;
+  save();
 }
 
 function renderList() {
@@ -165,21 +219,27 @@ function renderList() {
   });
 }
 
+function item(text, cls) {
+  const li = document.createElement("li");
+  li.textContent = text;
+  if (cls) li.className = cls;
+  return li;
+}
+
 function renderLast(install) {
   const last = $("last");
-  last.hidden = !install.clashes.length;
-  const lines = install.clashes.map(c =>
-    `${c.winner} overrides ${c.over.join(", ")} on ${c.items.length} ` +
-    (c.items.length === 1 ? "item" : "items"));
-  last.querySelector("summary").textContent = "Last install: " + lines.join("; ");
+  const count = install.clashes.reduce((n, c) => n + c.items.length, 0);
+  last.hidden = !count && !notes.length;
+  const parts = [];
+  if (notes.length) parts.push(notes.length + (notes.length === 1 ? " note" : " notes"));
+  parts.push(count + (count === 1 ? " override" : " overrides"));
+  last.querySelector("summary").textContent = "Last install: " + parts.join(", ");
   const ul = last.querySelector("ul");
   ul.innerHTML = "";
+  notes.forEach(n => ul.appendChild(item(n, "warn")));
   for (const c of install.clashes) {
-    for (const item of c.items) {
-      const li = document.createElement("li");
-      li.textContent = `${item}: ${c.winner} over ${c.over.join(", ")}`;
-      ul.appendChild(li);
-    }
+    ul.appendChild(item(`${c.winner} over ${c.over.join(", ")}`, "head"));
+    c.items.forEach(i => ul.appendChild(item(i)));
   }
 }
 
@@ -208,11 +268,11 @@ function save() {
   run("save_order", mods.map(m => ({folder: m.folder, enabled: m.enabled})));
 }
 
-function describe(report) {
-  const lines = ["Installed."];
+function installNotes(report) {
+  const lines = [];
   const merged = report.merge;
   if (merged && merged.traits_over) {
-    lines.push(`Warning: ${merged.traits} traits. The game crashes past 2,048; ` +
+    lines.push(`${merged.traits} traits. The game crashes past 2,048; ` +
                "this is a limit of the game, not the manager.");
   }
   for (const [mod, sheets] of Object.entries((merged && merged.cdb) || {})) {
@@ -224,11 +284,11 @@ function describe(report) {
     }
   }
   if (report.hlboot_modded.length) {
-    lines.push("Note: " + report.hlboot_modded.join(", ") + " already carry a mod's mark, " +
+    lines.push(report.hlboot_modded.join(", ") + " already carry a mod's mark, " +
                "so the backup is not the stock game.");
   }
   if (report.skipped.length) lines.push("Left alone (changed since): " + report.skipped.join(", "));
-  return {text: lines.join("\n"), warn: lines.length > 1};
+  return lines;
 }
 
 async function importDropped(paths) {
@@ -252,13 +312,17 @@ document.querySelectorAll("[data-choose]").forEach(b => {
 
 $("import").onclick = async () => { if (await run("import_mods")) setStatus(""); };
 $("search").oninput = renderList;
+$("status-close").onclick = () => setStatus("");
+$("list").addEventListener("dragover", dragOver);
+$("list").addEventListener("drop", dropRow);
 
 $("install").onclick = async () => {
   setStatus("Merging and installing… this can take a minute.");
   const report = await call("install");
   if (report) {
-    const d = describe(report);
-    setStatus(d.text, d.warn);
+    notes = installNotes(report);
+    setStatus(notes.length ? "Installed, with notes: see Last install." : "Installed.",
+              notes.length ? "warn" : "ok");
     await run("state");
   }
 };
@@ -266,8 +330,10 @@ $("install").onclick = async () => {
 $("restore").onclick = async () => {
   const skipped = await call("restore");
   if (skipped) {
+    notes = [];
     setStatus(skipped.length ? "Removed. Left alone (changed since): " + skipped.join(", ")
-                             : "Removed. The game is back to its base files.", skipped.length > 0);
+                             : "Removed. The game is back to its base files.",
+              skipped.length ? "warn" : "ok");
     await run("state");
   }
 };
@@ -278,5 +344,5 @@ document.addEventListener("click", e => { if (!e.target.closest(".menu")) closeM
 window.addEventListener("pywebviewready", async () => {
   await run("state");
   // not through call(): the list stays usable while Nexus answers
-  window.pywebview.api.refresh().then(render, e => setStatus(String(e.message || e), true));
+  window.pywebview.api.refresh().then(render, e => setStatus(String(e.message || e), "warn"));
 });

@@ -80,6 +80,15 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   "Name v1.2 by Uploader" (Nexus uploader name, as the user's example "PeterQuinn98"); a click opens
   the Nexus picture and summary. Api parts tested; tabs, settings error and the open row seen only in
   a browser preview with a fake Api. Not seen in the window: Choose…, typed folders, pictures.
+  After `32ddf18` the user reports: a second click on an open mod doesn't close it; moving an open
+  mod collapses everything; dragging past the first/last mod stops it being put down; the install
+  log never disappears and is bulky; "Last install" looks out of place; the scrollbar is white.
+- Changed for that: mods are separate cards; a second click closes a row and an open row stays open
+  when moved; a drag anywhere above the first or below the last row drops there; the open row adds
+  downloads, endorsements and last updated (seen live from Nexus for QuinnQuest: 1226, 29,
+  2026-05-28). Install shows one line ("Installed." fades; with notes or an error it stays, with ×)
+  and "Last install: N notes, N overrides" in the footer opens a panel. Themed scrollbar. Seen only
+  in a browser preview with a fake Api; real mouse drags and the scrollbar not seen at all.
 - The window reopens where it closed, maximised if it was. Seen live: closed maximised, settings.json
   kept `"width": 860, "height": 640, "maximized": true`; reopened, closed untouched, the same again.
   Un-maximising after a restart, and a second monitor, not seen.
