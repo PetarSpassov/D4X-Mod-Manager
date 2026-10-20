@@ -15,7 +15,7 @@ ORDER = (("turnstart", "main"), ("pregate", "reads"), ("postgate", "main"), ("po
          ("handback", "first_dot"), ("handback", "not_a_handback"), ("docs", "main"),
          ("docs", "precommit"), ("codecheck", "files"), ("codecheck", "rules"), ("noask", "main"),
          ("plan", "go_word"), ("plan", "gate"), ("plan", "answer_turn"), ("pregate", "size"),
-         ("pregate", "declare"), ("optional", "main"))
+         ("pregate", "declare"), ("optional", "main"), ("newproject", "main"))
 
 
 def main():

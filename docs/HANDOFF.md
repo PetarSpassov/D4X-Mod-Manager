@@ -27,4 +27,4 @@ or rules must change this file too (pre-commit).
 
 ## Untested
 
-- nothing yet
+- `.claude/tools/newproject.bat` (moved from the root): never double-clicked since the move.

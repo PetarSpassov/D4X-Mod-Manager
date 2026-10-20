@@ -7,7 +7,7 @@ oriented, honest and cheap across many sessions.
 ## Start a new project from it
 
 1. Copy this folder, leaving out `.git/` and `.claude/state/` if it exists. On Windows, double-click
-   `newproject.bat`: it asks for the target folder and never overwrites a file there.
+   `.claude/tools/newproject.bat`: it asks for the target folder and never overwrites a file there.
 2. In `CLAUDE.md`, fill in the **Project** and **Layout** lines. Add rules only this project needs under
    *Project rules*, each with a `## WHY <id>` in `docs/WHY.md`.
 3. Tune `.claude/starter.json`: the read cap, the never-read patterns (lock files, generated output,
