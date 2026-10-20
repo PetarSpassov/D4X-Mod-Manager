@@ -1,0 +1,81 @@
+import json
+import os
+import tempfile
+import unittest
+import zipfile
+
+from d4xmm.library import mods
+
+
+def _zip(folder, name, members):
+    path = os.path.join(folder, name)
+    with zipfile.ZipFile(path, "w") as z:
+        for member, data in members.items():
+            z.writestr(member, data)
+    return path
+
+
+class Target(unittest.TestCase):
+    def test_paks_and_hlboot_go_to_the_root_wherever_they_sit(self):
+        self.assertEqual(mods.target("MyMod/res.compressed1.pak"), "res.compressed1.pak")
+        self.assertEqual(mods.target("MyMod/bin/hlbootdx.dat"), "hlbootdx.dat")
+
+    def test_audio_keeps_its_layout_under_audio(self):
+        self.assertEqual(mods.target("MyMod/res/Audio/Media/1.wem"), "res/Audio/Media/1.wem")
+        self.assertEqual(mods.target("MyMod/sounds/UI.bnk"), "res/Audio/UI.bnk")
+
+    def test_other_files_are_not_loaded(self):
+        self.assertIsNone(mods.target("MyMod/readme.txt"))
+        self.assertIsNone(mods.target("res.pak"))
+
+
+class Describe(unittest.TestCase):
+    def test_reads_a_nexus_file_name(self):
+        self.assertEqual(mods.describe("C:/dl/QuinnQuest-5-1-2-1752884636.zip"),
+                         {"name": "QuinnQuest", "nexus_id": 5, "version": "1.2"})
+
+    def test_any_other_name_is_kept_whole(self):
+        self.assertEqual(mods.describe("my mod.zip"),
+                         {"name": "my mod", "nexus_id": None, "version": None})
+
+
+class ImportZip(unittest.TestCase):
+    def setUp(self):
+        self.downloads, self.library = tempfile.mkdtemp(), tempfile.mkdtemp()
+
+    def test_unpacks_and_records(self):
+        z = _zip(self.downloads, "Cool Mod-7-2-0-1752884636.zip",
+                 {"Cool/res.compressed1.pak": b"pak", "Cool/readme.txt": b"hi"})
+        record = mods.import_zip(z, self.library)
+        folder = os.path.join(self.library, "Cool_Mod")
+        with open(os.path.join(folder, mods.RECORD), encoding="utf-8") as f:
+            self.assertEqual(json.load(f), record)
+        self.assertEqual(record["files"], {"res.compressed1.pak": "Cool/res.compressed1.pak"})
+        self.assertEqual(record["other"], ["Cool/readme.txt"])
+        self.assertTrue(os.path.isfile(os.path.join(folder, "Cool", "res.compressed1.pak")))
+
+    def test_reimport_replaces_the_old_copy(self):
+        mods.import_zip(_zip(self.downloads, "M.zip", {"old/res.compressed1.pak": b"1"}),
+                        self.library)
+        mods.import_zip(_zip(self.downloads, "M.zip", {"new/res.compressed1.pak": b"2"}),
+                        self.library)
+        self.assertEqual(sorted(os.listdir(os.path.join(self.library, "M"))),
+                         ["mod.json", "new"])
+
+    def test_a_zip_with_nothing_to_load_is_refused_and_leaves_nothing(self):
+        z = _zip(self.downloads, "Notes.zip", {"readme.txt": b"hi"})
+        with self.assertRaises(mods.ModImportError):
+            mods.import_zip(z, self.library)
+        self.assertEqual(os.listdir(self.library), [])
+
+    def test_two_files_for_one_place_are_refused(self):
+        z = _zip(self.downloads, "Twice.zip",
+                 {"a/res.compressed1.pak": b"1", "b/res.compressed1.pak": b"2"})
+        with self.assertRaises(mods.ModImportError):
+            mods.import_zip(z, self.library)
+
+    def test_paths_escaping_the_folder_stay_inside(self):
+        z = _zip(self.downloads, "Evil.zip", {"../../res.compressed1.pak": b"x"})
+        record = mods.import_zip(z, self.library)
+        self.assertEqual(sorted(os.listdir(self.library)), ["Evil"])
+        self.assertEqual(record["files"], {"res.compressed1.pak": "res.compressed1.pak"})

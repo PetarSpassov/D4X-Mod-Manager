@@ -19,8 +19,18 @@ and 1,562 rows in `trait`.
 
 ## Library
 
-One folder chosen by the user. Each mod gets a subfolder: the unpacked zip, plus a small record of
-its Nexus id, version and file list. Installing never moves anything out of the library.
+One folder chosen by the user. Each mod gets a subfolder: the unpacked zip, plus `mod.json` with its
+Nexus id and version (read from a Nexus file name, `<name>-<id>-<version>-<time>.zip`) and where
+each file goes. Installing never moves anything out of the library. Import sorts files by name:
+
+| In the zip | Goes to |
+|---|---|
+| `res.compressed<N>.pak`, `hlboot.dat`, `hlbootdx.dat`, in any folder | game root |
+| `.wem`, `.bnk` | `res/Audio/`, keeping the layout under the zip's own `Audio` folder if it has one |
+| anything else | kept, listed as "other", not installed |
+
+A zip with nothing the game loads, or two files for one place, is refused. Re-importing a mod
+replaces its old copy. Zip only for now: `.7z` and `.rar` are not read.
 
 ## Getting mods
 
