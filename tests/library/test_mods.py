@@ -37,6 +37,10 @@ class Describe(unittest.TestCase):
         self.assertEqual(mods.describe("C:/dl/QuinnQuest-5-1-2-1752884636.zip"),
                          {"name": "QuinnQuest", "nexus_id": 5, "version": "1.2"})
 
+    def test_a_version_with_letters(self):
+        self.assertEqual(mods.describe("QuinnQuest-5-v0-4-2-2-1780006924.zip"),
+                         {"name": "QuinnQuest", "nexus_id": 5, "version": "v0.4.2.2"})
+
     def test_any_other_name_is_kept_whole(self):
         self.assertEqual(mods.describe("my mod.zip"),
                          {"name": "my mod", "nexus_id": None, "version": None})

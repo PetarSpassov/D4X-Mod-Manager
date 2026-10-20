@@ -18,11 +18,9 @@ or rules must change this file too (pre-commit).
   `hasGroup` (separator ordinals compiled in); which of them bake literal indices is not yet read.
 - Merging Community Patch (`examples/community_patch-1-0-1-4-1760743071.7z`) and QuinnQuest
   (`examples/QuinnQuest-5-v0-4-2-2-1780006924.zip`) instead of hand-made test mods: both import.
-- `describe()` reads `QuinnQuest-5-v0-4-2-2-...` as name "QuinnQuest-5-v0", id 4, version 2.2: a
-  version starting with "v" doesn't match `NEXUS_NAME`.
+- A Nexus file name whose own name part holds a standalone number ("Mod-2-...") is read with
+  that number as the mod id: the id is the first all-digit part. No such mod seen yet.
 
-Debt: `vendor/7zip` is 7-Zip 22.01 copied from the NVIDIA App folder, without 7-Zip's licence
-file; replace it with the official 7-Zip package before any release.
 Debt: the no-console `subprocess.run` is now written three times (unpack, pak, mods).
 
 ## Standing decisions

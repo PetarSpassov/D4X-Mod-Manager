@@ -17,8 +17,9 @@ RECORD = "mod.json"
 AUDIO_DIR = "res/Audio"
 AUDIO_EXT = (".wem", ".bnk")
 PAK = re.compile(r"res\.compressed\d+\.pak$", re.IGNORECASE)
-# Nexus names a download "<file name>-<mod id>-<version, dots as dashes>-<upload time>"
-NEXUS_NAME = re.compile(r"^(?P<name>.+?)-(?P<id>\d+)-(?P<version>\d+(?:-\d+)*)-\d{9,}$")
+# Nexus names a download "<file name>-<mod id>-<version, dots as dashes>-<upload time>". The
+# version may hold letters ("v0-4-2-2"), so the id is taken as the first all-digit part.
+NEXUS_NAME = re.compile(r"^(?P<name>.+?)-(?P<id>\d+)-(?P<version>[^-]+(?:-[^-]+)*)-\d{9,}$")
 
 
 class ModImportError(Exception):
