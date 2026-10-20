@@ -134,6 +134,11 @@ function describe(report) {
       if (r.no_id) lines.push(`${mod}: skipped ${r.no_id} ${sheet} rows with no id.`);
     }
   }
+  for (const c of report.clashes) {
+    const shown = c.items.slice(0, 8).join(", ");
+    const more = c.items.length > 8 ? ` and ${c.items.length - 8} more` : "";
+    lines.push(`${c.winner} overrides ${c.over.join(", ")} on ${shown}${more}.`);
+  }
   if (report.hlboot_modded.length) {
     lines.push("Note: " + report.hlboot_modded.join(", ") + " already carry a mod's mark, " +
                "so the backup is not the stock game.");

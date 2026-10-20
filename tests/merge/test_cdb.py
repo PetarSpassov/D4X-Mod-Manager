@@ -41,6 +41,11 @@ class Merge(unittest.TestCase):
                             lambda s: s["lines"][0].update(type=1))
         self.assertEqual(_rows(merged)["Fast"], {"id": "Fast", "cost": 1, "type": 1})
 
+    def test_touched_names_the_rows_a_mod_changes_and_adds(self):
+        d = cdb.diff(_base(), _mod(lambda s: (s["lines"][1].update(cost=7),
+                                              s["lines"].append({"id": "New"}))))
+        self.assertEqual(cdb.touched(d), ["trait Slow", "trait New"])
+
     def test_a_field_the_mod_removed_stays_removed(self):
         merged = self.merge(lambda s: s["lines"][1].pop("tags"))
         self.assertNotIn("tags", _rows(merged)["Slow"])

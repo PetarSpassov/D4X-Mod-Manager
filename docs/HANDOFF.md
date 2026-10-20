@@ -41,7 +41,8 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 - `CLAUDE.md` is capped at 7,000 characters (doccheck). Adding a rule means cutting or merging as much elsewhere, named in the commit message.
 - The root `README.md` is the project's. The ClaudeStarter README lives at `.claude/README.md`.
 - data.cdb rows two mods change: the later mod's whole row wins, never a mix of values (the user:
-  otherwise "some twisted amalgamation of the two"). A clash list in the window is proposed, not built.
+  otherwise "some twisted amalgamation of the two"). After Install the window lists who overrides
+  whom: rows, pak assets and loose game files, 8 items shown per pair.
 - Code follows rule 12. A code file past 800 lines may only shrink.
 - Pre-commit runs `codecheck.py`, which refuses only the violations a commit adds over HEAD. Function
   size, nesting, complexity, parameters and silent catches are checked in Python only.
@@ -50,8 +51,12 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 
 - Merging more than two real mods (only Community Patch + QuinnQuest, both orders, has been seen
   in the game).
-- A row two mods change is the later mod's whole row: unit tests only, not yet merged in the game.
-  Inference: a mod whose editor wrote a new column into every row would win every row it touched.
+- A row two mods change is the later mod's whole row. After `141b72e` the user re-merged and says
+  "the merge still seems to work without issue"; whether each shared row is exactly the later mod's
+  was not reported. Inference: a mod whose editor wrote a column into every row wins every row.
+- The clash list after Install ("X overrides Y on ..."): tests, and seen live in a temp merge of the
+  library's two mods: `QuinnQuest-5-v0-4-2-2-1780006924 over ['community_patch'] 15` items. Not
+  seen in the window. Mod names there are the library folder names, download name included.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.
 - What the window reports when data.cdb couldn't carry rows over, or `trait` passes 2048 rows.
 - The test mods from `tests/merge/make_test_mods.py` (`build/test_mods/`) in the game, alone or

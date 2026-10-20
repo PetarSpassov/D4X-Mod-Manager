@@ -33,15 +33,17 @@ def _gather(library_dir, folders):
 def install_mods(game_dir, state_dir, library_dir, folders):
     """Merge and install the library mods in folders, in load order, replacing any earlier install.
 
-    Returns what the merge reported, which mods ship each other file, and what restore left alone.
+    Returns the merge's report, who ships each other file, `clashes`, and what restore skipped.
     """
     paks, files, owners = _gather(library_dir, folders)
     work = tempfile.mkdtemp()
     try:
-        report = {"merge": None, "owners": owners, "hlboot_modded": [], "skipped": []}
+        report = {"merge": None, "owners": owners, "hlboot_modded": [], "skipped": [],
+                  "clashes": merge.clashes(owners)}
         if paks:
-            report["merge"] = merge.merge(paks, game_dir, os.path.join(work, "merge"))
-            files[os.path.basename(report["merge"]["pak"])] = report["merge"]["pak"]
+            m = report["merge"] = merge.merge(paks, game_dir, os.path.join(work, "merge"))
+            files[os.path.basename(m["pak"])] = m["pak"]
+            report["clashes"] = merge.clashes(owners, m["owners"], m["rows"])
         # merged first, so a merge that fails leaves the earlier install in place
         report["skipped"] = deploy.restore(game_dir, state_dir)
         report["hlboot_modded"] = hlboot.modded(game_dir)

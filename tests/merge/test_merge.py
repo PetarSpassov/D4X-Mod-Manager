@@ -25,6 +25,14 @@ def _traits(data):
     return [s for s in data["sheets"] if s["name"] == "trait"][0]["lines"]
 
 
+class Clashes(unittest.TestCase):
+    def test_items_group_by_the_mod_that_wins_and_the_mods_it_overrides(self):
+        out = merge.clashes({"ui/a.png": ["A", "B"], "ui/solo.png": ["A"]},
+                            {"trait X": ["A", "B"], "trait Y": ["A", "C", "B"]})
+        self.assertEqual(out, [{"winner": "B", "over": ["A"], "items": ["trait X", "ui/a.png"]},
+                               {"winner": "B", "over": ["A", "C"], "items": ["trait Y"]}])
+
+
 @unittest.skipUnless(GAME, "needs the installed game")
 class Merge(unittest.TestCase):
     @classmethod
@@ -55,6 +63,7 @@ class Merge(unittest.TestCase):
         two = self._mod_pak("two", {"ui/a.txt": b"two"})
         out = merge.merge([one, two], GAME, os.path.join(self.tmp, "work"))
         self.assertEqual(out["owners"]["ui/a.txt"], ["one", "two"])
+        self.assertEqual(out["rows"], {"trait TestNewTrait": ["one"]})
         self.assertEqual(out["cdb"], {"one": {"trait": {"dropped": [dropped], "no_id": 0}}})
         self.assertEqual((out["traits"], out["traits_over"]), (len(_traits(self.base)) + 1, False))
         back = os.path.join(self.tmp, "back")

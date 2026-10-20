@@ -104,6 +104,12 @@ def diff(base, mod):
     return out
 
 
+def touched(d):
+    """'sheet id' for every row a diff changes or adds."""
+    return ["%s %s" % (name, rid) for name, change in d["sheets"].items()
+            for rid in list(change["rows"]) + [row[ID] for _, row in change["add"]]]
+
+
 def _place(items, adds, key, base):
     """Each (previous key, item): replace the item with its key, else insert after previous.
 

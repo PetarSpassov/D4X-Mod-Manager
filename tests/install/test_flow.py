@@ -40,7 +40,8 @@ class InstallMods(unittest.TestCase):
         os.makedirs(work)
         out = os.path.join(work, "res.compressed1.pak")
         _write(out, b"+".join(_read(p) for _, p in paks))
-        return {"pak": out}
+        names = [name for name, _ in paks]
+        return {"pak": out, "owners": {"ui/a.png": names}, "rows": {"trait Fast": names[-1:]}}
 
     def _install(self, *folders):
         with mock.patch("d4xmm.merge.merge", self._fake_merge):
@@ -54,6 +55,8 @@ class InstallMods(unittest.TestCase):
         self.assertEqual(_read(os.path.join(self.game, "res.compressed1.pak")), b"pakB+pakA")
         self.assertEqual(_read(os.path.join(self.game, "res", "Audio", "UI.bnk")), b"uiA")
         self.assertEqual(out["owners"], {"res/Audio/UI.bnk": ["B", "A"]})
+        self.assertEqual(out["clashes"], [{"winner": "A", "over": ["B"],
+                                           "items": ["res/Audio/UI.bnk", "ui/a.png"]}])
 
     def test_a_second_install_replaces_the_first_and_restore_clears_it(self):
         a = self._import("A", {"res.compressed1.pak": b"pakA", "Audio/One.bnk": b"one"})
