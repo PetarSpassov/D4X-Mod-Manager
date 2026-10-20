@@ -64,8 +64,13 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   re-renders; a found mod's record takes the new name, version and ids, in its own folder. Seen
   live on a copy of the user's records: QuinnQuest and community_patch took their Nexus names and
   versions. Not seen in the window; an import or reorder while it runs is untested.
-- The user wants the app's structure seriously revised: "it's ugly and lacks basic features like
-  deleting a mod".
+- New window layout (`window/index.html`, `style.css`, `page.js`): install status pill, Import plus
+  drop archives anywhere (`app.py` hands dropped paths to `Api.import_paths`), search, drag to
+  reorder, per-mod menu (Open folder, Open on Nexus, Delete with a second click), "update: X" from
+  Nexus's newest main file, a "Last install" overrides panel. Api parts tested; seen live: the real
+  window loads it with 4 rows and the pill "Installed" (installed before `last_install.json`
+  existed). Drag and the menu seen only in a browser preview with a fake Api. File drop, delete,
+  open folder/Nexus and the update note: not seen in the window.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.
 - What the window reports when data.cdb couldn't carry rows over, or `trait` passes 2048 rows.
 - The test mods from `tests/merge/make_test_mods.py` (`build/test_mods/`) in the game, alone or

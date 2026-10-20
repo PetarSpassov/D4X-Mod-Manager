@@ -36,16 +36,18 @@ def _mod(mod_id):
 
 
 def lookup(file_name, mod=_mod):
-    """The Nexus file whose download name is exactly file_name, with its mod's name, or None.
+    """The Nexus file named exactly file_name, or None; `latest` is the newest main file's version.
 
     Raises Offline when Nexus can't be reached, Refused when it answers with an error.
     """
     # the mod id is one of the name's all-digit parts; each is only a candidate until uri matches
     for mod_id in dict.fromkeys(re.findall(r"(?<=-)\d+(?=-)", file_name)):
         found = mod(mod_id)
+        mains = [f for f in found["files"] if f["category"] == "MAIN"]
+        latest = max(mains, key=lambda f: f["fileId"])["version"] if mains else None
         for f in found["files"]:
             if f["uri"] == file_name:
                 return {"nexus_id": int(mod_id), "file_id": f["fileId"], "name": f["name"],
                         "mod_name": found["name"] or f["name"], "version": f["version"],
-                        "category": f["category"]}
+                        "category": f["category"], "latest": latest}
     return None

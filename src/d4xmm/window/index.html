@@ -3,175 +3,32 @@
 <head>
 <meta charset="utf-8">
 <title>D4X Mod Manager</title>
-<style>
-  :root {
-    --bg: #f6f3ee; --panel: #fffdf9; --text: #2a2620; --muted: #7a7266; --line: #e3ddd2;
-    --accent: #b5651d; --accent-text: #fff; --warn: #9a3412; --warn-bg: #fdecdf;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1b1916; --panel: #24211d; --text: #ece6dc; --muted: #9c9385; --line: #38332c;
-      --accent: #d98a3d; --accent-text: #1b1916; --warn: #fdba74; --warn-bg: #3a2416;
-    }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text);
-         font: 14px/1.45 "Segoe UI", system-ui, sans-serif; }
-  header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-  h1 { font-size: 18px; margin: 0; }
-  #game { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
-  .hint { color: var(--muted); font-size: 12px; margin: 10px 0 6px; }
-  ul { list-style: none; margin: 0; padding: 0; background: var(--panel);
-       border: 1px solid var(--line); border-radius: 8px; }
-  li { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
-       border-top: 1px solid var(--line); }
-  li:first-child { border-top: 0; }
-  li .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  li .ver { color: var(--muted); font-size: 12px; }
-  li.off .name { color: var(--muted); }
-  .empty { padding: 18px; color: var(--muted); text-align: center; }
-  button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text);
-           border-radius: 6px; padding: 6px 12px; cursor: pointer; }
-  button:disabled { opacity: .5; cursor: default; }
-  button.small { padding: 2px 8px; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-  .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-  .actions .spacer { flex: 1; }
-  #status { margin-top: 12px; white-space: pre-wrap; font-size: 13px; }
-  #status.warn { background: var(--warn-bg); color: var(--warn); padding: 8px 10px; border-radius: 6px; }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
   <h1>D4X Mod Manager</h1>
   <span id="game"></span>
+  <span id="install-state" class="pill"></span>
 </header>
-<p class="hint">Lower in the list loads later and wins.</p>
-<ul id="mods"><li class="empty">Loading…</li></ul>
-<div class="actions">
-  <button id="import">Import mods…</button>
-  <span class="spacer"></span>
-  <button id="restore">Remove all mods</button>
-  <button id="install" class="primary">Install</button>
+<div class="toolbar">
+  <button id="import">Import…</button>
+  <span class="drop-hint">or drop archives anywhere</span>
+  <input id="search" type="search" placeholder="Search mods">
 </div>
-<div id="status"></div>
-<script>
-let mods = [];
-const NO_VERSION = {offline: "You are offline", not_found: "This file is not on Nexus",
-                    refused: "Nexus answered with an error"};
-
-function setStatus(text, warn) {
-  const el = document.getElementById("status");
-  el.textContent = text;
-  el.className = warn ? "warn" : "";
-}
-
-function busy(on) {
-  document.querySelectorAll("button").forEach(b => { b.disabled = on; });
-}
-
-function render(state) {
-  mods = state.mods;
-  document.getElementById("game").textContent = state.game_dir || "Game not found in Steam";
-  const list = document.getElementById("mods");
-  list.innerHTML = "";
-  if (!mods.length) {
-    list.innerHTML = '<li class="empty">No mods yet. Import a mod\'s zip, 7z or rar to start.</li>';
-  }
-  mods.forEach((m, i) => {
-    const li = document.createElement("li");
-    li.className = m.enabled ? "" : "off";
-    li.innerHTML = '<input type="checkbox"><span class="name"></span><span class="ver"></span>' +
-      '<button class="small" title="Load earlier">↑</button>' +
-      '<button class="small" title="Load later">↓</button>';
-    li.querySelector("input").checked = m.enabled;
-    li.querySelector(".name").textContent = m.name;
-    const ver = li.querySelector(".ver");
-    ver.textContent = m.version || "?";
-    if (!m.version) ver.title = "Could not determine version. " + (NO_VERSION[m.nexus] || "");
-    li.querySelector("input").onchange = e => { m.enabled = e.target.checked; save(); };
-    const [up, down] = li.querySelectorAll("button");
-    up.disabled = i === 0;
-    down.disabled = i === mods.length - 1;
-    up.onclick = () => move(i, -1);
-    down.onclick = () => move(i, 1);
-    list.appendChild(li);
-  });
-}
-
-async function call(name, ...args) {
-  busy(true);
-  try {
-    return await window.pywebview.api[name](...args);
-  } catch (e) {
-    setStatus(String(e.message || e), true);
-    return null;
-  } finally {
-    busy(false);
-  }
-}
-
-async function save() {
-  const state = await call("save_order", mods.map(m => ({folder: m.folder, enabled: m.enabled})));
-  if (state) render(state);
-}
-
-function move(i, step) {
-  [mods[i], mods[i + step]] = [mods[i + step], mods[i]];
-  save();
-}
-
-function describe(report) {
-  const lines = ["Installed."];
-  const merged = report.merge;
-  if (merged && merged.traits_over) {
-    lines.push(`Warning: ${merged.traits} traits. The game crashes past 2,048; ` +
-               "this is a limit of the game, not the manager.");
-  }
-  for (const [mod, sheets] of Object.entries((merged && merged.cdb) || {})) {
-    for (const [sheet, r] of Object.entries(sheets)) {
-      if (r.dropped.length) lines.push(`${mod}: kept ${r.dropped.length} ${sheet} rows it removes.`);
-      if (r.no_id) lines.push(`${mod}: skipped ${r.no_id} ${sheet} rows with no id.`);
-    }
-  }
-  for (const c of report.clashes) {
-    const shown = c.items.slice(0, 8).join(", ");
-    const more = c.items.length > 8 ? ` and ${c.items.length - 8} more` : "";
-    lines.push(`${c.winner} overrides ${c.over.join(", ")} on ${shown}${more}.`);
-  }
-  if (report.hlboot_modded.length) {
-    lines.push("Note: " + report.hlboot_modded.join(", ") + " already carry a mod's mark, " +
-               "so the backup is not the stock game.");
-  }
-  if (report.skipped.length) lines.push("Left alone (changed since): " + report.skipped.join(", "));
-  return {text: lines.join("\n"), warn: lines.length > 1};
-}
-
-document.getElementById("import").onclick = async () => {
-  const state = await call("import_mods");
-  if (state) { render(state); setStatus(""); }
-};
-
-document.getElementById("install").onclick = async () => {
-  setStatus("Merging and installing… this can take a minute.");
-  const report = await call("install");
-  if (report) { const d = describe(report); setStatus(d.text, d.warn); }
-};
-
-document.getElementById("restore").onclick = async () => {
-  const skipped = await call("restore");
-  if (skipped) {
-    setStatus(skipped.length ? "Removed. Left alone (changed since): " + skipped.join(", ")
-                             : "Removed. The game is back to its base files.", skipped.length > 0);
-  }
-};
-
-window.addEventListener("pywebviewready", async () => {
-  const state = await call("state");
-  if (state) render(state);
-  // not through call(): the list stays usable while Nexus answers
-  window.pywebview.api.refresh().then(render, e => setStatus(String(e.message || e), true));
-});
-</script>
+<main>
+  <ul id="mods"><li class="empty">Loading…</li></ul>
+  <p class="hint">Drag ⠿ to reorder. Lower in the list loads later and wins.</p>
+  <details id="last" hidden><summary></summary><ul></ul></details>
+</main>
+<footer>
+  <div id="status"></div>
+  <div class="actions">
+    <span class="spacer"></span>
+    <button id="restore">Remove all mods</button>
+    <button id="install" class="primary">Install</button>
+  </div>
+</footer>
+<script src="page.js"></script>
 </body>
 </html>

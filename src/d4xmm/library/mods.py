@@ -45,7 +45,8 @@ def describe(archive):
     """
     file_name = os.path.basename(archive)
     stem = os.path.splitext(file_name)[0]
-    unknown = {"name": stem, "file": stem, "nexus_id": None, "file_id": None, "version": None}
+    unknown = {"name": stem, "file": stem, "nexus_id": None, "file_id": None, "version": None,
+               "latest": None}
     try:
         found = nexus_files.lookup(file_name)
     except nexus_files.Offline:
@@ -55,7 +56,8 @@ def describe(archive):
     if found is None:
         return dict(unknown, nexus="not_found")
     return {"name": found["mod_name"], "file": found["name"], "nexus_id": found["nexus_id"],
-            "file_id": found["file_id"], "version": found["version"], "nexus": "found"}
+            "file_id": found["file_id"], "version": found["version"], "latest": found["latest"],
+            "nexus": "found"}
 
 
 def _extract(archive, dest):
@@ -111,6 +113,14 @@ def import_archive(archive, library):
         shutil.rmtree(folder)
     os.replace(staging, folder)
     return record
+
+
+def delete(library, folder):
+    """Take one mod out of the library; folder must be a mod folder in it."""
+    if folder not in os.listdir(library) or not os.path.isfile(
+            os.path.join(library, folder, RECORD)):
+        raise ValueError("no mod %r in the library" % folder)
+    shutil.rmtree(os.path.join(library, folder))
 
 
 def refresh(library):

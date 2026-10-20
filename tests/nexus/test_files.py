@@ -25,8 +25,17 @@ class Lookup(unittest.TestCase):
         self.assertEqual(files.lookup(QQ, mod_files),
                          {"nexus_id": 5, "file_id": 30, "name": "QuinnQuest",
                           "mod_name": "QuinnQuest - Conquest Additions and Overhauls",
-                          "version": "v0.4.2.2", "category": "MAIN"})
+                          "version": "v0.4.2.2", "category": "MAIN", "latest": "v0.4.2.2"})
         self.assertEqual(asked, ["5"])
+
+    def test_latest_is_the_newest_main_file_even_when_this_one_is_older(self):
+        mod_files, _ = _fake({"5": [
+            {"fileId": 30, "name": "Q", "version": "v0.4.2.2", "category": "OLD_VERSION",
+             "uri": QQ},
+            {"fileId": 50, "name": "Q", "version": "v0.5", "category": "MAIN", "uri": "b.zip"},
+            {"fileId": 40, "name": "Q", "version": "v0.4.3", "category": "MAIN", "uri": "a.zip"},
+            {"fileId": 60, "name": "Q", "version": "patch", "category": "OPTIONAL", "uri": "c"}]})
+        self.assertEqual(files.lookup(QQ, mod_files)["latest"], "v0.5")
 
     def test_a_mod_with_no_name_falls_back_to_the_file_name(self):
         mod_files, _ = _fake({"5": [{"fileId": 1, "name": "QuinnQuest", "version": "1",

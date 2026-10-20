@@ -47,11 +47,42 @@ class WindowApi(unittest.TestCase):
         self.picked = [self._zip("A")]
         self.api.import_mods()
         found = {"nexus_id": 1, "file_id": 2, "name": "A", "mod_name": "Mod A", "version": "1.0",
-                 "category": "MAIN"}
+                 "category": "MAIN", "latest": "1.1"}
         with mock.patch("d4xmm.nexus.files.lookup", return_value=found):
             state = self.api.refresh()
         self.assertEqual([(m["folder"], m["name"], m["version"]) for m in state["mods"]],
                          [("A", "Mod A", "1.0")])
+
+    def test_dropped_paths_import_and_delete_takes_a_mod_out(self):
+        self.api.import_paths([self._zip("A"), self._zip("B")])
+        self.assertEqual(self._names(self.api.delete("A")), [("B", True)])
+
+    def _fake_install(self, game_dir, state_dir, library, folders):
+        with open(os.path.join(state_dir, "install.json"), "w") as f:
+            f.write("[]")
+        return {"clashes": [{"winner": folders[-1], "over": folders[:-1], "items": ["x"]}]}
+
+    def test_install_status_follows_the_ticked_list_until_restore(self):
+        self.picked = [self._zip("A"), self._zip("B")]
+        self.assertEqual(self.api.import_mods()["install"]["status"], "none")
+        with mock.patch("d4xmm.install.flow.install_mods", self._fake_install):
+            self.api.install()
+        install = self.api.state()["install"]
+        self.assertEqual((install["status"], install["clashes"][0]["winner"]), ("current", "B"))
+        state = self.api.save_order([{"folder": "B", "enabled": True},
+                                     {"folder": "A", "enabled": True}])
+        self.assertEqual(state["install"]["status"], "changed")
+        with mock.patch("d4xmm.install.deploy.restore", return_value=[]):
+            self.api.restore()
+        os.remove(os.path.join(self.home, "state", "install.json"))
+        self.assertEqual(self.api.state()["install"], {"status": "none", "clashes": []})
+
+    def test_open_on_nexus_opens_the_mods_page_only_when_it_has_one(self):
+        self.picked = [self._zip("A")]
+        self.api.import_mods()
+        with mock.patch("webbrowser.open") as opened:
+            self.api.open_nexus("A")
+        opened.assert_not_called()
 
     def test_no_game_or_nothing_ticked_is_an_error_not_an_install(self):
         with self.assertRaises(RuntimeError):
