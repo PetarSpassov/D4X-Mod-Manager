@@ -1,0 +1,30 @@
+# Handoff
+
+Only what is true now. History lives in git; traps go to `GOTCHAS.md`. A commit that changes the tools
+or rules must change this file too (pre-commit).
+
+## State
+
+**► WE ARE ON:** nothing; awaiting direction *(moved only by `python .claude/tools/on.py`)*
+
+**► LAST KNOWN GOOD:** none yet *(only the user names this, in their own words; it lives here and nowhere else)*
+
+**Open threads:** none.
+
+## Standing decisions
+
+- A change turn needs the user's message to start with "Go". Anything else is an answer turn: propose and stop.
+- No hook sends a reply back after the user has seen it. Stop only records.
+- No question boxes with buttons. The next step goes in the reply text. `noask.py` refuses
+  `AskUserQuestion` and a wrap-up with a question or buttons, unless the user's message this turn says
+  "questions are allowed". It fails closed.
+- Replies: 700 prose characters, 1,800 when asked to explain. Code blocks and tables are free.
+- The host's task list is kept on multi-step turns, nudged by a turn-start line on "Go" turns, not a CLAUDE.md rule.
+- `CLAUDE.md` is capped at 7,000 characters (doccheck). Adding a rule means cutting or merging as much elsewhere, named in the commit message.
+- Code follows rule 12. A code file past 800 lines may only shrink.
+- Pre-commit runs `codecheck.py`, which refuses only the violations a commit adds over HEAD. Function
+  size, nesting, complexity, parameters and silent catches are checked in Python only.
+
+## Untested
+
+- nothing yet

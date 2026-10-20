@@ -1,0 +1,69 @@
+# THE SHAPE: ignore everything, then allow back what a person writes. A new kind of generated file
+# then arrives ignored instead of committed by surprise, which is the direction that fails safe.
+# A new source type the project uses needs one `!*.ext` line below.
+
+*
+!*/
+
+# config and docs
+!.gitignore
+!.gitattributes
+!.githooks/*
+!*.md
+!*.txt
+!*.json
+!*.jsonc
+!*.yaml
+!*.yml
+!*.toml
+!*.ini
+!*.cfg
+
+# source
+!*.py
+!*.js
+!*.mjs
+!*.cjs
+!*.ts
+!*.tsx
+!*.jsx
+!*.css
+!*.scss
+!*.html
+!*.svg
+!*.sh
+!*.ps1
+!*.bat
+!*.cmd
+!*.go
+!*.rs
+!*.java
+!*.kt
+!*.cs
+!*.c
+!*.h
+!*.cpp
+!*.hpp
+!*.rb
+!*.php
+!*.sql
+!*.lua
+!*.gd
+!*.swift
+
+# ---- generated things that wear those extensions anyway ----
+
+# per-machine and per-session state
+/.claude/state/
+/.claude/settings.local.json
+# the cleanup bin: moved here, never deleted, never committed
+/todelete/
+node_modules/
+__pycache__/
+.venv/
+venv/
+dist/
+build/
+*.log
+*.pyc
+*.tmp

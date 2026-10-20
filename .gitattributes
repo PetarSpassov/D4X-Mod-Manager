@@ -1,0 +1,2 @@
+# LF everywhere: a CRLF checkout breaks the `#!/bin/sh` line of .githooks/pre-commit
+* text=auto eol=lf

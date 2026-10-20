@@ -1,0 +1,32 @@
+{
+  "handoff": "docs/HANDOFF.md",
+  "gotchas": "docs/GOTCHAS.md",
+  "why": "docs/WHY.md",
+
+  "read_cap_bytes": 200000,
+  "never_read": ["package-lock.json", "yarn.lock", "pnpm-lock.yaml", "*.min.js", "*.map", "todelete/*"],
+
+  "turn_budget_chars": 150000,
+  "long_turn_phrase": "long turn",
+  "long_turn_multiplier": 5,
+
+  "journal_turns": 6,
+  "claude_md_cap_chars": 7000,
+  "handoff_state_cap_lines": 20,
+  "handoff_watch": ["CLAUDE.md", ".claude/tools/*", ".claude/skills/*", ".claude/settings.json",
+                    ".claude/starter.json", ".githooks/*"],
+
+  "plan_required": true,
+  "declare_required": true,
+  "file_lines_refuse": 800,
+  "code_globs": ["*.py", "*.js", "*.jsx", "*.ts", "*.tsx", "*.go", "*.rs", "*.java", "*.kt", "*.cs",
+                 "*.c", "*.cpp", "*.h", "*.hpp", "*.rb", "*.php", "*.swift", "*.gd", "*.lua", "*.sh"],
+  "code_limits": {"line": 100, "function": 50, "nesting": 3, "params": 5, "complexity": 10,
+                  "file": 400, "comment_block": 2, "docstring": 3, "depth": 4},
+  "banned_folders": ["utils", "misc", "helpers"],
+  "questions_phrase": "questions are allowed",
+
+  "reply_cap_chars": 700,
+  "reply_cap_asked_chars": 1800,
+  "long_reply_phrase": "long reply"
+}

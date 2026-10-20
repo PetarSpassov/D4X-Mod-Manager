@@ -1,0 +1,74 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(python .claude/tools/rules.py:*)",
+      "Bash(python .claude/tools/on.py:*)",
+      "Bash(python .claude/tools/why.py:*)",
+      "Bash(python .claude/tools/journal.py:*)",
+      "Bash(python .claude/tools/prevconvo.py:*)",
+      "Bash(python .claude/tools/doccheck.py:*)",
+      "Bash(python .claude/tools/selftest.py:*)",
+      "Bash(python .claude/tools/briefing.py:*)",
+      "Bash(python .claude/tools/plan.py:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(wc:*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/tools/briefing.py\"", "timeout": 30 }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/tools/turnstart.py\"", "timeout": 15 }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read|Grep|Glob|WebFetch|Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/tools/pregate.py\"", "timeout": 15 }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion|mcp__ccd_turn__wrap_up",
+        "hooks": [
+          { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/tools/noask.py\"", "timeout": 15 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/tools/postgate.py\"", "timeout": 15 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/tools/journal.py\"", "timeout": 15 }
+        ]
+      }
+    ]
+  }
+}

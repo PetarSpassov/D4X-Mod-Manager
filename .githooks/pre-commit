@@ -1,0 +1,4 @@
+#!/bin/sh
+# nothing is committed while the docs disagree with themselves; the checks are in doccheck.py
+cd "$(git rev-parse --show-toplevel)" || exit 1
+exec python .claude/tools/doccheck.py --staged
