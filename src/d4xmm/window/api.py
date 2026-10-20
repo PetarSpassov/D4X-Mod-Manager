@@ -68,21 +68,24 @@ class Api:
         order = self._order(records)
         listed = [dict(e, **{k: records[e["folder"]].get(k) for k in keys}) for e in order]
         current = settings.load(self._home)
-        folders = {k: current[k] for k in settings.FOLDERS}
+        typed = {k: current[k] for k in settings.TYPED}
         return {"mods": listed, "install": self._install_state(order),
-                "settings": dict(folders, game_ok=settings.game_ok(current["game_dir"]))}
+                "settings": dict(typed, game_ok=settings.game_ok(current["game_dir"]))}
 
-    def set_folder(self, key, path):
-        """Keep one of settings.FOLDERS; an empty path goes back to the one Steam or Windows has."""
-        if key not in settings.FOLDERS:
+    def set_setting(self, key, value):
+        """Keep one of settings.TYPED; an empty folder goes back to the one Steam or Windows has."""
+        if key not in settings.TYPED:
             raise ValueError("no setting %r" % key)
-        settings.save(self._home, **{key: os.path.normpath(path) if path.strip() else None})
+        value = value.strip() or None
+        if value and key in settings.FOLDERS:
+            value = os.path.normpath(value)
+        settings.save(self._home, **{key: value})
         return self.state()
 
     def choose_folder(self, key):
         """Let the user pick the folder for key, starting from the current one."""
         path = self._pick_folder(settings.load(self._home)[key])
-        return self.set_folder(key, path) if path else self.state()
+        return self.set_setting(key, path) if path else self.state()
 
     def save_order(self, entries):
         """Keep the page's order and ticks: a list of {folder, enabled}, first loaded first."""

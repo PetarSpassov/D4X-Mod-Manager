@@ -69,12 +69,20 @@ function menu(m, parent) {
   box.querySelector('[data-act="folder"]').onclick = () => call("open_folder", m.folder);
   box.querySelector('[data-act="nexus"]').onclick = () => call("open_nexus", m.folder);
   const del = box.querySelector('[data-act="delete"]');
+  const DELETE = del.textContent;
   del.onclick = () => {
     if (del.dataset.armed) { run("delete", m.folder); return; }
     del.dataset.armed = "1";
     del.textContent = "Click again to delete";
   };
-  box.addEventListener("toggle", () => { if (box.open) closeMenus(box); });
+  box.addEventListener("toggle", () => {
+    if (box.open) {
+      closeMenus(box);
+    } else {
+      delete del.dataset.armed;
+      del.textContent = DELETE;
+    }
+  });
   parent.appendChild(box);
 }
 
@@ -244,7 +252,7 @@ function renderLast(install) {
 }
 
 function renderSettings(s) {
-  for (const key of ["game_dir", "downloads"]) {
+  for (const key of ["game_dir", "downloads", "nexus_key"]) {
     const input = $("set-" + key);
     if (document.activeElement !== input) input.value = s[key] || "";
   }
@@ -304,7 +312,7 @@ function showTab(name) {
 
 document.querySelectorAll(".tab").forEach(t => { t.onclick = () => showTab(t.dataset.tab); });
 document.querySelectorAll("[data-key]").forEach(input => {
-  input.onchange = () => run("set_folder", input.dataset.key, input.value);
+  input.onchange = () => run("set_setting", input.dataset.key, input.value);
 });
 document.querySelectorAll("[data-choose]").forEach(b => {
   b.onclick = () => run("choose_folder", b.dataset.choose);
@@ -313,8 +321,9 @@ document.querySelectorAll("[data-choose]").forEach(b => {
 $("import").onclick = async () => { if (await run("import_mods")) setStatus(""); };
 $("search").oninput = renderList;
 $("status-close").onclick = () => setStatus("");
-$("list").addEventListener("dragover", dragOver);
-$("list").addEventListener("drop", dropRow);
+// on the whole page, so a pointer over the toolbar or footer still moves and drops the row
+document.addEventListener("dragover", dragOver);
+document.addEventListener("drop", dropRow);
 
 $("install").onclick = async () => {
   setStatus("Merging and installing… this can take a minute.");

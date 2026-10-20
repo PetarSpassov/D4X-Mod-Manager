@@ -89,6 +89,12 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   2026-05-28). Install shows one line ("Installed." fades; with notes or an error it stays, with ×)
   and "Last install: N notes, N overrides" in the footer opens a panel. Themed scrollbar. Seen only
   in a browser preview with a fake Api; real mouse drags and the scrollbar not seen at all.
+  After `3790943` the user reports: dragging a mod far down works, far up still does not; "Click
+  again to delete" stays after the menu is closed and reopened; the tabs jitter when clicked.
+  Changed for that: a dragged row's drop and edge scroll now work over the whole page (the toolbar
+  above the list included); closing the menu disarms Delete; all tabs share one weight. Settings
+  has a Nexus API key field (kept as typed in `settings.json`, unused by any lookup so far) and no
+  folder hint. Seen in a browser preview with a fake Api with synthetic drag events; not by mouse.
 - The window reopens where it closed, maximised if it was. Seen live: closed maximised, settings.json
   kept `"width": 860, "height": 640, "maximized": true`; reopened, closed untouched, the same again.
   Un-maximising after a restart, and a second monitor, not seen.

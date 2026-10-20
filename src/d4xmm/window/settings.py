@@ -1,4 +1,4 @@
-"""The user's settings, kept in settings.json under the home folder: folders and window placement.
+"""The user's settings in settings.json under the home: folders, Nexus key, window placement.
 
 A folder not set yet is filled in from Steam or Windows each time, and saved only once changed.
 """
@@ -11,6 +11,7 @@ from d4xmm.game import steam
 FILE = "settings.json"
 GAME_EXE = "D4X.exe"
 FOLDERS = ("game_dir", "downloads")
+TYPED = FOLDERS + ("nexus_key",)  # what the Settings page can set
 SHELL_FOLDERS = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
 DOWNLOADS_ID = "{374DE290-123F-4565-9164-39C4925E467B}"  # Windows's id for the Downloads folder
 
@@ -54,10 +55,11 @@ def _saved(home):
 
 
 def load(home):
-    """{game_dir, downloads, window}: saved values, the two folders found when not saved."""
+    """{game_dir, downloads, nexus_key, window}: saved values, the folders found when not saved."""
     saved = _saved(home)
     return {"game_dir": saved.get("game_dir") or steam.find(),
             "downloads": saved.get("downloads") or downloads_dir(),
+            "nexus_key": saved.get("nexus_key"),
             "window": saved.get("window")}
 
 

@@ -108,10 +108,16 @@ class WindowApi(unittest.TestCase):
         self.folder = None
         self.assertEqual(self.api.choose_folder("downloads")["settings"]["downloads"], self.zips)
         with mock.patch.object(settings, "downloads_dir", return_value="C:\\dl"):
-            state = Api(self.home).set_folder("downloads", " ")
+            state = Api(self.home).set_setting("downloads", " ")
         self.assertEqual(state["settings"]["downloads"], "C:\\dl")
         with self.assertRaises(ValueError):
-            self.api.set_folder("window", "x")
+            self.api.set_setting("window", "x")
+
+    def test_the_nexus_key_is_kept_as_typed_and_cleared_when_empty(self):
+        self.assertIsNone(self.api.state()["settings"]["nexus_key"])
+        self.assertEqual(self.api.set_setting("nexus_key", " abc/def= ")["settings"]["nexus_key"],
+                         "abc/def=")
+        self.assertIsNone(self.api.set_setting("nexus_key", "")["settings"]["nexus_key"])
 
     def test_the_page_sees_only_the_calls(self):
         public = sorted(n for n in vars(self.api) if not n.startswith("_"))
