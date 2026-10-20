@@ -149,7 +149,8 @@ function row(m, i) {
   li.draggable = true;
   li.dataset.index = i;
   li.innerHTML = '<div class="line"><span class="handle" title="Drag to reorder">⠿</span>' +
-    '<input type="checkbox"><span class="title"><span class="name"></span> ' +
+    '<label class="tick" title="Use this mod"><input type="checkbox"></label>' +
+    '<span class="title"><span class="name"></span> ' +
     '<span class="meta"></span></span></div>';
   const line = li.querySelector(".line");
   li.querySelector("input").checked = m.enabled;
@@ -167,7 +168,7 @@ function row(m, i) {
   }
   icons(m, line);
   line.addEventListener("click", e => {
-    if (!e.target.closest("input, .icons, .handle")) toggle(m, li);
+    if (!e.target.closest(".tick, .icons, .handle")) toggle(m, li);
   });
   if (expanded.has(m.folder)) {
     li.classList.add("open");

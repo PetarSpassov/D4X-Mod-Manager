@@ -108,6 +108,10 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   clicks; not on the last). A new import is ticked in the active profile, unticked in others. The
   old `order.json` is read once as "Default"; seen live: the user's reads as QuinnQuest ticked,
   community_patch not. Switching doesn't install. UI seen only in a browser preview, fake Api.
+  After `c93029c` the user reports: the dropdown's arrow sits too far right; the dropdown is sharp
+  and blocky against the rounded style; the selected profile shows in all white; Import jumps when
+  a new profile is being named; the mod tickboxes are small, hard to hit between the handle and
+  the row's click-to-open, and blue.
 - One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
   Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.
