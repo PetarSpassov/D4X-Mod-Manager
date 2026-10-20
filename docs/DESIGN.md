@@ -77,7 +77,9 @@ For each mod, in load order:
    mod wins. New rows, columns and sheets go after the item that precedes them in the mod, below
    any other mod's additions already there, never at the end by default: the game needs lines in
    place. `trait`'s `Count` row is put back last; `attribute`'s is not.
-   A sheet's `props` and `separators` are taken whole, the later mod winning. For now, rows a mod
+   A sheet's `props` are taken whole, the later mod winning. Its `separators` (categories) merge
+   by row id: each mod's new ones are kept, ones it removed or renamed go, and all are sorted into
+   row order. For now, rows a mod
    deletes are kept and reported, rows with no `id` are counted and skipped, and a mod's reordering
    of existing rows or sheets is not carried over.
 

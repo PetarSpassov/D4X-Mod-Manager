@@ -23,6 +23,10 @@ def _mod(edit):
     return mod
 
 
+def _add_sep(title, rid):
+    return lambda s: s["separators"].append({"title": title, "id": rid})
+
+
 def _rows(cdb_):
     return {r["id"]: r for r in cdb_["sheets"][0]["lines"]}
 
@@ -81,10 +85,36 @@ class Merge(unittest.TestCase):
         self.assertEqual([c["name"] for c in merged["sheets"][0]["columns"]],
                          ["id", "note", "cost", "type"])
 
-    def test_separators_are_taken_whole_from_the_later_mod(self):
-        merged = self.merge(lambda s: s.update(separators=[{"title": "A", "id": "Fast"}]),
-                            lambda s: s.update(separators=[{"title": "B", "id": "Slow"}]))
-        self.assertEqual(merged["sheets"][0]["separators"], [{"title": "B", "id": "Slow"}])
+    def _seps(self, base_seps, *edits):
+        base = _base()
+        base["sheets"][0]["separators"] = base_seps
+        mods = []
+        for edit in edits:
+            mods.append(copy.deepcopy(base))
+            edit(mods[-1]["sheets"][0])
+        merged = cdb.apply(base, [cdb.diff(base, m) for m in mods])
+        return [(s.get("title"), s["id"]) for s in merged["sheets"][0]["separators"]]
+
+    def test_every_mods_separators_are_kept_in_row_order(self):
+        self.assertEqual(self._seps([], _add_sep("A", "Slow"), _add_sep("B", "Fast")),
+                         [("B", "Fast"), ("A", "Slow")])
+
+    def test_a_renamed_separator_replaces_the_old_one(self):
+        self.assertEqual(self._seps([{"title": "Old", "id": "Fast"}],
+                                    lambda s: s["separators"][0].update(title="New")),
+                         [("New", "Fast")])
+
+    def test_separators_on_one_row_keep_their_order_later_mod_below(self):
+        self.assertEqual(self._seps([{"title": "P", "id": "Fast"}],
+                                    _add_sep("C1", "Fast"), _add_sep("C2", "Fast")),
+                         [("P", "Fast"), ("C1", "Fast"), ("C2", "Fast")])
+
+    def test_a_separator_on_a_mods_new_row_sits_at_that_row(self):
+        def edit(s):
+            s["lines"].insert(1, {"id": "Mid"})
+            s["separators"].append({"title": "M", "id": "Mid"})
+        self.assertEqual(self._seps([{"title": "S", "id": "Slow"}], edit),
+                         [("M", "Mid"), ("S", "Slow")])
 
     def test_a_removed_field_is_removed(self):
         merged = self.merge(lambda s: s["lines"][1].pop("tags"))

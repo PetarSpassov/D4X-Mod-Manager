@@ -33,3 +33,4 @@ or rules must change this file too (pre-commit).
   loaded a pak we built.
 - `merge.merge()` on real mods: only two tiny mods built in the tests have been merged.
 - Row placement (each mod's rows where the mod had them, below earlier mods') in a game: tests only.
+- Merged separators in the editor or game: tests and one live merge of the real `data.cdb` only.

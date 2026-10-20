@@ -7,7 +7,7 @@ import json
 
 ID = "id"
 MISSING = object()  # a field the mod removed from a row
-META = ("props", "separators")  # a sheet's editor settings: taken whole, the later mod wins
+META = ("props",)  # a sheet's editor settings: taken whole, the later mod wins
 LAST_ROW = {"trait": "Count"}  # the game needs this row last; attribute's Count may move
 
 
@@ -24,6 +24,27 @@ def save(cdb, path):
 
 def _by_name(items):
     return {i["name"]: i for i in items}
+
+
+def _field(name):
+    return lambda item: item.get(name)
+
+
+def _sep_key(sep):
+    """A separator as a whole: several can start at the same row, told apart by title or level."""
+    return tuple(sorted(sep.items()))
+
+
+def _seps_diff(old, new):
+    """Separators a mod added, each with the one before it, and the ones it removed."""
+    before = {_sep_key(s) for s in old}
+    after = {_sep_key(s) for s in new}
+    add, prev = [], None
+    for sep in new:
+        if _sep_key(sep) not in before:
+            add.append((prev, sep))
+        prev = _sep_key(sep)
+    return {"seps": add, "seps_gone": [s for s in old if _sep_key(s) not in after]}
 
 
 def _changed(old, new):
@@ -47,6 +68,7 @@ def _sheet_diff(old, new):
               "meta": {k: new[k] for k in META if k in new and new[k] != old.get(k)}}
     change.update(_row_changes(old["lines"], new["lines"]),
                   dropped=_dropped(old["lines"], new["lines"]))
+    change.update(_seps_diff(old.get("separators", []), new.get("separators", [])))
     return change if any(change.values()) else None
 
 
@@ -93,11 +115,11 @@ def _place(items, adds, key, base):
 
     Past previous, other mods' additions (keys not in base) are stepped over, so they stay above.
     """
-    base_keys = {i.get(key) for i in base}
+    base_keys = {key(i) for i in base}
     for prev, item in adds:
-        keys = [i.get(key) for i in items]
-        if item[key] in keys:
-            items[keys.index(item[key])] = copy.deepcopy(item)
+        keys = [key(i) for i in items]
+        if key(item) in keys:
+            items[keys.index(key(item))] = copy.deepcopy(item)
             continue
         at = keys.index(prev) + 1 if prev in keys else 0
         while at < len(keys) and keys[at] not in base_keys:
@@ -114,8 +136,18 @@ def _keep_last(sheet):
         rows.append(rows.pop(ids.index(last)))
 
 
+def _apply_seps(sheet, change, base):
+    """Drop the separators the mod removed, place its new ones, then sort them into row order."""
+    seps = [s for s in sheet.get("separators", []) if s not in change["seps_gone"]]
+    _place(seps, change["seps"], _sep_key, base.get("separators", []))
+    at = {r.get(ID): i for i, r in enumerate(sheet["lines"])}
+    seps.sort(key=lambda s: at.get(s.get(ID), len(at)))
+    if seps or "separators" in sheet:
+        sheet["separators"] = seps
+
+
 def _apply_sheet(sheet, change, base):
-    _place(sheet["columns"], change["columns"], "name", base["columns"])
+    _place(sheet["columns"], change["columns"], _field("name"), base["columns"])
     sheet.update(copy.deepcopy(change["meta"]))
     rows = {r.get(ID): r for r in sheet["lines"]}
     for rid, fields in change["fields"].items():
@@ -125,16 +157,17 @@ def _apply_sheet(sheet, change, base):
                 row.pop(k, None)
             else:
                 row[k] = copy.deepcopy(v)
-    _place(sheet["lines"], change["add"], ID, base["lines"])
+    _place(sheet["lines"], change["add"], _field(ID), base["lines"])
     _keep_last(sheet)
+    _apply_seps(sheet, change, base)
 
 
 def apply(base, diffs):
     """The base with each diff applied in load order; a later mod wins the same field."""
     merged, base_sheets = copy.deepcopy(base), _by_name(base["sheets"])
     for d in diffs:
-        _place(merged["customTypes"], d["types"], "name", base["customTypes"])
-        _place(merged["sheets"], d["new_sheets"], "name", base["sheets"])
+        _place(merged["customTypes"], d["types"], _field("name"), base["customTypes"])
+        _place(merged["sheets"], d["new_sheets"], _field("name"), base["sheets"])
         sheets = _by_name(merged["sheets"])
         for name, change in d["sheets"].items():
             _apply_sheet(sheets[name], change, base_sheets[name])
