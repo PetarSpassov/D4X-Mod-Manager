@@ -95,6 +95,9 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   above the list included); closing the menu disarms Delete; all tabs share one weight. Settings
   has a Nexus API key field (kept as typed in `settings.json`, unused by any lookup so far) and no
   folder hint. Seen in a browser preview with a fake Api with synthetic drag events; not by mouse.
+- A trial the user may drop: the ⋯ menu is replaced by three icons per row (folder, open on Nexus,
+  bin). The bin turns red on the first click and deletes on the second; any other click disarms
+  it. Seen only in a browser preview with a fake Api.
 - The window reopens where it closed, maximised if it was. Seen live: closed maximised, settings.json
   kept `"width": 860, "height": 640, "maximized": true`; reopened, closed untouched, the same again.
   Un-maximising after a restart, and a second monitor, not seen.

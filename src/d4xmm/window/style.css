@@ -2,14 +2,14 @@
   --bg: #f4f1ec; --panel: #fffdf9; --text: #26221d; --muted: #776f63; --line: #e2dbcf;
   --accent: #b5651d; --accent-text: #fff; --hover: #f1ebe1;
   --warn: #9a3412; --warn-bg: #fdecdf; --ok: #3f6212; --ok-bg: #ecf3dc;
-  --info: #1e4e8c; --info-bg: #e3edf9;
+  --info: #1e4e8c; --info-bg: #e3edf9; --danger: #c62828;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #1a1815; --panel: #23201c; --text: #ece6dc; --muted: #9c9385; --line: #37322b;
     --accent: #d98a3d; --accent-text: #1a1815; --hover: #2c2823;
     --warn: #fdba74; --warn-bg: #3a2416; --ok: #bef264; --ok-bg: #26301a;
-    --info: #93c5fd; --info-bg: #1b2a3d;
+    --info: #93c5fd; --info-bg: #1b2a3d; --danger: #d23b3b;
   }
 }
 * { box-sizing: border-box; }
@@ -76,18 +76,12 @@ li.open .line { border-bottom: 1px solid var(--line); border-radius: 8px 8px 0 0
 .field input.bad { border-color: var(--warn); }
 .error { margin: 0; color: var(--warn); font-size: 13px; }
 
-.menu { position: relative; }
-.menu summary { list-style: none; cursor: pointer; padding: 0 8px; border-radius: 6px;
-                color: var(--muted); font-size: 16px; line-height: 24px; }
-.menu summary::-webkit-details-marker { display: none; }
-.menu summary:hover { background: var(--line); }
-.menu .items { position: absolute; right: 0; top: 28px; z-index: 5; min-width: 180px;
-               background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
-               box-shadow: 0 6px 18px rgba(0, 0, 0, .15); padding: 4px; }
-.menu .items button { display: block; width: 100%; text-align: left; border: 0;
-                      background: none; padding: 6px 10px; }
-.menu .items button:hover { background: var(--hover); }
-.menu .items button.danger { color: var(--warn); }
+.icons { display: flex; gap: 2px; }
+.icon { display: flex; border: 0; background: none; padding: 5px; color: var(--muted); }
+.icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4;
+            stroke-linecap: round; stroke-linejoin: round; }
+.icon:hover:not(:disabled) { background: var(--line); color: var(--text); }
+.icon.armed, .icon.armed:hover:not(:disabled) { background: var(--danger); color: #fff; }
 
 footer { position: relative; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
          border-top: 1px solid var(--line); background: var(--panel); padding: 10px 18px; }

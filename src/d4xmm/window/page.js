@@ -54,35 +54,38 @@ function note(m) {
   return null;
 }
 
-function closeMenus(except) {
-  document.querySelectorAll(".menu[open]").forEach(o => { if (o !== except) o.open = false; });
+// 16px stroke icons drawn in currentColor, so they follow the theme and the armed red
+const ICON = {
+  folder: '<path d="M2 4.5h4l1.5 1.5H14v6.5H2z"/>',
+  nexus: '<path d="M9 2h5v5M14 2 7.5 8.5M12 9.5V14H2V4h4.5"/>',
+  bin: '<path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4M6.5 6.5v5M9.5 6.5v5"/>',
+};
+
+function disarm() {
+  document.querySelectorAll(".icon.armed").forEach(b => {
+    b.classList.remove("armed");
+    b.title = "Delete from library";
+  });
 }
 
-function menu(m, parent) {
-  const box = document.createElement("details");
-  box.className = "menu";
-  box.innerHTML = '<summary title="More">⋯</summary><div class="items">' +
-    '<button data-act="folder">Open folder</button>' +
-    '<button data-act="nexus">Open on Nexus</button>' +
-    '<button data-act="delete" class="danger">Delete from library</button></div>';
+function icons(m, parent) {
+  const box = document.createElement("span");
+  box.className = "icons";
+  for (const [act, title] of [["folder", "Open folder"], ["nexus", "Open on Nexus"],
+                              ["bin", "Delete from library"]]) {
+    box.insertAdjacentHTML("beforeend", `<button class="icon" data-act="${act}" title="${title}">` +
+      `<svg viewBox="0 0 16 16">${ICON[act]}</svg></button>`);
+  }
   box.querySelector('[data-act="nexus"]').disabled = !m.nexus_id;
   box.querySelector('[data-act="folder"]').onclick = () => call("open_folder", m.folder);
   box.querySelector('[data-act="nexus"]').onclick = () => call("open_nexus", m.folder);
-  const del = box.querySelector('[data-act="delete"]');
-  const DELETE = del.textContent;
-  del.onclick = () => {
-    if (del.dataset.armed) { run("delete", m.folder); return; }
-    del.dataset.armed = "1";
-    del.textContent = "Click again to delete";
+  const bin = box.querySelector('[data-act="bin"]');
+  bin.onclick = () => {
+    if (bin.classList.contains("armed")) { run("delete", m.folder); return; }
+    disarm();
+    bin.classList.add("armed");
+    bin.title = "Click again to delete";
   };
-  box.addEventListener("toggle", () => {
-    if (box.open) {
-      closeMenus(box);
-    } else {
-      delete del.dataset.armed;
-      del.textContent = DELETE;
-    }
-  });
   parent.appendChild(box);
 }
 
@@ -156,9 +159,9 @@ function row(m, i) {
     tag.title = n.title;
     line.appendChild(tag);
   }
-  menu(m, line);
+  icons(m, line);
   line.addEventListener("click", e => {
-    if (!e.target.closest("input, .menu, .handle")) toggle(m, li);
+    if (!e.target.closest("input, .icons, .handle")) toggle(m, li);
   });
   if (expanded.has(m.folder)) {
     li.classList.add("open");
@@ -348,7 +351,7 @@ $("restore").onclick = async () => {
 };
 
 document.addEventListener("dragover", e => e.preventDefault());  // lets files be dropped anywhere
-document.addEventListener("click", e => { if (!e.target.closest(".menu")) closeMenus(null); });
+document.addEventListener("click", e => { if (!e.target.closest(".icon.armed")) disarm(); });
 
 window.addEventListener("pywebviewready", async () => {
   await run("state");
