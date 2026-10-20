@@ -13,7 +13,7 @@ from d4xmm.library import mods as library
 def _gather(library_dir, folders):
     """Split the chosen mods' files into paks to merge and the rest, in load order.
 
-    Returns ([(mod name, pak path)], {game path: source}, {game path: [mod names]}).
+    Returns ([(mod name, game path, pak path)], {game path: source}, {game path: [mod names]}).
     """
     paks, files, owners = [], {}, {}
     for folder in folders:
@@ -23,7 +23,7 @@ def _gather(library_dir, folders):
         for where, rel in record["files"].items():
             src = os.path.join(root, *rel.split("/"))
             if library.PAK.match(where):
-                paks.append((record["name"], src))
+                paks.append((record["name"], where, src))
             else:
                 files[where] = src  # a later mod replaces the same path
                 owners.setdefault(where, []).append(record["name"])
@@ -31,17 +31,21 @@ def _gather(library_dir, folders):
 
 
 def install_mods(game_dir, state_dir, library_dir, folders):
-    """Merge and install the library mods in folders, in load order, replacing any earlier install.
+    """Merge and install the mods in folders, in load order; one mod alone goes in as shipped.
 
-    Returns the merge's report, who ships each other file, `clashes`, and what restore skipped.
+    Returns the merge's report (None unmerged), who ships each file, clashes, what restore skipped.
     """
     paks, files, owners = _gather(library_dir, folders)
+    if len(folders) == 1:
+        files.update({where: src for _, where, src in paks})
+        paks = []
     work = tempfile.mkdtemp()
     try:
         report = {"merge": None, "owners": owners, "hlboot_modded": [], "skipped": [],
                   "clashes": merge.clashes(owners)}
         if paks:
-            m = report["merge"] = merge.merge(paks, game_dir, os.path.join(work, "merge"))
+            m = report["merge"] = merge.merge([(name, src) for name, _, src in paks], game_dir,
+                                              os.path.join(work, "merge"))
             files[os.path.basename(m["pak"])] = m["pak"]
             report["clashes"] = merge.clashes(owners, m["owners"], m["rows"])
         # merged first, so a merge that fails leaves the earlier install in place

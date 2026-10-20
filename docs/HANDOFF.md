@@ -25,8 +25,8 @@ and has the contents of both. This is a great success, it seems the merge is wor
 - Import looks each archive up on Nexus by exact download name (`nexus/files.py`). Seen live:
   `QuinnQuest.zip` is "not_found". A mod imported offline keeps "?" until re-imported.
 
-- Owed, asked for, not built: mod profiles (save/load order and ticks); one ticked mod deployed
-  as-is, unmerged; the Browse tab's Nexus catalog (the tab is empty).
+- Owed, asked for, not built: mod profiles (save/load order and ticks); the Browse tab's Nexus
+  catalog (the tab is empty).
 
 Debt: the no-console `subprocess.run` is now written three times (unpack, pak, mods).
 
@@ -104,6 +104,8 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 - The window reopens where it closed, maximised if it was. Seen live: closed maximised, settings.json
   kept `"width": 860, "height": 640, "maximized": true`; reopened, closed untouched, the same again.
   Un-maximising after a restart, and a second monitor, not seen.
+- One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
+  Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.
 - What the window reports when data.cdb couldn't carry rows over, or `trait` passes 2048 rows.
 - The test mods from `tests/merge/make_test_mods.py` (`build/test_mods/`) in the game, alone or

@@ -58,6 +58,13 @@ class InstallMods(unittest.TestCase):
         self.assertEqual(out["clashes"], [{"winner": "A", "over": ["B"],
                                            "items": ["res/Audio/UI.bnk", "ui/a.png"]}])
 
+    def test_one_mod_alone_goes_in_as_shipped_without_a_merge(self):
+        a = self._import("A", {"res.compressed1.pak": b"pakA", "Audio/UI.bnk": b"uiA"})
+        out = self._install(a)
+        self.assertEqual((self.merged, out["merge"], out["clashes"]), ([], None, []))
+        self.assertEqual(_read(os.path.join(self.game, "res.compressed1.pak")), b"pakA")
+        self.assertEqual(_read(os.path.join(self.game, "res", "Audio", "UI.bnk")), b"uiA")
+
     def test_a_second_install_replaces_the_first_and_restore_clears_it(self):
         a = self._import("A", {"res.compressed1.pak": b"pakA", "Audio/One.bnk": b"one"})
         b = self._import("B", {"Audio/Two.bnk": b"two"})
@@ -70,10 +77,11 @@ class InstallMods(unittest.TestCase):
 
     def test_a_failed_merge_leaves_the_earlier_install_in_place(self):
         a = self._import("A", {"res.compressed1.pak": b"pakA"})
+        b = self._import("B", {"res.compressed1.pak": b"pakB"})
         self._install(a)
         with mock.patch("d4xmm.merge.merge", side_effect=RuntimeError("pakBuild failed")):
             with self.assertRaises(RuntimeError):
-                flow.install_mods(self.game, self.state, self.lib, [a])
+                flow.install_mods(self.game, self.state, self.lib, [a, b])
         self.assertEqual(_read(os.path.join(self.game, "res.compressed1.pak")), b"pakA")
 
 
