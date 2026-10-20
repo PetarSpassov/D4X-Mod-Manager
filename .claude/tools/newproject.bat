@@ -22,7 +22,7 @@ if errorlevel 8 (
     set "FAIL=1"
     goto done
 )
-echo Copied into %DEST%. Next: open a session there and follow README steps 2-5.
+echo Copied into %DEST%. Next: open a session there and follow .claude\README.md steps 2-5.
 :done
 if "%~1"=="" pause
 if defined FAIL exit /b 1

@@ -21,6 +21,7 @@ or rules must change this file too (pre-commit).
 - Replies: 700 prose characters, 1,800 when asked to explain. Code blocks and tables are free.
 - The host's task list is kept on multi-step turns, nudged by a turn-start line on "Go" turns, not a CLAUDE.md rule.
 - `CLAUDE.md` is capped at 7,000 characters (doccheck). Adding a rule means cutting or merging as much elsewhere, named in the commit message.
+- The root `README.md` is the project's. The ClaudeStarter README lives at `.claude/README.md`.
 - Code follows rule 12. A code file past 800 lines may only shrink.
 - Pre-commit runs `codecheck.py`, which refuses only the violations a commit adds over HEAD. Function
   size, nesting, complexity, parameters and silent catches are checked in Python only.

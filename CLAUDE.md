@@ -88,7 +88,7 @@ to break the rule. **(G)** = a hook enforces it.
 | `docs/GOTCHAS.md` | the traps, retrieved by subject: `python .claude/tools/rules.py <thing>` |
 | `docs/WHY.md` | why each rule exists |
 
-**Each fact has ONE home.** WE ARE ON moves only by `python .claude/tools/on.py`. A new document needs the user's yes. → WHY D. Other tools: README.
+**Each fact has ONE home.** WE ARE ON moves only by `python .claude/tools/on.py`. A new document needs the user's yes. → WHY D. Tools: `.claude/README.md`.
 
 ## Project rules
 

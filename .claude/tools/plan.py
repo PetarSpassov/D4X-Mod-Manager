@@ -1,6 +1,6 @@
 """The turn's plan: declared before its first write, then compared with what the turn does.
 A change turn needs a message starting with "Go"; an answer turn cannot become one.
-Reading is never gated, nor files outside the project. Usage: README.
+Reading is never gated, nor files outside the project. Usage: .claude/README.md.
 """
 import fnmatch
 import os
