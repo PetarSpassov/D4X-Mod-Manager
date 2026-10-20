@@ -38,3 +38,9 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
 - **A message's first tool call can reach PreToolUse before its text reaches the transcript.**
   names: `check_declared`, `transcript_path`, `DECLARE_TRIES`
   sign: the declaration gate refuses a first call whose text plainly opens with the declaration
+
+## B — Game tools
+
+- **QuickBMS exits 0 when a pak's signature doesn't match; count the files it wrote instead.**
+  names: `quickbms_4gb_files.exe`, `d4x_res_pak.bms`, `QuickBMS`
+  sign: a bad pak "unpacks" fine and the merge goes on with no files
