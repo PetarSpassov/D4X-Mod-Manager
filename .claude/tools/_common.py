@@ -237,6 +237,13 @@ def assistant_text(o):
                      if isinstance(b, dict) and b.get("type") == "text").strip()
 
 
+def since_prompt(tp, prompt):
+    """The transcript entries after the user's message `prompt`; None when it is not found."""
+    entries = transcript(tp, tail_bytes=2000000) if tp and prompt else []
+    start = max((i for i, o in enumerate(entries) if user_text(o) == prompt), default=-1)
+    return entries[start + 1:] if start >= 0 else None
+
+
 def uses_a_tool(o):
     return o.get("type") == "assistant" and any(
         isinstance(b, dict) and b.get("type") == "tool_use" for b in blocks(o))

@@ -18,6 +18,7 @@ or rules must change this file too (pre-commit).
 - No question boxes with buttons. The next step goes in the reply text. `noask.py` refuses
   `AskUserQuestion` and a wrap-up with a question or buttons, unless the user's message this turn says
   "questions are allowed". It fails closed.
+- No mid-turn text: only the opening line and the final reply. postgate flags each one; it can't block.
 - Replies: 700 prose characters, 1,800 when asked to explain. Code blocks and tables are free.
 - The host's task list is kept on multi-step turns, nudged by a turn-start line on "Go" turns, not a CLAUDE.md rule.
 - `CLAUDE.md` is capped at 7,000 characters (doccheck). Adding a rule means cutting or merging as much elsewhere, named in the commit message.

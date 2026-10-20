@@ -2,7 +2,7 @@
 import os
 
 from _common import ROOT
-from tests.harness import S, SID, check, run, tool_event
+from tests.harness import S, SID, check, line, run, tool_event, tool_line, write
 
 
 def _post(tool, inp, resp):
@@ -26,6 +26,23 @@ def main():
     code, _, _ = _post("Write", {"file_path": os.path.join(ROOT, "src", "a.py")}, {})
     with open(S.turn_file, encoding="utf-8") as fh:
         check("postgate records a write", code == 0 and "src/a.py" in fh.read())
+    mid_turn()
+
+
+def mid_turn():
+    """Text past the turn's opening line is flagged, each piece once."""
+    run("turnstart.py", {"session_id": SID, "prompt": "Go: fix it"}, env=S.env)
+    tp = os.path.join(S.tmp, "mid", "t.jsonl")
+    opening = [line("user", "Go: fix it"), line("assistant", "Change turn. Plan: x"), tool_line()]
+    ev = dict(tool_event("Bash", {"command": "ls"}, {"stdout": "ok"}), transcript_path=tp)
+    write(tp, "\n".join(opening) + "\n")
+    code, _, err = run("postgate.py", ev, env=S.env)
+    check("postgate allows the opening line", "MID-TURN" not in err, err)
+    write(tp, "\n".join(opening + [line("assistant", "Now reading y."), tool_line()]) + "\n")
+    code, _, err = run("postgate.py", ev, env=S.env)
+    check("postgate flags mid-turn text", code == 2 and "Now reading y." in err, err)
+    code, _, err = run("postgate.py", ev, env=S.env)
+    check("postgate flags the same text only once", "MID-TURN" not in err, err)
 
 
 def budget():

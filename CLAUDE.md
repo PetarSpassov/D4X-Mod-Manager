@@ -29,7 +29,7 @@ to break the rule. **(G)** = a hook enforces it.
    3. **Commands:** the exact commands, in a code block.
    4. *(optional)* **Test:** what to check, what passes and what fails.
 
-   **Mid-turn lines:** only a finding, a failure, or a change of plan, as one line stating the fact. Never what you're about to do, never a recap or a restated plan. A status request gets what's known so far.
+   **No mid-turn text.** A turn's only text is its first line and the final reply. Findings, failures and plan changes wait for the reply; a harness nudge to post status gets silence. (G)
 
    Short by default: at most 700 prose characters, 1,800 when asked why, none on "long reply". Code blocks and tables are free. (G) No unrequested caveats, filler openers or explanations of why a fix works. A question gets an answer, then stop.
 

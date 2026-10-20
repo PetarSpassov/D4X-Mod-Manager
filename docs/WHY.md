@@ -35,9 +35,9 @@ the cause and fix it"; a model classifier can't see the last reply from a hook. 
 misread, and a forgotten one costs one "Go"; a change nobody asked for costs a revert.
 The line itself was marked (G) while only the plan record was checked, and Claude skipped it in two
 change turns. The gate now reads the turn's text from the transcript before every tool call.
-Mid-turn lines are the only thing the user sees while a turn runs. Lines like "Now the self-test cases."
-told them nothing the task list didn't already show. A line that states a finding lets them redirect
-early; a line that announces the next action only makes them read more.
+Mid-turn lines were once allowed for findings only, and Claude still posted one per step, mostly
+announcing the next action. The user banned them outright: the reply carries everything, and
+postgate names each one the moment it lands, so sending one costs more than it says.
 "Short by default" was prose only, and replies kept running long. A character count is mechanical. The
 Stop hook can't take back a post the user has seen: sending it back for a short version made the user
 read every long reply twice. So the cap is shown at every turn start, and an overage is noted for the

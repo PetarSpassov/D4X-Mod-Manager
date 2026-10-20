@@ -7,8 +7,8 @@ import os
 import re
 import sys
 
-from _common import (SHELLS, WRITERS, budget, event, load, rel, save, save_turn, session_dir,
-                     session_id, turn, utf8)
+from _common import (SHELLS, WRITERS, assistant_text, budget, clip, event, load, rel, save,
+                     save_turn, session_dir, session_id, since_prompt, turn, utf8)
 
 # tools whose result is one line to Claude, whatever they hand the harness
 SILENT = WRITERS + ("TodoWrite",)
@@ -59,6 +59,18 @@ def empty_search(tool, inp, resp):
     return False
 
 
+def mid_turn(tp, t):
+    """Rule 3: any of the turn's text past its opening line is mid-turn; each is named once."""
+    entries = since_prompt(tp, (t.get("prompt") or "").strip())
+    texts = [s for s in map(assistant_text, entries or []) if s][1:]
+    if len(texts) <= t.get("mid_turn", 0):
+        return ""
+    t["mid_turn"] = len(texts)
+    return ("MID-TURN TEXT (rule 3): \"%s\" -- banned. A turn's only text is its opening line and "
+            "the final reply; findings go in the reply, and a harness nudge to post status gets "
+            "silence. Write nothing more until the reply." % clip(texts[-1], 80))
+
+
 def pushes(inp, sid):
     """The traps whose names this call mentions, each pushed once per session."""
     import rules
@@ -88,9 +100,9 @@ def main():
         p = inp.get("file_path") or inp.get("notebook_path")
         if p and rel(p) not in t.setdefault("wrote", []):
             t["wrote"].append(rel(p))
+    said = [mid_turn(ev.get("transcript_path") or "", t)]
     save_turn(t, sid)
 
-    said = []
     cap = budget(t)
     if cap and before < cap <= t["chars"]:
         said.append("BUDGET: this turn has now taken in %d characters of tool output (budget %d). "
@@ -102,6 +114,7 @@ def main():
                     "and other names "
                     "it may go by -- or say plainly that it is unverified.")
     said += pushes(inp, sid)
+    said = [s for s in said if s]
     if said:
         sys.stderr.write("\n\n".join(said) + "\n")
         sys.exit(2)

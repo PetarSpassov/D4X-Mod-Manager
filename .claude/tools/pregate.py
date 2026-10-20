@@ -7,7 +7,7 @@ import sys
 import time
 
 from _common import (ROOT, SHELLS, TOOLS, assistant_text, budget, config, event, matches_any, rel,
-                     transcript, turn, user_text, utf8)
+                     since_prompt, turn, utf8)
 
 WHOLE = re.compile(r"^(cat|type|less|more|get-content|gc)(\.exe)?$", re.I)
 READERS = re.compile(r"^(cat|type|less|more|head|tail|get-content|gc|sed|awk|grep|rg|findstr|"
@@ -142,11 +142,10 @@ def check_declared(tp):
     if not config().get("declare_required") or not tp or not prompt:
         return ""
     for attempt in range(DECLARE_TRIES):
-        entries = transcript(tp, tail_bytes=2000000)
-        start = max((i for i, o in enumerate(entries) if user_text(o) == prompt), default=-1)
-        if start < 0:
+        entries = since_prompt(tp, prompt)
+        if entries is None:
             return ""
-        said = next((t for t in map(assistant_text, entries[start + 1:]) if t), "")
+        said = next((t for t in map(assistant_text, entries) if t), "")
         if said:
             break
         # the first call of a message can arrive before its text reaches the transcript
