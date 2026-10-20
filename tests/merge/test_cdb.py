@@ -52,6 +52,30 @@ class Merge(unittest.TestCase):
         merged = self.merge(lambda s: s["lines"].insert(1, {"id": "Mid", "cost": 3}))
         self.assertEqual([r["id"] for r in merged["sheets"][0]["lines"]], ["Fast", "Mid", "Slow"])
 
+    def test_a_later_mods_row_sits_under_an_earlier_mods_row_in_the_same_spot(self):
+        merged = self.merge(lambda s: s["lines"].insert(1, {"id": "A1"}),
+                            lambda s: s["lines"].insert(1, {"id": "B1"}))
+        self.assertEqual([r["id"] for r in merged["sheets"][0]["lines"]],
+                         ["Fast", "A1", "B1", "Slow"])
+
+    def test_a_new_first_row_stays_first_not_appended(self):
+        merged = self.merge(lambda s: s["lines"].insert(0, {"id": "Top"}))
+        self.assertEqual([r["id"] for r in merged["sheets"][0]["lines"]], ["Top", "Fast", "Slow"])
+
+    def _after_count(self, sheet_name):
+        base = _base()
+        base["sheets"][0].update(name=sheet_name)
+        base["sheets"][0]["lines"].append({"id": "Count"})
+        mod = copy.deepcopy(base)
+        mod["sheets"][0]["lines"].append({"id": "Late"})
+        return [r["id"] for r in cdb.apply(base, [cdb.diff(base, mod)])["sheets"][0]["lines"]]
+
+    def test_traits_count_row_stays_last(self):
+        self.assertEqual(self._after_count("trait"), ["Fast", "Slow", "Late", "Count"])
+
+    def test_attributes_count_row_may_move(self):
+        self.assertEqual(self._after_count("attribute"), ["Fast", "Slow", "Count", "Late"])
+
     def test_a_new_column_lands_after_the_column_before_it(self):
         merged = self.merge(lambda s: s["columns"].insert(1, {"typeStr": "1", "name": "note"}))
         self.assertEqual([c["name"] for c in merged["sheets"][0]["columns"]],

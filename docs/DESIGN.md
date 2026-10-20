@@ -74,7 +74,9 @@ For each mod, in load order:
    `res.compressed.pak` on every merge, about a second), then apply the diff to the merged
    result. Sheets match by name, rows by their `id` column, and fields one by one. So two mods that
    change different fields of the same row both keep their changes, and on the same field the later
-   mod wins. New rows, columns and sheets are added after the item that precedes them in the mod.
+   mod wins. New rows, columns and sheets go after the item that precedes them in the mod, below
+   any other mod's additions already there, never at the end by default: the game needs lines in
+   place. `trait`'s `Count` row is put back last; `attribute`'s is not.
    A sheet's `props` and `separators` are taken whole, the later mod winning. For now, rows a mod
    deletes are kept and reported, rows with no `id` are counted and skipped, and a mod's reordering
    of existing rows or sheets is not carried over.

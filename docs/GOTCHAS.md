@@ -44,3 +44,9 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
 - **QuickBMS exits 0 when a pak's signature doesn't match; count the files it wrote instead.**
   names: `quickbms_4gb_files.exe`, `d4x_res_pak.bms`, `QuickBMS`
   sign: a bad pak "unpacks" fine and the merge goes on with no files
+
+## C — Game data
+
+- **`trait`'s `Count` row must stay last; `attribute`'s may move, since a patch allows custom ones.**
+  names: `LAST_ROW`, `Count`, `_keep_last`
+  sign: the game misbehaves after a merge that added traits

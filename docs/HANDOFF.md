@@ -32,3 +32,4 @@ or rules must change this file too (pre-commit).
 - `merge/pak.py` on a full-size merged folder: only a one-file pak has been built, and no game has
   loaded a pak we built.
 - `merge.merge()` on real mods: only two tiny mods built in the tests have been merged.
+- Row placement (each mod's rows where the mod had them, below earlier mods') in a game: tests only.

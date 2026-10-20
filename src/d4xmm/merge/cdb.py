@@ -8,6 +8,7 @@ import json
 ID = "id"
 MISSING = object()  # a field the mod removed from a row
 META = ("props", "separators")  # a sheet's editor settings: taken whole, the later mod wins
+LAST_ROW = {"trait": "Count"}  # the game needs this row last; attribute's Count may move
 
 
 def load(path):
@@ -87,19 +88,34 @@ def diff(base, mod):
     return out
 
 
-def _place(items, adds, key):
-    """Each (previous key, item): replace the item with its key, else insert after previous."""
+def _place(items, adds, key, base):
+    """Each (previous key, item): replace the item with its key, else insert after previous.
+
+    Past previous, other mods' additions (keys not in base) are stepped over, so they stay above.
+    """
+    base_keys = {i.get(key) for i in base}
     for prev, item in adds:
         keys = [i.get(key) for i in items]
         if item[key] in keys:
             items[keys.index(item[key])] = copy.deepcopy(item)
-        else:
-            at = keys.index(prev) + 1 if prev in keys else len(items)
-            items.insert(at, copy.deepcopy(item))
+            continue
+        at = keys.index(prev) + 1 if prev in keys else 0
+        while at < len(keys) and keys[at] not in base_keys:
+            at += 1
+        items.insert(at, copy.deepcopy(item))
 
 
-def _apply_sheet(sheet, change):
-    _place(sheet["columns"], change["columns"], "name")
+def _keep_last(sheet):
+    """Move the row the game needs at the very end back there, if the sheet has one."""
+    rows = sheet["lines"]
+    ids = [r.get(ID) for r in rows]
+    last = LAST_ROW.get(sheet["name"])
+    if last in ids:
+        rows.append(rows.pop(ids.index(last)))
+
+
+def _apply_sheet(sheet, change, base):
+    _place(sheet["columns"], change["columns"], "name", base["columns"])
     sheet.update(copy.deepcopy(change["meta"]))
     rows = {r.get(ID): r for r in sheet["lines"]}
     for rid, fields in change["fields"].items():
@@ -109,16 +125,17 @@ def _apply_sheet(sheet, change):
                 row.pop(k, None)
             else:
                 row[k] = copy.deepcopy(v)
-    _place(sheet["lines"], change["add"], ID)
+    _place(sheet["lines"], change["add"], ID, base["lines"])
+    _keep_last(sheet)
 
 
 def apply(base, diffs):
     """The base with each diff applied in load order; a later mod wins the same field."""
-    merged = copy.deepcopy(base)
+    merged, base_sheets = copy.deepcopy(base), _by_name(base["sheets"])
     for d in diffs:
-        _place(merged["customTypes"], d["types"], "name")
-        _place(merged["sheets"], d["new_sheets"], "name")
+        _place(merged["customTypes"], d["types"], "name", base["customTypes"])
+        _place(merged["sheets"], d["new_sheets"], "name", base["sheets"])
         sheets = _by_name(merged["sheets"])
         for name, change in d["sheets"].items():
-            _apply_sheet(sheets[name], change)
+            _apply_sheet(sheets[name], change, base_sheets[name])
     return merged
