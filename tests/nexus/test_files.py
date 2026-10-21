@@ -58,6 +58,15 @@ class Lookup(unittest.TestCase):
         self.assertIsNone(files.lookup(QQ, mod_files))
         self.assertEqual(asked, ["5", "4", "2"])
 
+    def test_newest_main_is_the_highest_main_file_id_or_none(self):
+        mod_files, asked = _fake({"5": [
+            {"fileId": 50, "name": "Q", "version": "v0.5", "category": "MAIN", "uri": "b.zip"},
+            {"fileId": 60, "name": "Q", "version": "p", "category": "OPTIONAL", "uri": "c.zip"},
+            {"fileId": 40, "name": "Q", "version": "v0.4", "category": "MAIN", "uri": "a.zip"}]})
+        self.assertEqual(files.newest_main("5", mod_files),
+                         {"file_id": 50, "uri": "b.zip", "version": "v0.5"})
+        self.assertIsNone(files.newest_main("6", mod_files))
+
     def test_a_name_without_numbers_asks_nothing(self):
         mod_files, asked = _fake({})
         self.assertIsNone(files.lookup("QuinnQuest.zip", mod_files))

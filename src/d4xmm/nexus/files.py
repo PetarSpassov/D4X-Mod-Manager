@@ -47,6 +47,17 @@ def _mod(mod_id):
             "updated": found.get("updatedAt"), "files": data.get("modFiles") or []}
 
 
+def _newest_main(file_records):
+    mains = [f for f in file_records if f["category"] == "MAIN"]
+    return max(mains, key=lambda f: f["fileId"]) if mains else None
+
+
+def newest_main(mod_id, mod=_mod):
+    """{file_id, uri (the download's name), version} of the mod's newest main file, or None."""
+    f = _newest_main(mod(mod_id)["files"])
+    return f and {"file_id": f["fileId"], "uri": f["uri"], "version": f["version"]}
+
+
 def lookup(file_name, mod=_mod):
     """The Nexus file named exactly file_name, or None; `latest` is the newest main file's version.
 
@@ -55,8 +66,8 @@ def lookup(file_name, mod=_mod):
     # the mod id is one of the name's all-digit parts; each is only a candidate until uri matches
     for mod_id in dict.fromkeys(re.findall(r"(?<=-)\d+(?=-)", file_name)):
         found = mod(mod_id)
-        mains = [f for f in found["files"] if f["category"] == "MAIN"]
-        latest = max(mains, key=lambda f: f["fileId"])["version"] if mains else None
+        newest = _newest_main(found["files"])
+        latest = newest["version"] if newest else None
         for f in found["files"]:
             if f["uri"] == file_name:
                 return {"nexus_id": int(mod_id), "file_id": f["fileId"], "name": f["name"],

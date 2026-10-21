@@ -165,6 +165,15 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   Asked: a deleted archive downloaded again must be offered again. Changed: each look forgets
   the recorded names no longer in the folder (imported and ×'d alike). A mod still in the
   library is not offered again under the same archive name. Tested; not seen in the window.
+- The Nexus key (`nexus/account.py`, v1 REST API): checked when typed and at start; Settings says
+  "Signed in as X · Premium/Free", or that it isn't accepted, or that Nexus couldn't be reached.
+  "Get my key" opens nexusmods.com/settings/api-keys (where the old account-page address now
+  redirects; the page itself not seen). Premium: Download fetches the newest main file (`.part`,
+  renamed whole), imports it, then puts the zip in Downloads, recorded so it isn't offered. Free
+  or no key: Download opens the Files page as before. Seen live: a wrong key gets 401 from both
+  key check and download link. Tested with fakes; seen in a browser preview with a fake Premium
+  Api: the account line, "Downloading…", the error in the Browse toolbar. Not seen: a real key,
+  a real download, a free account's answer (403 assumed). No progress bar: one "Downloading…".
   After `cbb1f29` the user reports: the icon at the top of the window "seems quite mangled".
   Changed: `logo.ico` now holds 16, 20, 24, 32, 40, 48, 64 and 256px, each shrunk from the 256px
   one (Pillow, Lanczos, a one-off run, not a project dependency); the 256-only file is in

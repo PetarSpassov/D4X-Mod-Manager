@@ -4,12 +4,13 @@ Under one home: library/ (mods), state/ (install record, backups), profiles.json
 """
 import json
 import os
+import shutil
 import webbrowser
 
 from d4xmm.install import deploy, flow
 from d4xmm.library import downloads as watched
 from d4xmm.library import mods
-from d4xmm.nexus import catalog
+from d4xmm.nexus import account, catalog
 from d4xmm.nexus import files as nexus_files
 from d4xmm.window import profiles, settings
 
@@ -29,6 +30,7 @@ class Api:
         for folder in (self._library, self._state_dir):
             os.makedirs(folder, exist_ok=True)
         self._known = {}  # Downloads archive name: Nexus's answer, so each is asked about once
+        self._account = {"key": "checking"}  # whose key, and Premium; refresh() asks Nexus
 
     def _records(self):
         """{library folder: its mod.json record} for every imported mod."""
@@ -79,7 +81,8 @@ class Api:
         data = profiles.load(self._home)
         return {"mods": listed, "install": self._install_state(order),
                 "settings": dict(typed, game_ok=settings.game_ok(current["game_dir"])),
-                "profiles": {"active": data["active"], "names": list(data["profiles"])}}
+                "profiles": {"active": data["active"], "names": list(data["profiles"])},
+                "account": self._account}
 
     def set_setting(self, key, value):
         """Keep one of settings.TYPED; an empty folder goes back to the one Steam or Windows has."""
@@ -89,6 +92,8 @@ class Api:
         if value and key in settings.FOLDERS:
             value = os.path.normpath(value)
         settings.save(self._home, **{key: value})
+        if key == "nexus_key":
+            self._check_key()
         return self.state()
 
     def choose_folder(self, key):
@@ -178,9 +183,46 @@ class Api:
         webbrowser.open(url)
 
     def refresh(self):
-        """Every mod's name, version and Nexus ids looked up again; the page calls it on start."""
+        """The key checked, and every mod's name, version and Nexus ids looked up again; the page
+        calls it on start."""
+        self._check_key()
         mods.refresh(self._library)
         return self.state()
+
+    def _check_key(self):
+        """Ask Nexus whose the key is; state() shows the answer until the key changes."""
+        key = settings.load(self._home)["nexus_key"]
+        if not key:
+            self._account = {"key": "none"}
+            return
+        try:
+            self._account = dict(account.check(key), key="ok")
+        except account.InvalidKey:
+            self._account = {"key": "invalid"}
+        except (nexus_files.Offline, nexus_files.Refused):
+            self._account = {"key": "unchecked"}  # no answer: the next start asks again
+
+    def open_key_page(self):
+        webbrowser.open(account.KEY_PAGE)
+
+    def download_mod(self, nexus_id):
+        """Premium only: the mod's newest main file, downloaded, imported, then put in Downloads
+        as the browser would have, recorded so it isn't offered."""
+        if not self._account.get("premium"):
+            raise RuntimeError("Downloading in the app needs a Premium Nexus account.")
+        newest = nexus_files.newest_main(str(int(nexus_id)))
+        if not newest or os.path.basename(newest["uri"]) != newest["uri"]:
+            raise RuntimeError("Nexus lists no main file to download for this mod.")
+        current = settings.load(self._home)
+        url = account.download_url(current["nexus_key"], int(nexus_id), newest["file_id"])
+        staged = os.path.join(self._state_dir, newest["uri"])
+        account.fetch(url, staged)
+        state = self.import_paths([staged])
+        if current["downloads"] and os.path.isdir(current["downloads"]):
+            shutil.move(staged, os.path.join(current["downloads"], newest["uri"]))
+        else:
+            os.remove(staged)  # our own copy; the library has the mod's files
+        return state
 
     def install(self):
         """Merge and install the ticked mods in load order; returns install_mods' report."""

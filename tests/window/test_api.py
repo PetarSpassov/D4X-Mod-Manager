@@ -4,6 +4,7 @@ import unittest
 import zipfile
 from unittest import mock
 
+from d4xmm.nexus import account
 from d4xmm.nexus import files as nexus_files
 from d4xmm.window import settings
 from d4xmm.window.api import NO_GAME, Api
@@ -142,6 +143,48 @@ class WindowApi(unittest.TestCase):
         for bad in ("..\\A-7-1-0-1752884636.zip", "notes.zip"):
             with self.assertRaises(ValueError):
                 self.api.import_download(bad)
+
+    def test_the_key_is_checked_when_typed_and_its_account_shown(self):
+        self.assertEqual(self.api.state()["account"], {"key": "checking"})
+        with mock.patch("d4xmm.nexus.account.check",
+                        return_value={"name": "Ann", "premium": False}):
+            self.assertEqual(self.api.set_setting("nexus_key", "k")["account"],
+                             {"key": "ok", "name": "Ann", "premium": False})
+        with mock.patch("d4xmm.nexus.account.check", side_effect=account.InvalidKey("401")):
+            self.assertEqual(self.api.set_setting("nexus_key", "bad")["account"],
+                             {"key": "invalid"})
+        self.assertEqual(self.api.set_setting("nexus_key", "")["account"], {"key": "none"})
+
+    def _premium(self):
+        with mock.patch("d4xmm.nexus.account.check", return_value={"name": "A", "premium": True}):
+            self.api.set_setting("nexus_key", "k")
+
+    def test_premium_download_imports_the_newest_main_file_and_keeps_it_in_downloads(self):
+        settings.save(self.home, downloads=self.zips)
+        self._premium()
+        name = "A-7-1-0-1752884636.zip"
+        source = self._zip("A")
+
+        def fetch(url, dest):
+            self.assertEqual(url, "https://cdn/a")
+            os.rename(source, dest)
+        with mock.patch("d4xmm.nexus.files.newest_main",
+                        return_value={"file_id": 3, "uri": name, "version": "1.0"}), \
+                mock.patch("d4xmm.nexus.account.download_url", return_value="https://cdn/a"), \
+                mock.patch("d4xmm.nexus.account.fetch", fetch), \
+                mock.patch("d4xmm.nexus.files.lookup", return_value=None):
+            state = self.api.download_mod(7)
+        self.assertEqual([m["enabled"] for m in state["mods"]], [True])
+        self.assertTrue(os.path.isfile(os.path.join(self.zips, name)))
+        self.assertEqual(self.api.downloads(), [])
+
+    def test_without_premium_or_a_main_file_nothing_downloads(self):
+        with self.assertRaisesRegex(RuntimeError, "Premium"):
+            self.api.download_mod(7)
+        self._premium()
+        with mock.patch("d4xmm.nexus.files.newest_main", return_value=None):
+            with self.assertRaisesRegex(RuntimeError, "no main file"):
+                self.api.download_mod(7)
 
     def test_no_game_or_nothing_ticked_is_an_error_not_an_install(self):
         with self.assertRaises(RuntimeError):

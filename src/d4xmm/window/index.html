@@ -91,8 +91,11 @@
     <label for="set-nexus_key">Nexus API key</label>
     <div class="field">
       <input id="set-nexus_key" data-key="nexus_key" type="password" spellcheck="false"
-             autocomplete="off" placeholder="From your Nexus Mods account settings">
+             autocomplete="off" placeholder="Paste your personal API key">
+      <button id="get-key" title="Opens Nexus's API keys page: copy your personal key">
+        Get my key</button>
     </div>
+    <p id="key-state" class="hint"></p>
   </main>
 </section>
 <script src="page.js"></script>

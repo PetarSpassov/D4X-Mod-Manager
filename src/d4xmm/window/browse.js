@@ -6,6 +6,14 @@ const tagFilter = new Map();  // tag name: "in" (the mod must have it) or "out" 
 const BROWSE_ERROR = {offline: "You are offline, so Nexus's mods can't be listed.",
                       refused: "Nexus answered with an error. Try reloading in a while."};
 const NEXT_STATE = {undefined: "in", in: "out", out: undefined};
+let account = {key: "checking"};  // Api.state()'s: whose key it is, and Premium
+const downloading = new Set();  // nexus ids being downloaded, so a re-render keeps their button
+const KEY_STATE = {
+  none: "Paste your personal API key to see your account here.",
+  checking: "Checking the key with Nexus…",
+  unchecked: "Nexus couldn't be reached to check this key; it is checked again next start.",
+  invalid: "Nexus doesn't accept this key. Get a new one and paste it here.",
+};
 const by = key => (a, b) => {  // highest first; updated is an ISO time, so it compares as text
   const x = a[key] ?? "", y = b[key] ?? "";
   return x < y ? 1 : x > y ? -1 : 0;
@@ -77,14 +85,52 @@ function card(m) {
   li.querySelector(".stats").textContent = stats(m);
   li.querySelector(".summary").textContent = m.summary || "";
   const button = li.querySelector("button");
-  button.title = "Open its Files page on Nexus";
-  button.onclick = e => { e.stopPropagation(); call("open_nexus_files", m.nexus_id); };
+  button.title = account.premium ? "Download its newest main file and import it"
+                                 : "Open its Files page on Nexus";
+  button.onclick = e => {
+    e.stopPropagation();
+    if (account.premium) downloadInApp(m, button);
+    else call("open_nexus_files", m.nexus_id);
+  };
+  if (downloading.has(m.nexus_id)) {
+    button.disabled = true;
+    button.textContent = "Downloading…";
+  }
   li.querySelector(".top").onclick = () => toggleCard(m, li);
   if (opened.has(m.nexus_id)) {
     li.classList.add("open");
     li.appendChild(cardDetail(m)).classList.add("still");
   }
   return li;
+}
+
+function renderAccount(a) {
+  account = a;
+  const line = $("key-state");
+  line.className = a.key === "invalid" ? "error" : "hint";
+  line.textContent = a.key !== "ok" ? KEY_STATE[a.key] :
+    `Signed in as ${a.name} · ` + (a.premium ? "Premium: Download gets mods in the app."
+                                            : "Free: Download opens the mod's Files page.");
+}
+
+// not through call(): a download takes a while, and the rest of the window stays usable
+async function downloadInApp(m, button) {
+  if (downloading.has(m.nexus_id)) return;  // page.js's busy() may have re-enabled the button
+  downloading.add(m.nexus_id);
+  button.disabled = true;
+  button.textContent = "Downloading…";
+  let failed = "";
+  try {
+    render(await window.pywebview.api.download_mod(m.nexus_id));
+  } catch (e) {
+    failed = String(e.message || e);
+  }
+  downloading.delete(m.nexus_id);
+  renderCatalog();  // the card shows "In library", the button "Download" again
+  if (failed) {  // in the Browse toolbar: the status line is on the Installed tab
+    $("browse-count").textContent = m.name + ": " + failed;
+    $("browse-count").className = "error";
+  }
 }
 
 function shows(m, query) {
@@ -146,6 +192,7 @@ function renderCatalog() {
   }
   shown.forEach(m => list.appendChild(card(m)));
   const total = catalog.mods.length;
+  $("browse-count").className = "";
   $("browse-count").textContent = catalog.error ? "" :
     shown.length === total ? `${total} mods on Nexus` : `${shown.length} of ${total} mods`;
   renderTagMenu();
@@ -164,6 +211,7 @@ document.querySelector('.tab[data-tab="browse"]').addEventListener("click", () =
   else loadCatalog();
 });
 $("browse-reload").onclick = loadCatalog;
+$("get-key").onclick = () => call("open_key_page");
 $("browse-search").oninput = () => { if (catalog) renderCatalog(); };
 $("tag-clear").onclick = () => { tagFilter.clear(); renderCatalog(); };
 const MENUS = [["tag-picker", "tag-filter", "tag-menu"], ["sort-picker", "sort", "sort-list"]];
