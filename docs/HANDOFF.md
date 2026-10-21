@@ -5,7 +5,7 @@ or rules must change this file too (pre-commit).
 
 ## State
 
-**► WE ARE ON:** downloads: watched folder, Premium and nxm links built; next: packaging the exe *(moved only by `python .claude/tools/on.py`)*
+**► WE ARE ON:** exe packaged (Nuitka/Zig, build/ zips) and the Nexus email drafted; next: the user tests the exe, then sends the email *(moved only by `python .claude/tools/on.py`)*
 
 **► LAST KNOWN GOOD:** `42ea256`: "Both show the right version, merging them boots the game correctly
 and has the contents of both. This is a great success, it seems the merge is working for now."
