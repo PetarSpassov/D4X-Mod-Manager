@@ -66,6 +66,7 @@ class Merge(unittest.TestCase):
         self.assertEqual(out["rows"], {"trait TestNewTrait": ["one"]})
         self.assertEqual(out["cdb"], {"one": {"trait": {"dropped": [dropped], "no_id": 0}}})
         self.assertEqual((out["traits"], out["traits_over"]), (len(_traits(self.base)) + 1, False))
+        self.assertEqual((out["traits_added"], out["trait_limit"]), ({"one": 1}, 16384))
         back = os.path.join(self.tmp, "back")
         self.assertEqual(unpack.unpack(out["pak"], back), ["data.cdb", "ui/a.txt", "ui/b.txt"])
         with open(os.path.join(back, "ui", "a.txt"), "rb") as f:

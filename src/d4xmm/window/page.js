@@ -305,8 +305,10 @@ function installNotes(report) {
   const lines = [];
   const merged = report.merge;
   if (merged && merged.traits_over) {
-    lines.push(`${merged.traits} traits. The game crashes past 2,048; ` +
-               "this is a limit of the game, not the manager.");
+    const by = Object.entries(merged.traits_added).sort((a, b) => b[1] - a[1])
+      .map(([mod, n]) => `${mod} +${n}`).join(", ");
+    lines.push(`${merged.traits} traits, over the game's ${merged.trait_limit}. ` +
+               `Traits each mod adds: ${by}.`);
   }
   for (const [mod, sheets] of Object.entries((merged && merged.cdb) || {})) {
     for (const [sheet, r] of Object.entries(sheets)) {
@@ -356,8 +358,12 @@ $("install").onclick = async () => {
   const report = await call("install");
   if (report) {
     notes = installNotes(report);
-    setStatus(notes.length ? "Installed, with notes: see Last install." : "Installed.",
-              notes.length ? "warn" : "ok");
+    if (report.merge && report.merge.traits_over) {
+      setStatus(`Error: Traits in the merge exceed ${report.merge.trait_limit}. The game cannot ` +
+                "support it and will crash on startup. See Last install.", "warn");
+    } else {
+      setStatus(notes.length ? "Installed, with notes: see Last install." : "Installed.", "ok");
+    }
     await run("state");
   }
 };

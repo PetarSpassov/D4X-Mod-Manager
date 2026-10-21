@@ -4,7 +4,7 @@ import os
 from d4xmm.merge import assets, cdb, pak, unpack
 
 BASE_PAK = "res.compressed.pak"
-TRAIT_LIMIT = 2048  # the game crashes past this many rows in `trait`
+TRAIT_LIMIT = 16384  # the game crashes past this many rows in `trait`
 
 
 def _cdb_report(name, d):
@@ -33,9 +33,9 @@ def clashes(*owner_maps):
 def _merge_cdb(unpacked, base_cdb, dest):
     """Apply each mod's data.cdb diff in load order into dest.
 
-    Returns (report, trait rows, {'sheet id': [mods that change or add that row]}).
+    Returns (report, trait rows, {mod: traits it adds}, {'sheet id': [mods changing that row]}).
     """
-    base, diffs, report, rows = cdb.load(base_cdb), [], {}, {}
+    base, diffs, report, rows, added = cdb.load(base_cdb), [], {}, {}, {}
     for name, folder in unpacked:
         path = os.path.join(folder, assets.CDB)
         if os.path.isfile(path):
@@ -43,12 +43,15 @@ def _merge_cdb(unpacked, base_cdb, dest):
             report.update(_cdb_report(name, diffs[-1]))
             for row in cdb.touched(diffs[-1]):
                 rows.setdefault(row, []).append(name)
+            trait = diffs[-1]["sheets"].get("trait")
+            if trait and trait["add"]:
+                added[name] = len(trait["add"])
     if not diffs:
-        return report, None, rows
+        return report, None, added, rows
     merged = cdb.apply(base, diffs)
     cdb.save(merged, os.path.join(dest, assets.CDB))
     traits = [s for s in merged["sheets"] if s["name"] == "trait"]
-    return report, len(traits[0]["lines"]) if traits else None, rows
+    return report, len(traits[0]["lines"]) if traits else None, added, rows
 
 
 def _base_cdb(game_dir, work):
@@ -73,6 +76,7 @@ def merge(mods, game_dir, work):
     merged = os.path.join(work, "merged")
     owners = assets.combine(unpacked, merged)
     os.makedirs(merged, exist_ok=True)
-    report, traits, rows = _merge_cdb(unpacked, _base_cdb(game_dir, work), merged)
+    report, traits, added, rows = _merge_cdb(unpacked, _base_cdb(game_dir, work), merged)
     return {"pak": pak.build(merged, game_dir), "owners": owners, "rows": rows, "cdb": report,
-            "traits": traits, "traits_over": traits is not None and traits > TRAIT_LIMIT}
+            "traits": traits, "traits_added": added, "trait_limit": TRAIT_LIMIT,
+            "traits_over": traits is not None and traits > TRAIT_LIMIT}

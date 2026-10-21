@@ -205,7 +205,9 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 - One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
   Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.
-- What the window reports when data.cdb couldn't carry rows over, or `trait` passes 2048 rows.
+- What the window reports when data.cdb couldn't carry rows over, or `trait` passes 16384 rows
+  (the cap after the game's patch, per the user): a red error naming each mod's added traits;
+  any other note stays green. The install still goes ahead over the cap.
 - The test mods from `tests/merge/make_test_mods.py` (`build/test_mods/`) in the game, alone or
   merged. Their paks hold only data.cdb and two test files; whether the game takes a pak that small,
   and a trait column it doesn't know (`d4xmmNote`), is unknown.
