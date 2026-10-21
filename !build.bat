@@ -1,9 +1,9 @@
 @echo off
 :: Builds the app with Nuitka into build\D4XModManager: the exe, its files, vendor\ beside it.
-:: Needs Nuitka and Visual Studio's C++ tools with a Windows SDK. Run from this folder.
+:: Needs Nuitka; it compiles with Zig, which Nuitka keeps in its cache. Run from this folder.
 cd /d "%~dp0"
 set PYTHONPATH=%~dp0src
-python -m nuitka --mode=standalone --python-flag=-m --msvc=latest ^
+python -m nuitka --mode=standalone --python-flag=-m --zig ^
   --include-package-data=d4xmm ^
   --windows-console-mode=disable --windows-icon-from-ico=src\d4xmm\window\logo.ico ^
   --product-name="D4X Mod Manager" --product-version=0.1.0 --file-version=0.1.0 ^
