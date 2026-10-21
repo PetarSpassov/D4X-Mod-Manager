@@ -185,7 +185,9 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   Download shows "Dyaus Anchor: URL can't contain control characters. '/cdn/7811/2/dsw Dyaus
   Anchor v1.22-2…" (the address has spaces). Changed in `a6f423d`: the address is escaped
   before fetching; the button says "Wait…" and the card's summary line shows "Asking Nexus…",
-  "Downloading: X MB of Y MB", "Importing…" (asked every 0.5 s). Tested with fakes; not seen.
+  "Downloading: X MB of Y MB", "Importing…" (asked every 0.5 s). After `a6f423d` the user says
+  "It downloads now, the progress text shows". Asked: a green "Installed!" for 5 s on success.
+  Changed: the card's summary line shows it for OK_SECONDS. Not seen.
 - Nexus's "Mod Manager Download" links (`window/links.py`): Settings → "Use this app" writes
   this user's nxm handler (HKCU\Software\Classes\nxm) to start the app with the link, keeping
   the old command in `state/nxm_previous.json`; "Give back" restores it (or removes ours). Seen

@@ -78,6 +78,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 #catalog .top button { flex-shrink: 0; width: 96px; white-space: nowrap; overflow: hidden;
                        text-overflow: ellipsis; }
 #catalog .summary.progress { color: var(--accent); }
+#catalog .summary.done { color: var(--ok); font-weight: 600; }
 .description { max-height: 360px; overflow-y: auto; overflow-wrap: anywhere; }
 /* [size=N]: 3 is body text, each step about a fifth bigger or smaller */
 .description .size-1 { font-size: 10px; } .description .size-2 { font-size: 12px; }

@@ -10,6 +10,7 @@ let account = {key: "none"};  // Api.state()'s: whose key it is, and Premium
 // nexus id being downloaded: what it is doing, so a re-render keeps the card's progress
 const downloading = new Map();
 const PROGRESS_MS = 500;
+const justDone = new Set();  // nexus ids whose download just succeeded, for OK_SECONDS
 const KEY_STATE = {
   none: "Paste your personal API key to see your account here.",
   saved: "Saved. Nexus checks it the first time you press Download.",
@@ -99,6 +100,10 @@ function card(m) {
     else call("open_nexus_files", m.nexus_id);
   };
   if (downloading.has(m.nexus_id)) showProgress(li, m.nexus_id);
+  if (justDone.has(m.nexus_id)) {
+    li.querySelector(".summary").textContent = "Installed!";
+    li.querySelector(".summary").classList.add("done");
+  }
   li.querySelector(".top").onclick = () => toggleCard(m, li);
   if (opened.has(m.nexus_id)) {
     li.classList.add("open");
@@ -157,6 +162,10 @@ async function downloadInApp(m, button) {
   }
   clearInterval(ask);
   downloading.delete(id);
+  if (!failed) {
+    justDone.add(id);
+    setTimeout(() => { justDone.delete(id); renderCatalog(); }, OK_SECONDS * 1000);
+  }
   renderCatalog();  // the card shows "In library", the button "Download" again
   if (failed) {  // in the Browse toolbar: the status line is on the Installed tab
     $("browse-count").textContent = m.name + ": " + failed;
