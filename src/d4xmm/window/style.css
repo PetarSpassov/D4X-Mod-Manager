@@ -33,6 +33,14 @@ body { margin: 0; display: flex; flex-direction: column; background: var(--bg);
 .pill.current { background: var(--ok-bg); color: var(--ok); }
 .pill.changed { background: var(--warn-bg); color: var(--warn); }
 
+#offers { display: flex; flex-direction: column; gap: 6px; padding: 0 18px 10px; }
+#offers[hidden] { display: none; }
+.offer { display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 12px;
+         border: 1px solid var(--accent); border-radius: 8px; background: var(--panel); }
+.offer-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+              white-space: nowrap; }
+.offer .meta { color: var(--muted); font-size: 12px; }
+
 .toolbar { display: flex; gap: 8px; padding: 0 18px 10px; align-items: center; }
 .toolbar .spacer { flex: 1; }
 #search, #browse-search { flex: 0 1 220px; min-width: 90px; }

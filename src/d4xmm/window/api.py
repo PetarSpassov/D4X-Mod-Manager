@@ -7,6 +7,7 @@ import os
 import webbrowser
 
 from d4xmm.install import deploy, flow
+from d4xmm.library import downloads as watched
 from d4xmm.library import mods
 from d4xmm.nexus import catalog
 from d4xmm.nexus import files as nexus_files
@@ -27,6 +28,7 @@ class Api:
         self._state_dir = os.path.join(home, "state")
         for folder in (self._library, self._state_dir):
             os.makedirs(folder, exist_ok=True)
+        self._known = {}  # Downloads archive name: Nexus's answer, so each is asked about once
 
     def _records(self):
         """{library folder: its mod.json record} for every imported mod."""
@@ -123,6 +125,22 @@ class Api:
             for e in order:
                 e["enabled"] = e["enabled"] or e["folder"] not in before
         return self._change_profiles(tick_new)
+
+    def downloads(self):
+        """New Dune mod archives in the Downloads folder: [{file, name, version}]."""
+        imported = [r.get("source") for r in self._records().values()]
+        return watched.offers(settings.load(self._home)["downloads"], imported, self._state_dir,
+                              self._known)
+
+    def import_download(self, name):
+        """Import one archive the Downloads folder offered, by its name there."""
+        if os.path.basename(name) != name or not watched.NEXUS_NAME.search(name):
+            raise ValueError("not a download: %r" % name)
+        return self.import_paths([os.path.join(settings.load(self._home)["downloads"], name)])
+
+    def dismiss_download(self, name):
+        """Never offer this archive again."""
+        watched.dismiss(self._state_dir, name)
 
     def delete(self, folder):
         mods.delete(self._library, folder)

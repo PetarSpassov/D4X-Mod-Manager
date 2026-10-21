@@ -124,6 +124,22 @@ class WindowApi(unittest.TestCase):
                 self.api.open_link("file:///C:/Windows/notepad.exe")
         opened.assert_called_once_with("https://discord.gg/x")
 
+    def test_a_download_offered_is_imported_by_name_or_dismissed(self):
+        settings.save(self.home, downloads=self.zips)
+        os.rename(self._zip("A"), os.path.join(self.zips, "A-7-1-0-1752884636.zip"))
+        open(os.path.join(self.zips, "B-8-1-1752884636.zip"), "w").close()
+        found = {"nexus_id": 7, "file_id": 2, "name": "A", "mod_name": "Mod A", "version": "1",
+                 "category": "MAIN", "latest": "1", **dict.fromkeys(nexus_files.ABOUT)}
+        with mock.patch("d4xmm.nexus.files.lookup", return_value=found):
+            self.assertEqual(len(self.api.downloads()), 2)
+            self.api.dismiss_download("B-8-1-1752884636.zip")
+            state = self.api.import_download("A-7-1-0-1752884636.zip")
+            self.assertEqual([m["enabled"] for m in state["mods"]], [True])
+            self.assertEqual(self.api.downloads(), [])
+        for bad in ("..\\A-7-1-0-1752884636.zip", "notes.zip"):
+            with self.assertRaises(ValueError):
+                self.api.import_download(bad)
+
     def test_no_game_or_nothing_ticked_is_an_error_not_an_install(self):
         with self.assertRaises(RuntimeError):
             self.api.install()

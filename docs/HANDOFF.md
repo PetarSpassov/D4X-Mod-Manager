@@ -5,7 +5,7 @@ or rules must change this file too (pre-commit).
 
 ## State
 
-**► WE ARE ON:** Browse tab: one-width buttons, opening cards with tags and full summary, tag filter *(moved only by `python .claude/tools/on.py`)*
+**► WE ARE ON:** downloads: watched folder built; next: the nxm:// handler or packaging the exe *(moved only by `python .claude/tools/on.py`)*
 
 **► LAST KNOWN GOOD:** `42ea256`: "Both show the right version, merging them boots the game correctly
 and has the contents of both. This is a great success, it seems the merge is working for now."
@@ -152,6 +152,12 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 - The window and taskbar icon is `window/logo.ico` (the user's, moved from the root; one 256px
   image), set through `webview.start(icon=)` with our own taskbar id. Not seen in the window.
   Owed: the same icon on the exe, when there is one.
+- The Downloads folder is watched (`library/downloads.py`, `offers.js`): every 5s the page asks
+  for archives named as Nexus names downloads, not imported or dismissed, that Nexus confirms are
+  this game's (asked once per name; offline asks again). A bar under the tabs offers each:
+  Import (ticked at the end, as any import) or × (never again, `state/dismissed_downloads.json`).
+  Tested with fakes; seen in a browser preview: offers, ×, Import. Not seen: a real download.
+  Not built: the optional nxm:// "Download with mod manager" handler (needs the API key).
   After `cbb1f29` the user reports: the icon at the top of the window "seems quite mangled".
   Changed: `logo.ico` now holds 16, 20, 24, 32, 40, 48, 64 and 256px, each shrunk from the 256px
   one (Pillow, Lanczos, a one-off run, not a project dependency); the 256-only file is in
