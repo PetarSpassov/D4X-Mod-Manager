@@ -192,7 +192,9 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   "D4X Mod Manager" and Application-Version (`d4xmm.__version__`, 0.1.0), seen accepted live.
   The key is checked only when typed or when Download is pressed, never at start. A personal key
   is allowed only while testing: a public release needs registration, then Nexus's SSO slug.
-  Repo is private on GitHub (404 signed out) and has no LICENSE.
+  Repo is private on GitHub (404 signed out). Licence: MIT, the user's choice (`LICENSE`, in the
+  root where GitHub looks). `pakBuild.hl` holds `hxd.fmt.pak.Build` (Heaps, MIT, by its class
+  names), shipped with Heaps' notice in `vendor/pakbuild/LICENSE`.
   After `cbb1f29` the user reports: the icon at the top of the window "seems quite mangled".
   Changed: `logo.ico` now holds 16, 20, 24, 32, 40, 48, 64 and 256px, each shrunk from the 256px
   one (Pillow, Lanczos, a one-off run, not a project dependency); the 256-only file is in

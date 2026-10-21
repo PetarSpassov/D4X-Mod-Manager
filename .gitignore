@@ -18,6 +18,7 @@
 !*.toml
 !*.ini
 !*.cfg
+!/LICENSE
 
 # source
 !*.py

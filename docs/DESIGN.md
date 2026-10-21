@@ -116,6 +116,7 @@ The window is **pywebview**: HTML pages in a native window, as in CodeCracker's 
 
 - **Rows deleted by a mod:** whether to delete them (kept and reported for now). The base game has
   no rows without an `id`.
-- **Licensing:** whether `pakBuild.hl` and `d4x_res_pak.bms` may be bundled. QuickBMS may: GPL 2.0,
-  shipped with its licence text and source.
+- **Licensing:** the app is MIT (`LICENSE`). `pakBuild.hl` is Heaps' MIT pak builder, shipped with
+  Heaps' notice; QuickBMS is GPL 2.0, shipped with its licence text and source. Still open:
+  whether `d4x_res_pak.bms` may be bundled.
 - **The first tests** use small controlled mods built for the purpose, before any real Nexus mod.
