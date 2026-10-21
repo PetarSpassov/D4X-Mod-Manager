@@ -171,7 +171,6 @@ function row(m, i) {
   li.querySelector("input").onchange = e => { m.enabled = e.target.checked; save(); };
   li.querySelector(".name").textContent = m.name;
   li.querySelector(".meta").textContent = meta(m);
-  li.querySelector(".title").title = m.name + " " + meta(m);
   const n = note(m);
   if (n) {
     const tag = document.createElement(n.cls === "update" ? "button" : "span");

@@ -164,10 +164,15 @@ button.note.update:hover:not(:disabled) { background: var(--info-bg); filter: br
 
 .settings { display: flex; flex-direction: column; gap: 6px; max-width: 720px; }
 .settings label { font-weight: 600; margin-top: 10px; }
-.info-dot { display: inline-flex; align-items: center; justify-content: center; width: 15px;
-            height: 15px; margin-left: 4px; border: 1px solid var(--muted); border-radius: 50%;
-            color: var(--muted); font-size: 11px; font-weight: 600; cursor: help;
-            vertical-align: middle; }
+/* a CSS tip, not title: the browser's own waits about a second before showing */
+.info-dot { position: relative; display: inline-block; width: 15px; height: 15px;
+            margin-left: 5px; box-sizing: border-box; border: 1px solid var(--muted);
+            border-radius: 50%; color: var(--muted); font: 600 10px/13px sans-serif;
+            text-align: center; cursor: help; vertical-align: -2px; }
+.info-dot:hover::after { content: attr(data-tip); position: absolute; left: 20px; top: -4px;
+                         z-index: 10; padding: 4px 8px; border-radius: 4px; white-space: nowrap;
+                         background: var(--info-bg); color: var(--info); font-weight: 400;
+                         font-size: 12px; line-height: 16px; }
 .field { display: flex; gap: 8px; }
 .field input { flex: 1; min-width: 0; }
 .field input.bad { border-color: var(--warn); }

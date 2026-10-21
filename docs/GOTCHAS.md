@@ -69,6 +69,10 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
 
 ## D — Nexus
 
+- **Nexus's authorize page refuses the guide's `public_test` client id; OAuth waits on our own.**
+  names: `CLIENT_ID`, `public_test`, `oauth/authorize`
+  sign: "Client authentication failed due to unknown client" on Nexus's page after Log in
+
 - **Nexus's API answers Python's default User-Agent with 403; send our own.**
   names: `urlopen`, `User-Agent`, `api.nexusmods.com`
   sign: curl gets data while the app reports every mod as offline or refused

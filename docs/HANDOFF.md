@@ -54,7 +54,10 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   after registration), waits on `http://127.0.0.1:8089/callback`, saves the tokens in
   `settings.json` as `nexus_tokens`, refreshes them 60 s before expiry. A login is used before the
   key; Log out goes back to the key. Account name and Premium come from the token's claims, not
-  verified against Nexus's public key. Api and the flow tested with fakes only; never against Nexus.
+  verified against Nexus's public key. Api and the flow tested with fakes only. The user tried
+  Log in: Nexus's page showed "WHOOPS! An error has occurred / Client authentication failed due
+  to unknown client, no client authentication included, or unsupported authentication method."
+  Nothing past the authorize page has run against Nexus.
 
 - The exe from `!build.bat` (Nuitka with Zig, standalone folder `build/D4XModManager`, 81 MB).
   Seen live: it builds, starts, and opens a window titled "D4X Mod Manager". Untested in it: the

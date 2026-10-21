@@ -86,7 +86,6 @@ function card(m) {
   }
   li.querySelector(".name").textContent = m.name;
   li.querySelector(".meta").textContent = meta(m);
-  li.querySelector(".title").title = m.name + " " + meta(m);
   li.querySelector(".stats").textContent = stats(m);
   li.querySelector(".summary").textContent = m.summary || "";
   const button = li.querySelector("button");
