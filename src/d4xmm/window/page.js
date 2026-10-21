@@ -9,6 +9,7 @@ const NO_VERSION = {offline: "You are offline", not_found: "This file is not on 
 const STATUS = {none: "Not installed", current: "Installed, up to date",
                 changed: "Changed since last install", unknown: "Installed"};
 const OK_SECONDS = 5;
+const FOLD_MS = 140;  // style.css's fold animation
 const EDGE = 40;  // px from the list's top or bottom where a drag scrolls it
 const $ = id => document.getElementById(id);
 
@@ -140,11 +141,15 @@ function detail(m) {
 
 function toggle(m, li) {
   const open = !expanded.delete(m.folder);
+  const old = li.querySelector(".detail");
   if (open) {
     expanded.add(m.folder);
+    if (old) old.remove();  // still folding from a quick second click
     li.appendChild(detail(m));
   } else {
-    li.querySelector(".detail").remove();
+    old.classList.add("closing");
+    // a timer, not animationend: a hidden or minimised window never ends the animation
+    setTimeout(() => old.remove(), FOLD_MS);
   }
   li.classList.toggle("open", open);
 }
@@ -178,7 +183,7 @@ function row(m, i) {
   });
   if (expanded.has(m.folder)) {
     li.classList.add("open");
-    li.appendChild(detail(m));
+    li.appendChild(detail(m)).classList.add("still");  // a re-render, not a click: no unfolding
   }
   li.addEventListener("dragstart", e => {
     dragFrom = i;

@@ -120,6 +120,11 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   picker changes width with the name; the focused "New profile name" border isn't the app's colour.
   Changed: a darker rust red, one bin icon, a folder drawn open, bins disarm when they delete, a
   170px picker, accent focus borders on every text field. Preview only.
+  After `26a463f` the user reports: shrinking the window narrows the cards but not the search
+  box, which reaches the window's edge; truncated grey row text ends in a white "…"; the New
+  profile name field still gets no accent border when focused. Changed: search shrinks (seen in
+  preview at 560px: its right edge matches the cards'), name and meta cut with their own "…",
+  the profile field's focus rule outranks its own border rule, rows unfold and fold (~0.15s).
 - One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
   Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.
