@@ -101,7 +101,7 @@ function card(m) {
   };
   if (downloading.has(m.nexus_id)) showProgress(li, m.nexus_id);
   if (justDone.has(m.nexus_id)) {
-    li.querySelector(".summary").textContent = "Installed!";
+    li.querySelector(".summary").textContent = "Added to library.";
     li.querySelector(".summary").classList.add("done");
   }
   li.querySelector(".top").onclick = () => toggleCard(m, li);
@@ -135,7 +135,7 @@ function renderLinks(l) {
 function showProgress(li, id) {
   const button = li.querySelector("button");
   button.disabled = true;
-  button.textContent = "Wait…";
+  button.textContent = "Working…";
   const line = li.querySelector(".summary");
   line.textContent = downloading.get(id);
   line.classList.add("progress");

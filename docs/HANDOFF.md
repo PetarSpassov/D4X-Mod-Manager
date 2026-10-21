@@ -187,7 +187,8 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   before fetching; the button says "Wait…" and the card's summary line shows "Asking Nexus…",
   "Downloading: X MB of Y MB", "Importing…" (asked every 0.5 s). After `a6f423d` the user says
   "It downloads now, the progress text shows". Asked: a green "Installed!" for 5 s on success.
-  Changed: the card's summary line shows it for OK_SECONDS. Not seen.
+  Changed: the card's summary line shows it for OK_SECONDS. Asked then: "Added to library." in
+  its place (a download doesn't install) and "Working…" for "Wait…". Changed; not seen.
 - Nexus's "Mod Manager Download" links (`window/links.py`): Settings → "Use this app" writes
   this user's nxm handler (HKCU\Software\Classes\nxm) to start the app with the link, keeping
   the old command in `state/nxm_previous.json`; "Give back" restores it (or removes ours). Seen
