@@ -146,6 +146,12 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   colours, lists, links, images, spoilers); links open in the browser (`open_link`, web only).
   Seen in the preview: each sort's order, the markup made, a link click calling open_link and the
   page staying put. Not seen: how it looks next to Nexus's page, light theme with authors' colours.
+  After `8e4fa83` the user reports: many spaces and newlines don't show; on QuinnQuest no line
+  break between "COMPATIBILITY" and "NOTE:". Found: each "\n<br />" was dropped whole, the "\n"
+  with it. Changed: only the "<br />" goes. Seen in a test only, not in the window.
+- The window and taskbar icon is `window/logo.ico` (the user's, moved from the root; one 256px
+  image), set through `webview.start(icon=)` with our own taskbar id. Not seen in the window.
+  Owed: the same icon on the exe, when there is one.
 - One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
   Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.

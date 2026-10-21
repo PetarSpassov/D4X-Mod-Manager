@@ -50,6 +50,7 @@
 !*.lua
 !*.gd
 !*.swift
+!*.ico
 
 # third-party tools we ship, kept as they came
 !vendor/**

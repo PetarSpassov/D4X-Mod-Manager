@@ -60,7 +60,8 @@ def _tag(match, lists):
 def to_html(bbcode):
     """The description as HTML: b, i, u, s, size, color, font, url, img, list, code, heading,
     quote, center, spoiler and line; any other [tag] stays as written, as on Nexus."""
-    text = html.unescape(re.sub(r"\s*<br\s*/?>", "", bbcode or "")).replace("�", "")
+    # each <br /> follows the line's own "\n", which is the break that's kept
+    text = html.unescape(re.sub(r"<br\s*/?>", "", bbcode or "")).replace("�", "")
     text = html.escape(text.strip())
     text = IMAGE.sub(r'<img src="\1" alt="">', text)
     text = BARE_LINK.sub(r'<a href="\1">\1</a>', text)

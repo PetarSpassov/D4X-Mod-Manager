@@ -15,6 +15,11 @@ class ToHtml(unittest.TestCase):
                                  "<br />[/list]\n<br />After\n<br />[list=1][*]A[/list]"),
                          "Intro<ul><li>One<li>Two</ul>After<ol><li>A</ol>")
 
+    def test_each_nexus_line_break_stays_a_break(self):
+        self.assertEqual(to_html("[u][b]Compatibility[/b][/u]\n<br />[b]NOTE:[/b] x\n<br />\n"
+                                 "<br />Next"),
+                         "<u><b>Compatibility</b></u><br><b>NOTE:</b> x<br><br>Next")
+
     def test_links_and_images_keep_only_web_addresses(self):
         self.assertEqual(to_html("[url=https://discord.gg/x]Discord[/url] "
                                  "[url=javascript:alert(1)]bad[/url] "

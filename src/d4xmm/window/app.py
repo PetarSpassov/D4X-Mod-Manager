@@ -1,4 +1,5 @@
 """Opening the window: python -m d4xmm.window.app"""
+import ctypes
 import json
 import os
 
@@ -9,6 +10,9 @@ from d4xmm.window import settings
 from d4xmm.window.api import Api
 
 PAGE = os.path.join(os.path.dirname(__file__), "index.html")
+ICON = os.path.join(os.path.dirname(__file__), "logo.ico")
+# our own taskbar identity: without it Windows files the window under python.exe and its icon
+APP_ID = "D4XModManager"
 HOME = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), "D4XModManager")
 
 
@@ -57,7 +61,8 @@ def main():
                                              min_size=(560, 440), **args)
     holder["window"].events.loaded += bind_drop
     holder["window"].events.closing += on_closing
-    webview.start()
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
+    webview.start(icon=ICON)  # pywebview's docs say GTK/Qt only, but WinForms reads it too
 
 
 if __name__ == "__main__":
