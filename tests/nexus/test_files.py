@@ -79,6 +79,13 @@ class Lookup(unittest.TestCase):
         found = files.lookup(picked["download"], mod_files)
         self.assertEqual((found["file_id"], found["version"]), (54, "v0.4.2.3"))
 
+    def test_by_ids_finds_the_file_whatever_its_name(self):
+        mod_files, asked = _fake({"5": [
+            {"fileId": 54, "name": "Renamed", "version": "v1", "category": "MAIN", "uri": "x/y"}]})
+        self.assertEqual(files.by_ids(5, 54, mod_files)["name"], "Renamed")
+        self.assertIsNone(files.by_ids(5, 99, mod_files))
+        self.assertEqual(asked, ["5", "5"])
+
     def test_a_name_without_numbers_asks_nothing(self):
         mod_files, asked = _fake({})
         self.assertIsNone(files.lookup("QuinnQuest.zip", mod_files))

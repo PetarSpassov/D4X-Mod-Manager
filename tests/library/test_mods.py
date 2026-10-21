@@ -88,8 +88,18 @@ class Refresh(unittest.TestCase):
             return json.load(f)
 
     def _refresh(self, **lookup):
-        with mock.patch.object(mods.nexus_files, "lookup", **lookup):
+        with mock.patch.object(mods.nexus_files, "lookup", **lookup), \
+                mock.patch.object(mods.nexus_files, "by_ids", **lookup):
             return mods.refresh(self.library)
+
+    def test_once_its_ids_are_known_a_mod_is_found_by_them_not_by_name(self):
+        self._refresh(return_value=self.FOUND)
+        renamed = dict(self.FOUND, name="QuinnQuest Renamed", latest="v0.5")
+        with mock.patch.object(mods.nexus_files, "lookup", return_value=None), \
+                mock.patch.object(mods.nexus_files, "by_ids", return_value=renamed) as asked:
+            self.assertEqual(mods.refresh(self.library), [self.folder])
+        asked.assert_called_once_with(5, 48)
+        self.assertEqual(self._record()["latest"], "v0.5")
 
     def test_a_mod_imported_offline_takes_nexus_info_in_its_own_folder(self):
         self.assertEqual(self._refresh(return_value=self.FOUND), [self.folder])

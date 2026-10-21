@@ -38,9 +38,9 @@ def target(member):
     return None
 
 
-def describe(archive):
-    """Mod name, file name, Nexus ids and version from Nexus's record of this download.
-
+def describe(archive, ids=None):
+    """Mod name, file name, Nexus ids and version from Nexus's record of this download, found
+    by its (mod id, file id) when known, else by its name.
     `nexus` is "found", "not_found", "offline" or "refused"; only "found" fills all but the names.
     """
     file_name = os.path.basename(archive)
@@ -48,7 +48,7 @@ def describe(archive):
     unknown = {"name": stem, "file": stem, "nexus_id": None, "file_id": None, "version": None,
                "latest": None, **dict.fromkeys(nexus_files.ABOUT)}
     try:
-        found = nexus_files.lookup(file_name)
+        found = nexus_files.by_ids(*ids) if ids else nexus_files.lookup(file_name)
     except nexus_files.Offline:
         return dict(unknown, nexus="offline")
     except nexus_files.Refused:
@@ -103,11 +103,11 @@ def _same_mod(library, nexus_id):
     return None
 
 
-def import_archive(archive, library):
+def import_archive(archive, library, ids=None):
     """Unpack a mod's zip, 7z or rar into its library folder, replacing an earlier import of it.
     Any version of the same Nexus mod counts, so an update keeps the folder and its load order.
-    Returns the record written to mod.json."""
-    info = describe(archive)
+    ids: its (mod id, file id) when known. Returns the record written to mod.json."""
+    info = describe(archive, ids)
     name = re.sub(r"[^\w.-]+", "_", info["file"]).strip("_.") or "mod"
     folder = os.path.join(library, _same_mod(library, info["nexus_id"]) or name)
     staging = folder + ".importing"
@@ -136,10 +136,9 @@ def delete(library, folder):
 
 
 def refresh(library):
-    """Look every imported mod up on Nexus again by its download name, and keep what is found.
-
-    A mod Nexus doesn't answer for keeps its record. Returns the folders whose record changed.
-    """
+    """Look every imported mod up on Nexus again, by its ids once known, else by its download
+    name, and keep what is found. A mod Nexus doesn't answer for keeps its record.
+    Returns the folders whose record changed."""
     changed = []
     for folder in sorted(os.listdir(library)):
         path = os.path.join(library, folder, RECORD)
@@ -147,7 +146,8 @@ def refresh(library):
             continue
         with open(path, encoding="utf-8") as f:
             record = json.load(f)
-        info = describe(record["source"])
+        ids = (record.get("nexus_id"), record.get("file_id"))
+        info = describe(record["source"], ids if all(ids) else None)
         if info["nexus"] == "found" and any(record.get(k) != v for k, v in info.items()):
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(dict(record, **info), f, indent=1)

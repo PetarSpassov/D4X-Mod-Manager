@@ -208,7 +208,8 @@ class WindowApi(unittest.TestCase):
         with mock.patch("d4xmm.nexus.files.pick_file", pick), \
                 mock.patch("d4xmm.nexus.account.download_url", url), \
                 mock.patch("d4xmm.nexus.account.fetch", fetch), \
-                mock.patch("d4xmm.nexus.files.lookup", return_value=None):
+                mock.patch("d4xmm.nexus.files.by_ids",
+                           lambda *ids: asked.setdefault("ids", ids) and None):
             state = start()
         self.assertEqual([m["enabled"] for m in state["mods"]], [True])
         self.assertTrue(os.path.isfile(os.path.join(self.zips, name)))
@@ -219,6 +220,7 @@ class WindowApi(unittest.TestCase):
         self._premium()
         asked = self._download(lambda: self.api.download_mod(7))
         self.assertEqual((asked["pick"], asked["url"]), ((7, None), ("k", 7, 3, None)))
+        self.assertEqual(asked["ids"], (7, 3))  # its own download is known by ids, not by name
         self.assertEqual(asked["progress"], "Downloading: 2.5 MB of 10.0 MB")
         self.assertIsNone(self.api.download_progress(7))
 

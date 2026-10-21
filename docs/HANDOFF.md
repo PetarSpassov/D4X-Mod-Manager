@@ -93,6 +93,10 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   QuinnQuest-5-v0.4.2.3.zip, Bene_Tleilaxu_Mod-9-2.rar, Quinn_s_Unofficial_Patcher-8-1.1.0.zip
   each looked up to their file. Not seen: a real download. A browser download of such a file
   keeps whatever name the browser gives it, which may not match.
+  The user asked whether that is foolproof; it isn't by name alone (a renamed file, a re-upload
+  of the same name). Changed: `files.by_ids`; refresh looks a record up by its stored nexus_id
+  and file_id once it has them, and the app's own downloads import by ids. Seen live on a copy
+  of the user's library: both mods refreshed by id, no lookup by name.
 - Tabs Installed / Browse / Settings replace the header. Settings holds the game folder and the
   Downloads folder (typed or Choose…; empty means found from Steam / Windows' Shell Folders), kept
   in `settings.json`. No `D4X.exe` there: Settings shows an error and Install and Remove all refuse

@@ -133,11 +133,12 @@ class Api:
     def import_mods(self):
         return self.import_paths(self._pick_archives() or [])
 
-    def import_paths(self, paths):
-        """Import each archive, ticked at the end of the active profile; also for dropped files."""
+    def import_paths(self, paths, ids=None):
+        """Import each archive, ticked at the end of the active profile; also for dropped files.
+        ids: the (mod id, file id) of a single archive the app downloaded itself."""
         before = set(self._records())
         for path in paths:
-            mods.import_archive(path, self._library)
+            mods.import_archive(path, self._library, ids)
             # deleting the mod later mustn't bring its archive back as a new download
             watched.dismiss(self._state_dir, os.path.basename(path))
 
@@ -255,7 +256,7 @@ class Api:
             staged = os.path.join(self._state_dir, found["download"])
             account.fetch(url, staged, lambda done, total: self._fetched(mod_id, done, total))
             self._progress[mod_id] = "Importing…"
-            state = self.import_paths([staged])
+            state = self.import_paths([staged], (mod_id, found["file_id"]))
         finally:
             self._progress.pop(mod_id, None)
         if current["downloads"] and os.path.isdir(current["downloads"]):

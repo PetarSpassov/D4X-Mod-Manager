@@ -86,6 +86,14 @@ def _describe(mod_id, found, f):
             **{k: found.get(k) for k in ABOUT}}
 
 
+def by_ids(mod_id, file_id, mod=_mod):
+    """What lookup() gives, for a file known by its ids; None when Nexus no longer lists it.
+    Ids survive what a name doesn't: a file renamed on Nexus, or a re-upload of the same name."""
+    found = mod(str(mod_id))
+    f = next((r for r in found["files"] if r["fileId"] == int(file_id)), None)
+    return f and _describe(mod_id, found, f)
+
+
 def lookup(file_name, mod=_mod):
     """The Nexus file named exactly file_name, or None; `latest` is the newest main file's version.
 
