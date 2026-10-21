@@ -158,6 +158,10 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   Import (ticked at the end, as any import) or × (never again, `state/dismissed_downloads.json`).
   Tested with fakes; seen in a browser preview: offers, ×, Import. Not seen: a real download.
   Not built: the optional nxm:// "Download with mod manager" handler (needs the API key).
+  After `c74c467` the user says "Looks great". Asked: look every 1s; an imported archive must not
+  be offered again once its mod is deleted. Changed: a look starts 1s after the last one ends;
+  every import (offered, picked or dropped) records the archive's name as handled. The archive
+  stays in Downloads, untouched. Tested; not seen in the window.
   After `cbb1f29` the user reports: the icon at the top of the window "seems quite mangled".
   Changed: `logo.ico` now holds 16, 20, 24, 32, 40, 48, 64 and 256px, each shrunk from the 256px
   one (Pillow, Lanczos, a one-off run, not a project dependency); the 256-only file is in

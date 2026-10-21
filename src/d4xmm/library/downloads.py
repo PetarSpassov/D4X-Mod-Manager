@@ -9,7 +9,7 @@ import re
 from d4xmm.nexus import files as nexus_files
 
 NEXUS_NAME = re.compile(r"-\d+(-.+)?-\d{9,}\.(zip|7z|rar)$", re.IGNORECASE)
-DISMISSED = "dismissed_downloads.json"  # under state/: archives not to offer again
+DISMISSED = "dismissed_downloads.json"  # under state/: archives imported or turned down
 
 
 def dismissed(state_dir):

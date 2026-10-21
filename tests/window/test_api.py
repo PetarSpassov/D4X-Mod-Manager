@@ -136,6 +136,9 @@ class WindowApi(unittest.TestCase):
             state = self.api.import_download("A-7-1-0-1752884636.zip")
             self.assertEqual([m["enabled"] for m in state["mods"]], [True])
             self.assertEqual(self.api.downloads(), [])
+            self.api.delete(state["mods"][0]["folder"])
+            self.assertEqual(self.api.downloads(), [])  # still there, but imported once already
+        self.assertTrue(os.path.isfile(os.path.join(self.zips, "A-7-1-0-1752884636.zip")))
         for bad in ("..\\A-7-1-0-1752884636.zip", "notes.zip"):
             with self.assertRaises(ValueError):
                 self.api.import_download(bad)

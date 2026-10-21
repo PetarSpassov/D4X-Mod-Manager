@@ -1,6 +1,6 @@
 // The bar under the tabs offering mods that just arrived in the Downloads folder; loaded after
 // page.js, whose run and setStatus it uses.
-const WATCH_SECONDS = 5;
+const WATCH_SECONDS = 1;  // a folder listing: cheap; Nexus is asked once per new archive
 
 function renderOffers(offers) {
   const bar = $("offers");
@@ -36,7 +36,11 @@ async function watch() {
   }
 }
 
-window.addEventListener("pywebviewready", () => {
-  watch();
-  setInterval(watch, WATCH_SECONDS * 1000);
-});
+// the next look starts a second after this one ends: offline, Nexus takes up to 10s to fail,
+// and a fixed interval would pile up looks asking about the same archive
+async function watchLoop() {
+  await watch();
+  setTimeout(watchLoop, WATCH_SECONDS * 1000);
+}
+
+window.addEventListener("pywebviewready", watchLoop);

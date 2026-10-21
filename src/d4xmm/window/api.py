@@ -120,6 +120,8 @@ class Api:
         before = set(self._records())
         for path in paths:
             mods.import_archive(path, self._library)
+            # deleting the mod later mustn't bring its archive back as a new download
+            watched.dismiss(self._state_dir, os.path.basename(path))
 
         def tick_new(_, order):
             for e in order:
