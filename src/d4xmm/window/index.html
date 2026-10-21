@@ -50,7 +50,18 @@
   <div class="toolbar">
     <span id="browse-count"></span>
     <span class="spacer"></span>
-    <button id="browse-reload" title="Ask Nexus again">Reload</button>
+    <span class="picker" id="tag-picker">
+      <button class="icon" id="tag-filter" title="Filter by tag">
+        <svg viewBox="0 0 16 16"><path d="M2 3h12L9.5 8.5V13l-3-1.5v-3z"/></svg>
+        <span id="tag-count"></span></button>
+      <div id="tag-menu" hidden>
+        <p class="hint">Click a tag once to show only mods with it, twice to hide them.</p>
+        <ul id="tag-list"></ul>
+        <button id="tag-clear">Clear filters</button>
+      </div>
+    </span>
+    <button class="icon" id="browse-reload" title="Ask Nexus again">
+      <svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M12.5 1.5v3h-3"/></svg></button>
     <input id="browse-search" type="search" placeholder="Search Nexus mods">
   </div>
   <main><ul id="catalog"><li class="empty">Loading…</li></ul></main>

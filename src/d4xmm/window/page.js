@@ -113,12 +113,13 @@ function stats(m) {
   const parts = [];
   if (m.downloads != null) parts.push(m.downloads.toLocaleString() + " downloads");
   if (m.endorsements != null) parts.push(m.endorsements.toLocaleString() + " endorsements");
-  if (m.updated) {
-    const day = new Date(m.updated).toLocaleDateString(undefined,
-      {day: "numeric", month: "short", year: "numeric"});
-    parts.push("updated " + day);
-  }
+  if (m.updated) parts.push("updated " + day(m.updated));
   return parts.join(" · ");
+}
+
+function day(iso) {
+  return new Date(iso).toLocaleDateString(undefined,
+    {day: "numeric", month: "short", year: "numeric"});
 }
 
 function detail(m) {

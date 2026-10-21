@@ -5,7 +5,7 @@ or rules must change this file too (pre-commit).
 
 ## State
 
-**► WE ARE ON:** backend joined: install_mods() merges and installs library mods (install/flow.py); next: the pywebview window *(moved only by `python .claude/tools/on.py`)*
+**► WE ARE ON:** Browse tab: one-width buttons, opening cards with tags and full summary, tag filter *(moved only by `python .claude/tools/on.py`)*
 
 **► LAST KNOWN GOOD:** `42ea256`: "Both show the right version, merging them boots the game correctly
 and has the contents of both. This is a great success, it seems the merge is working for now."
@@ -133,6 +133,13 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   "in library" with Files. Search and Reload. Seen live from Nexus: 7 mods, paging works at 3 a
   page. Seen in a browser preview with a fake Api: the cards, search, Download's call. Not seen in
   the window: the tab, the browser opening, offline and refused messages.
+  After `75003af` the user says "Looks good", and reports: Files plus "in library" make widths
+  uneven; summaries are cut off. Asked: open a card for more (tags, full text), a reload icon, a
+  tag filter that includes and excludes. Changed: one 96px Download on every card, "✓ In library"
+  on the picture; a click opens the card: tags (a click filters), dates, the full description as
+  text (`catalog.plain`); reload and funnel icons; the menu cycles a tag: only, hidden, off.
+  Seen in a browser preview with a fake Api and live Nexus data: equal buttons, the filter counts
+  (Gameplay: 2 of 7, hidden 5 of 7), the menu staying open. Not seen in the window.
 - One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
   Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.
