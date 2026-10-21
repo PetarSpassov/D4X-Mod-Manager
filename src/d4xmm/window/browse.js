@@ -134,7 +134,7 @@ function renderAccount(a) {
 function renderLinks(l) {
   $("links-state").textContent = l.ours ? "Its downloads come to this app." :
     (l.other ? `Its downloads go to ${l.other}.` : "No program takes its downloads.") +
-    " Taking them over needs a Nexus login or API key.";
+    " Downloading from them needs a Nexus login or API key.";
   $("links-toggle").textContent = l.ours ? "Give back" : "Use this app";
   $("links-toggle").title = l.ours ? "Hand the links back to the program that had them"
                                    : "Windows sends Nexus's mod manager links here";
