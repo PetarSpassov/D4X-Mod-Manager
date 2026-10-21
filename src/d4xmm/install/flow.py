@@ -31,9 +31,9 @@ def _gather(library_dir, folders):
 
 
 def install_mods(game_dir, state_dir, library_dir, folders):
-    """Merge and install the mods in folders, in load order; one mod alone goes in as shipped.
-
+    """Merge and install the mods in folders, in load order; one alone goes in as shipped.
     Returns the merge's report (None unmerged), who ships each file, clashes, what restore skipped.
+    A merge over the trait cap installs nothing.
     """
     paks, files, owners = _gather(library_dir, folders)
     if len(folders) == 1:
@@ -48,6 +48,8 @@ def install_mods(game_dir, state_dir, library_dir, folders):
                                               os.path.join(work, "merge"))
             files[os.path.basename(m["pak"])] = m["pak"]
             report["clashes"] = merge.clashes(owners, m["owners"], m["rows"])
+            if m.get("traits_over"):
+                return report  # the game crashes on startup with it, so the game is left untouched
         # merged first, so a merge that fails leaves the earlier install in place
         report["skipped"] = deploy.restore(game_dir, state_dir)
         report["hlboot_modded"] = hlboot.modded(game_dir)

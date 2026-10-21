@@ -360,7 +360,8 @@ $("install").onclick = async () => {
     notes = installNotes(report);
     if (report.merge && report.merge.traits_over) {
       setStatus(`Error: Traits in the merge exceed ${report.merge.trait_limit}. The game cannot ` +
-                "support it and will crash on startup. See Last install.", "warn");
+                "support it and will crash on startup. Nothing was installed: see Last install.",
+                "warn");
     } else {
       setStatus(notes.length ? "Installed, with notes: see Last install." : "Installed.", "ok");
     }

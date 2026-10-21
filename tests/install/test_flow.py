@@ -84,6 +84,16 @@ class InstallMods(unittest.TestCase):
                 flow.install_mods(self.game, self.state, self.lib, [a, b])
         self.assertEqual(_read(os.path.join(self.game, "res.compressed1.pak")), b"pakA")
 
+    def test_a_merge_over_the_trait_cap_leaves_the_earlier_install_in_place(self):
+        a = self._import("A", {"res.compressed1.pak": b"pakA"})
+        b = self._import("B", {"res.compressed1.pak": b"pakB"})
+        self._install(a)
+        with mock.patch("d4xmm.merge.merge",
+                        lambda *args: dict(self._fake_merge(*args), traits_over=True)):
+            out = flow.install_mods(self.game, self.state, self.lib, [a, b])
+        self.assertTrue(out["merge"]["traits_over"])
+        self.assertEqual(_read(os.path.join(self.game, "res.compressed1.pak")), b"pakA")
+
 
 if __name__ == "__main__":
     unittest.main()
