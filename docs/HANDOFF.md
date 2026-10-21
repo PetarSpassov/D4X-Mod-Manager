@@ -97,6 +97,8 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   of the same name). Changed: `files.by_ids`; refresh looks a record up by its stored nexus_id
   and file_id once it has them, and the app's own downloads import by ids. Seen live on a copy
   of the user's library: both mods refreshed by id, no lookup by name.
+  After `ce58156` the user reports, of the Premium download in the exe: "it works". Not said:
+  which mod, whether it was a newer upload (storage-path uri), or the update badge's download.
 - Tabs Installed / Browse / Settings replace the header. Settings holds the game folder and the
   Downloads folder (typed or Choose…; empty means found from Steam / Windows' Shell Folders), kept
   in `settings.json`. No `D4X.exe` there: Settings shows an error and Install and Remove all refuse
