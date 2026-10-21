@@ -1,5 +1,5 @@
-// The bar under the tabs offering mods that just arrived in the Downloads folder; loaded after
-// page.js, whose run and setStatus it uses.
+// Mods arriving: Downloads-folder offers in the bar under the tabs, and Nexus's mod manager
+// links. Loaded after page.js, whose run, render, setStatus and showTab it uses.
 const WATCH_SECONDS = 1;  // a folder listing: cheap; Nexus is asked once per new archive
 
 function renderOffers(offers) {
@@ -43,4 +43,20 @@ async function watchLoop() {
   setTimeout(watchLoop, WATCH_SECONDS * 1000);
 }
 
-window.addEventListener("pywebviewready", watchLoop);
+// a website "Mod Manager Download" link; app.py hands it over, or pending_link() at start
+async function nxmLink(url) {
+  showTab("installed");  // where the status line is
+  setStatus("Downloading from Nexus…");
+  try {
+    render(await window.pywebview.api.download_link(url));
+    setStatus("Downloaded and imported.", "ok");
+  } catch (e) {
+    setStatus(String(e.message || e), "warn");
+  }
+}
+
+window.addEventListener("pywebviewready", async () => {
+  watchLoop();
+  const link = await window.pywebview.api.pending_link();
+  if (link) nxmLink(link);
+});

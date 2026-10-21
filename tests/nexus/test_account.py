@@ -43,6 +43,13 @@ class Download(unittest.TestCase):
         self.assertTrue(opened.call_args.args[0].full_url.endswith(
             "/games/dunespicewars/mods/5/files/30/download_link.json"))
 
+    def test_a_website_link_grant_goes_with_the_request(self):
+        links = [{"URI": "https://cdn/a.zip"}]
+        with mock.patch("urllib.request.urlopen", return_value=_answer(links)) as opened:
+            account.download_url("k", 5, 30, {"key": "abc", "expires": "1700000000"})
+        self.assertTrue(opened.call_args.args[0].full_url.endswith(
+            "/files/30/download_link.json?key=abc&expires=1700000000"))
+
     def test_a_file_appears_only_once_whole(self):
         dest = os.path.join(tempfile.mkdtemp(), "a.zip")
         body = mock.MagicMock(__enter__=lambda s: io.BytesIO(b"x" * (account.CHUNK + 5)),

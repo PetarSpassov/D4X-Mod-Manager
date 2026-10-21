@@ -52,9 +52,12 @@ def _newest_main(file_records):
     return max(mains, key=lambda f: f["fileId"]) if mains else None
 
 
-def newest_main(mod_id, mod=_mod):
-    """{file_id, uri (the download's name), version} of the mod's newest main file, or None."""
-    f = _newest_main(mod(mod_id)["files"])
+def pick_file(mod_id, file_id=None, mod=_mod):
+    """{file_id, uri (the download's name), version} of the mod's file file_id, or of its newest
+    main file when file_id is None; None when there is no such file."""
+    records = mod(str(mod_id))["files"]
+    f = (_newest_main(records) if file_id is None
+         else next((r for r in records if r["fileId"] == int(file_id)), None))
     return f and {"file_id": f["fileId"], "uri": f["uri"], "version": f["version"]}
 
 

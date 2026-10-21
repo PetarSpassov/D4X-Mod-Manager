@@ -5,7 +5,7 @@ or rules must change this file too (pre-commit).
 
 ## State
 
-**► WE ARE ON:** downloads: watched folder built; next: the nxm:// handler or packaging the exe *(moved only by `python .claude/tools/on.py`)*
+**► WE ARE ON:** downloads: watched folder, Premium and nxm links built; next: packaging the exe *(moved only by `python .claude/tools/on.py`)*
 
 **► LAST KNOWN GOOD:** `42ea256`: "Both show the right version, merging them boots the game correctly
 and has the contents of both. This is a great success, it seems the merge is working for now."
@@ -177,6 +177,15 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   Asked: "Get my key" should land at the "Personal API Key" heading. Changed: the address ends
   in a text fragment (`#:~:text=Personal%20API%20Key`). Signed out, the page has no such heading
   or id to read (seen in the preview browser); whether the browser scrolls there is not seen.
+- Nexus's "Mod Manager Download" links (`window/links.py`): Settings → "Use this app" writes
+  this user's nxm handler (HKCU\Software\Classes\nxm) to start the app with the link, keeping
+  the old command in `state/nxm_previous.json`; "Give back" restores it (or removes ours). Seen
+  live: this machine's handler before is `nxmhandler.exe` (Mod Organizer's). A start with a link
+  hands it to the open window over a named pipe and exits; with none open, the window opens and
+  downloads it. The link's key and expires go with the download-link request (needs the API key).
+  Tested: parsing, registry take/give back on a throwaway key, the pipe handover, the download
+  with fakes; the handler's command line run with a sample link. Not seen: a real click on Nexus,
+  the Settings line. A second window opened normally doesn't get links; the first keeps them.
   After `cbb1f29` the user reports: the icon at the top of the window "seems quite mangled".
   Changed: `logo.ico` now holds 16, 20, 24, 32, 40, 48, 64 and 256px, each shrunk from the 256px
   one (Pillow, Lanczos, a one-off run, not a project dependency); the 256-only file is in

@@ -286,6 +286,7 @@ function render(state) {
   mods = state.mods;
   renderSettings(state.settings);
   renderAccount(state.account);
+  renderLinks(state.links);
   renderProfiles(state.profiles);
   const pill = $("install-state");
   pill.textContent = STATUS[state.install.status];

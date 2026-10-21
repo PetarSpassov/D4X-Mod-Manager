@@ -1,5 +1,5 @@
-// The Browse tab: Nexus's catalog for the game; loaded after page.js, whose call, item, meta,
-// stats, day and FOLD_MS it uses. Download opens the Files tab: the keyless API has no links.
+// The Browse tab, Nexus's catalog, and the Nexus lines in Settings (key, link handler); loaded
+// after page.js, whose call, run, item, meta, stats, day and FOLD_MS it uses.
 let catalog = null;  // asked for when the tab is first opened, then on Reload
 const opened = new Set();  // nexus ids whose card is open; kept across re-renders
 const tagFilter = new Map();  // tag name: "in" (the mod must have it) or "out" (must not)
@@ -111,6 +111,16 @@ function renderAccount(a) {
   line.textContent = a.key !== "ok" ? KEY_STATE[a.key] :
     `Signed in as ${a.name} · ` + (a.premium ? "Premium: Download gets mods in the app."
                                             : "Free: Download opens the mod's Files page.");
+}
+
+function renderLinks(l) {
+  $("links-state").textContent = l.ours ? "Its downloads come to this app." :
+    (l.other ? `Its downloads go to ${l.other}.` : "No program takes its downloads.") +
+    " Taking them over needs your API key, Free or Premium.";
+  $("links-toggle").textContent = l.ours ? "Give back" : "Use this app";
+  $("links-toggle").title = l.ours ? "Hand the links back to the program that had them"
+                                   : "Windows sends Nexus's mod manager links here";
+  $("links-toggle").onclick = () => run(l.ours ? "release_links" : "take_links");
 }
 
 // not through call(): a download takes a while, and the rest of the window stays usable

@@ -2,11 +2,12 @@
 import ctypes
 import json
 import os
+import sys
 
 import webview
 from webview.dom import DOMEventHandler
 
-from d4xmm.window import settings
+from d4xmm.window import links, settings
 from d4xmm.window.api import Api
 
 PAGE = os.path.join(os.path.dirname(__file__), "index.html")
@@ -29,6 +30,10 @@ def placement(form):
 
 
 def main():
+    # Windows starts the app with the link as its argument when Nexus's link handler is ours
+    link = next((a for a in sys.argv[1:] if a.lower().startswith("nxm://")), None)
+    if link and links.send(link):
+        return  # the window already open takes it
     holder = {}
 
     def pick_archives():
@@ -55,7 +60,11 @@ def main():
         # closing runs on the window's own thread, so the form can be read directly
         settings.save(HOME, window=placement(holder["window"].native))
 
-    api = Api(HOME, pick_archives, pick_folder)
+    def on_link(url):
+        holder["window"].evaluate_js("nxmLink(%s)" % json.dumps(url))
+
+    api = Api(HOME, pick_archives, pick_folder, link)
+    links.serve(on_link)
     args = settings.window_args(settings.load(HOME)["window"], webview.screens)
     holder["window"] = webview.create_window("D4X Mod Manager", PAGE, js_api=api,
                                              min_size=(560, 440), **args)

@@ -5,6 +5,7 @@ The v1 REST API, the one that takes a key; Nexus hands out download links only t
 import json
 import os
 import urllib.error
+import urllib.parse
 import urllib.request
 
 from d4xmm.nexus import files
@@ -47,9 +48,13 @@ def check(key):
     return {"name": found.get("name"), "premium": bool(found.get("is_premium"))}
 
 
-def download_url(key, mod_id, file_id):
-    """Where the file downloads from: the first of the servers Nexus lists."""
-    links = _get("/games/%s/mods/%d/files/%d/download_link.json" % (GAME, mod_id, file_id), key)
+def download_url(key, mod_id, file_id, grant=None):
+    """Where the file downloads from: the first of the servers Nexus lists. grant: the key and
+    expires of a website "Mod Manager Download" link, which lets a free account download."""
+    path = "/games/%s/mods/%d/files/%d/download_link.json" % (GAME, mod_id, file_id)
+    if grant:
+        path += "?" + urllib.parse.urlencode({"key": grant["key"], "expires": grant["expires"]})
+    links = _get(path, key)
     if not links:
         raise files.Refused("Nexus gave no download address")
     return links[0]["URI"]

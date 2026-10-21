@@ -48,6 +48,7 @@ body { margin: 0; display: flex; flex-direction: column; background: var(--bg);
                 overflow: hidden; text-overflow: ellipsis; }
 #browse-count.error { color: var(--warn); }
 #key-state { margin: 6px 2px 0; }
+#links-state { flex: 1; min-width: 0; align-self: center; color: var(--muted); font-size: 13px; }
 
 main { flex: 1; min-height: 0; overflow-y: auto; padding: 0 18px; }
 ul { list-style: none; margin: 0; padding: 0; }

@@ -12,7 +12,7 @@ from d4xmm.library import downloads as watched
 from d4xmm.library import mods
 from d4xmm.nexus import account, catalog
 from d4xmm.nexus import files as nexus_files
-from d4xmm.window import profiles, settings
+from d4xmm.window import links, profiles, settings
 
 LAST = "last_install.json"  # under state/: the folders installed and who overrode whom
 NEXUS_PAGE = "https://www.nexusmods.com/dunespicewars/mods/%d"
@@ -22,8 +22,9 @@ NO_GAME = "Can't find the game in the Steam directory. Please adjust it in Setti
 class Api:
     """pywebview hands the page every public attribute, so all but the calls start with _."""
 
-    def __init__(self, home, pick_archives=None, pick_folder=None):
-        """pick_archives() returns the chosen paths, pick_folder(start) one folder or None."""
+    def __init__(self, home, pick_archives=None, pick_folder=None, pending_link=None):
+        """pick_archives() returns the chosen paths, pick_folder(start) one folder or None;
+        pending_link: the nxm:// link the app was started with."""
         self._home, self._pick_archives, self._pick_folder = home, pick_archives, pick_folder
         self._library = os.path.join(home, "library")
         self._state_dir = os.path.join(home, "state")
@@ -31,6 +32,7 @@ class Api:
             os.makedirs(folder, exist_ok=True)
         self._known = {}  # Downloads archive name: Nexus's answer, so each is asked about once
         self._account = {"key": "checking"}  # whose key, and Premium; refresh() asks Nexus
+        self._pending = pending_link
 
     def _records(self):
         """{library folder: its mod.json record} for every imported mod."""
@@ -82,7 +84,7 @@ class Api:
         return {"mods": listed, "install": self._install_state(order),
                 "settings": dict(typed, game_ok=settings.game_ok(current["game_dir"])),
                 "profiles": {"active": data["active"], "names": list(data["profiles"])},
-                "account": self._account}
+                "account": self._account, "links": links.status()}
 
     def set_setting(self, key, value):
         """Keep one of settings.TYPED; an empty folder goes back to the one Steam or Windows has."""
@@ -206,23 +208,50 @@ class Api:
         webbrowser.open(account.KEY_PAGE)
 
     def download_mod(self, nexus_id):
-        """Premium only: the mod's newest main file, downloaded, imported, then put in Downloads
-        as the browser would have, recorded so it isn't offered."""
+        """Premium only: the mod's newest main file downloaded and imported."""
         if not self._account.get("premium"):
             raise RuntimeError("Downloading in the app needs a Premium Nexus account.")
-        newest = nexus_files.newest_main(str(int(nexus_id)))
-        if not newest or os.path.basename(newest["uri"]) != newest["uri"]:
-            raise RuntimeError("Nexus lists no main file to download for this mod.")
+        return self._download(int(nexus_id))
+
+    def download_link(self, url):
+        """A website "Mod Manager Download" link: its file downloaded and imported."""
+        link = links.parse(url)
+        if link["game"] != account.GAME:
+            raise RuntimeError("That link is for another game's mod.")
+        return self._download(link["mod_id"], link["file_id"], link["grant"])
+
+    def pending_link(self):
+        """The link the app was started with, once; the page asks when it is ready."""
+        url, self._pending = self._pending, None
+        return url
+
+    def _download(self, mod_id, file_id=None, grant=None):
+        """The file downloaded, imported, then put in Downloads as the browser would have,
+        recorded so it isn't offered. file_id None: the newest main file."""
         current = settings.load(self._home)
-        url = account.download_url(current["nexus_key"], int(nexus_id), newest["file_id"])
-        staged = os.path.join(self._state_dir, newest["uri"])
+        if not current["nexus_key"]:
+            raise RuntimeError("Paste your Nexus API key in Settings first.")
+        found = nexus_files.pick_file(mod_id, file_id)
+        if not found or os.path.basename(found["uri"]) != found["uri"]:
+            raise RuntimeError("Nexus lists no such file to download for this mod.")
+        url = account.download_url(current["nexus_key"], mod_id, found["file_id"], grant)
+        staged = os.path.join(self._state_dir, found["uri"])
         account.fetch(url, staged)
         state = self.import_paths([staged])
         if current["downloads"] and os.path.isdir(current["downloads"]):
-            shutil.move(staged, os.path.join(current["downloads"], newest["uri"]))
+            shutil.move(staged, os.path.join(current["downloads"], found["uri"]))
         else:
             os.remove(staged)  # our own copy; the library has the mod's files
         return state
+
+    def take_links(self):
+        """Nexus's "Mod Manager Download" links come to this app from now on."""
+        links.take(self._state_dir)
+        return self.state()
+
+    def release_links(self):
+        links.release(self._state_dir)
+        return self.state()
 
     def install(self):
         """Merge and install the ticked mods in load order; returns install_mods' report."""

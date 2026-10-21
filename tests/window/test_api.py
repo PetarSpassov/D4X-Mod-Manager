@@ -159,32 +159,55 @@ class WindowApi(unittest.TestCase):
         with mock.patch("d4xmm.nexus.account.check", return_value={"name": "A", "premium": True}):
             self.api.set_setting("nexus_key", "k")
 
-    def test_premium_download_imports_the_newest_main_file_and_keeps_it_in_downloads(self):
+    def _download(self, start):
+        """start() with Nexus faked: file 3 of mod 7 downloads as A's zip; returns the state
+        and how the file and its address were asked for."""
         settings.save(self.home, downloads=self.zips)
-        self._premium()
-        name = "A-7-1-0-1752884636.zip"
-        source = self._zip("A")
+        name, source, asked = "A-7-1-0-1752884636.zip", self._zip("A"), {}
 
-        def fetch(url, dest):
-            self.assertEqual(url, "https://cdn/a")
-            os.rename(source, dest)
-        with mock.patch("d4xmm.nexus.files.newest_main",
-                        return_value={"file_id": 3, "uri": name, "version": "1.0"}), \
-                mock.patch("d4xmm.nexus.account.download_url", return_value="https://cdn/a"), \
-                mock.patch("d4xmm.nexus.account.fetch", fetch), \
+        def pick(mod_id, file_id=None):
+            asked["pick"] = (mod_id, file_id)
+            return {"file_id": 3, "uri": name, "version": "1.0"}
+
+        def url(key, mod_id, file_id, grant=None):
+            asked["url"] = (key, mod_id, file_id, grant)
+            return "https://cdn/a"
+        with mock.patch("d4xmm.nexus.files.pick_file", pick), \
+                mock.patch("d4xmm.nexus.account.download_url", url), \
+                mock.patch("d4xmm.nexus.account.fetch", lambda u, dest: os.rename(source, dest)), \
                 mock.patch("d4xmm.nexus.files.lookup", return_value=None):
-            state = self.api.download_mod(7)
+            state = start()
         self.assertEqual([m["enabled"] for m in state["mods"]], [True])
         self.assertTrue(os.path.isfile(os.path.join(self.zips, name)))
         self.assertEqual(self.api.downloads(), [])
+        return asked
 
-    def test_without_premium_or_a_main_file_nothing_downloads(self):
+    def test_premium_download_imports_the_newest_main_file_and_keeps_it_in_downloads(self):
+        self._premium()
+        asked = self._download(lambda: self.api.download_mod(7))
+        self.assertEqual((asked["pick"], asked["url"]), ((7, None), ("k", 7, 3, None)))
+
+    def test_a_website_link_downloads_its_own_file_with_its_grant(self):
+        settings.save(self.home, nexus_key="k")
+        link = "nxm://dunespicewars/mods/7/files/3?key=abc&expires=17&user_id=1"
+        asked = self._download(lambda: self.api.download_link(link))
+        self.assertEqual(asked["url"], ("k", 7, 3, {"key": "abc", "expires": "17"}))
+        with self.assertRaisesRegex(RuntimeError, "another game"):
+            self.api.download_link("nxm://skyrim/mods/7/files/3?key=abc&expires=17")
+
+    def test_without_premium_a_key_or_a_file_nothing_downloads(self):
         with self.assertRaisesRegex(RuntimeError, "Premium"):
             self.api.download_mod(7)
+        with self.assertRaisesRegex(RuntimeError, "API key"):
+            self.api.download_link("nxm://dunespicewars/mods/7/files/3?key=a&expires=1")
         self._premium()
-        with mock.patch("d4xmm.nexus.files.newest_main", return_value=None):
-            with self.assertRaisesRegex(RuntimeError, "no main file"):
+        with mock.patch("d4xmm.nexus.files.pick_file", return_value=None):
+            with self.assertRaisesRegex(RuntimeError, "no such file"):
                 self.api.download_mod(7)
+
+    def test_the_start_link_is_given_once(self):
+        api = Api(self.home, pending_link="nxm://x")
+        self.assertEqual((api.pending_link(), api.pending_link()), ("nxm://x", None))
 
     def test_no_game_or_nothing_ticked_is_an_error_not_an_install(self):
         with self.assertRaises(RuntimeError):
