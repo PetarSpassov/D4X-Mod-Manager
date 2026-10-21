@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 PetarSpassov
+Copyright (c) 2026 Petar Spassov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,4 +22,6 @@ SOFTWARE.
 
 The tools in vendor/ keep their own licences, shipped beside them:
 7-Zip (vendor/7zip/License.txt), QuickBMS (vendor/quickbms/LICENSE, with its
-source) and Heaps' pak builder pakBuild.hl (vendor/pakbuild/LICENSE).
+source), Heaps' pak builder pakBuild.hl (vendor/pakbuild/LICENSE), and the pak
+script d4x_res_pak.bms by Sanctus-Susanin, original by Allen
+(https://github.com/Sviat/qbms_shirogames; its terms are in its header).

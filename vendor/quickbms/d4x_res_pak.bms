@@ -2,6 +2,8 @@
 # By Sanctus-Susanin / Original by Allen
 # 2024, Northgard .pak / 2015-9-1 Evoland 2 .pak
 # Should work for most of Shiro's games
+# From northgard_res_pak.bms of https://github.com/Sviat/qbms_shirogames, whose terms are: any use
+# that keeps all previous authors' names and links to that repository
 
 idstring "PAK\0"
 get DataOffset long
