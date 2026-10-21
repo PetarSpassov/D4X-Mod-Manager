@@ -152,6 +152,10 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 - The window and taskbar icon is `window/logo.ico` (the user's, moved from the root; one 256px
   image), set through `webview.start(icon=)` with our own taskbar id. Not seen in the window.
   Owed: the same icon on the exe, when there is one.
+  After `cbb1f29` the user reports: the icon at the top of the window "seems quite mangled".
+  Changed: `logo.ico` now holds 16, 20, 24, 32, 40, 48, 64 and 256px, each shrunk from the 256px
+  one (Pillow, Lanczos, a one-off run, not a project dependency); the 256-only file is in
+  `todelete/`. The 16 and 32px frames look clean as images; not seen in the window.
 - One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
   Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.
