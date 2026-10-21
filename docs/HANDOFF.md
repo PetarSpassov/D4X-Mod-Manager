@@ -58,6 +58,10 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   Log in: Nexus's page showed "WHOOPS! An error has occurred / Client authentication failed due
   to unknown client, no client authentication included, or unsupported authentication method."
   Nothing past the authorize page has run against Nexus.
+- Settings' Nexus lines: login row ("Not logged in." beside its button), the API key's info icon
+  (SVG ring, instant tip "Optional. Used as a fallback when not logged in"), links line "Downloading
+  from them needs a Nexus login or API key." After `3e5f037` the user says of the icon "it works
+  now". The login row's alignment and the links line were not reported.
 
 - The exe from `!build.bat` (Nuitka with Zig, standalone folder `build/D4XModManager`, 81 MB).
   Seen live: it builds, starts, and opens a window titled "D4X Mod Manager". Untested in it: the
