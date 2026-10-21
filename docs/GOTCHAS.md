@@ -73,6 +73,10 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
   names: `urlopen`, `User-Agent`, `api.nexusmods.com`
   sign: curl gets data while the app reports every mod as offline or refused
 
+- **A newer Nexus upload's `uri` is a storage path (`bc/ba/b1/<uuid>`), not the archive's name.**
+  names: `uri`, `pick_file`, `lookup`, `detectedFileExtension`
+  sign: "Nexus lists no such file to download for this mod" on a mod whose Files tab has a main file
+
 ## E — Window
 
 - **A maximised form's Bounds and pywebview's resized event give the screen size; save RestoreBounds.**

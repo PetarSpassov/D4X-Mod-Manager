@@ -83,6 +83,11 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   The user reports: "Nexus lists no such file to download for this mod" is long enough to push
   Install down to the left. Changed: the footer no longer wraps; the status wraps inside its own
   box. Seen in a browser preview at 900px: one row, Install at the right. Not seen in the window.
+  Why "no such file" (seen live from Nexus's GraphQL): newer uploads' `uri` is a storage path
+  like `bc/ba/b1/<uuid>`, with no file name and `detectedFileExtension` beside it. 3 of the 7
+  catalog mods: QuinnQuest (newest main 54, the v0.4.2.3 its update badge offers), Bene Tleilaxu
+  Faction, Quinn's Unofficial Patcher. Older ones (Dyaus Anchor) still carry the archive name.
+  `_download` refuses a uri with a path; `lookup` matches by uri == download name. Not fixed.
 - Tabs Installed / Browse / Settings replace the header. Settings holds the game folder and the
   Downloads folder (typed or Choose…; empty means found from Steam / Windows' Shell Folders), kept
   in `settings.json`. No `D4X.exe` there: Settings shows an error and Install and Remove all refuse
