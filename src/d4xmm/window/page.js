@@ -51,7 +51,9 @@ function note(m) {
             title: "Could not determine version. " + (NO_VERSION[m.nexus] || "")};
   }
   if (m.latest && m.latest !== m.version) {
-    return {cls: "update", text: "update: " + m.latest, title: "A newer main file is on Nexus"};
+    return {cls: "update", text: "update: " + m.latest,
+            title: "A newer main file is on Nexus. Click to get it: Premium downloads it here, " +
+                   "Free opens its Files page."};
   }
   return null;
 }
@@ -172,10 +174,11 @@ function row(m, i) {
   li.querySelector(".title").title = m.name + " " + meta(m);
   const n = note(m);
   if (n) {
-    const tag = document.createElement("span");
+    const tag = document.createElement(n.cls === "update" ? "button" : "span");
     tag.className = "note " + n.cls;
     tag.textContent = n.text;
     tag.title = n.title;
+    if (n.cls === "update") tag.onclick = e => { e.stopPropagation(); updateMod(m); };
     line.appendChild(tag);
   }
   icons(m, line);

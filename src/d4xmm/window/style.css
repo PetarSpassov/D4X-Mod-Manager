@@ -155,7 +155,9 @@ li.open .line { border-bottom: 1px solid var(--line); border-radius: 8px 8px 0 0
 .about .stats { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
 .about .stats:empty { display: none; }
 .note { font-size: 11px; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
-.note.update { background: var(--info-bg); color: var(--info); }
+.note.update { background: var(--info-bg); color: var(--info); border: 0; font: inherit;
+               font-size: 11px; line-height: inherit; }
+button.note.update:hover:not(:disabled) { background: var(--info-bg); filter: brightness(1.1); }
 .note.unknown { background: var(--hover); color: var(--muted); }
 .empty { padding: 28px; color: var(--muted); text-align: center; }
 .hint { color: var(--muted); font-size: 12px; margin: 6px 2px 12px; }

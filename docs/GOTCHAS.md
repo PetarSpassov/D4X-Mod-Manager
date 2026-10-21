@@ -47,6 +47,10 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
   names: `!build.bat`, `--msvc`, `--zig`, `nuitka-crash-report.xml`
   sign: "scons environment variable 'CC' is not set, this ought to never happen"
 
+- **A running D4XModManager.exe locks its folder: a rebuild half-deletes it; `move` fails, exit 0.**
+  names: `rmdir`, `build/D4XModManager`, `tasklist`
+  sign: "Access is denied" on .pyd files, then "Built" with no `d4xmm\window` in the folder
+
 ## B — Game tools
 
 - **QuickBMS exits 0 when a pak's signature doesn't match; count the files it wrote instead.**

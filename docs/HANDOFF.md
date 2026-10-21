@@ -74,6 +74,12 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   window loads it with 4 rows and the pill "Installed" (installed before `last_install.json`
   existed). Drag and the menu seen only in a browser preview with a fake Api. File drop, delete,
   open folder/Nexus and the update note: not seen in the window.
+  Asked: the update badge should get the update. Changed: it is a button; Premium downloads the
+  newest main file with progress in the status line, Free opens the Files page. Any version of
+  the same Nexus mod imports into the folder already holding it (`_same_mod`), keeping its place
+  and tick; the pill compares each ticked mod's archive too, so an update reads "changed". An
+  install refused over the trait cap no longer records itself as the last install. Tested with
+  fakes; the badge not seen.
 - Tabs Installed / Browse / Settings replace the header. Settings holds the game folder and the
   Downloads folder (typed or Choose…; empty means found from Steam / Windows' Shell Folders), kept
   in `settings.json`. No `D4X.exe` there: Settings shows an error and Install and Remove all refuse

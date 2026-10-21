@@ -91,10 +91,30 @@ class WindowApi(unittest.TestCase):
         state = self.api.save_order([{"folder": "B", "enabled": True},
                                      {"folder": "A", "enabled": True}])
         self.assertEqual(state["install"]["status"], "changed")
+        self.api.save_order([{"folder": "A", "enabled": True}, {"folder": "B", "enabled": True}])
+        self.assertEqual(self.api.state()["install"]["status"], "current")
+        found = {"nexus_id": 1, "file_id": 3, "name": "B", "mod_name": "B", "version": "2.0",
+                 "category": "MAIN", "latest": "2.0", "creator": None, "summary": None,
+                 "picture": None, "downloads": 0, "endorsements": 0, "updated": None}
+        with mock.patch("d4xmm.nexus.files.lookup", return_value=found):
+            state = self.api.import_paths([self._zip("B-1-2-0-1790000000")])
+        self.assertEqual(self._names(state), [("A", True), ("B", True)])  # updated in its place
+        self.assertEqual(state["install"]["status"], "changed")
         with mock.patch("d4xmm.install.deploy.restore", return_value=[]):
             self.api.restore()
         os.remove(os.path.join(self.home, "state", "install.json"))
         self.assertEqual(self.api.state()["install"], {"status": "none", "clashes": []})
+
+    def test_an_install_refused_over_the_trait_cap_is_not_recorded(self):
+        self.picked = [self._zip("A")]
+        self.api.import_mods()
+        with mock.patch("d4xmm.install.flow.install_mods", self._fake_install):
+            self.api.install()
+        self.api.import_paths([self._zip("B")])
+        with mock.patch("d4xmm.install.flow.install_mods",
+                        return_value={"merge": {"traits_over": True}, "clashes": []}):
+            self.api.install()
+        self.assertEqual(self.api.state()["install"]["status"], "changed")  # A alone is in
 
     def test_open_on_nexus_opens_the_mods_page_only_when_it_has_one(self):
         self.picked = [self._zip("A")]

@@ -141,19 +141,45 @@ function showProgress(li, id) {
   line.classList.add("progress");
 }
 
+// every PROGRESS_MS: what the download of id is doing goes in `downloading`, then show() runs
+function askProgress(id, show) {
+  return setInterval(async () => {
+    const now = await window.pywebview.api.download_progress(id);
+    if (!now || !downloading.has(id)) return;
+    downloading.set(id, now);
+    show();
+  }, PROGRESS_MS);
+}
+
+// a library row's update badge: Premium downloads the newest main file, Free opens its Files page
+async function updateMod(m) {
+  const id = m.nexus_id;
+  if (UNCHECKED.includes(account.key)) await run("check_key");
+  if (!account.premium) return call("open_nexus_files", id);
+  if (downloading.has(id)) return;
+  downloading.set(id, "Starting…");
+  setStatus(`${m.name}: starting the update…`);
+  const ask = askProgress(id, () => setStatus(`${m.name}: ${downloading.get(id)}`));
+  try {
+    render(await window.pywebview.api.download_mod(id));
+    setStatus(`${m.name} ${m.latest} added to library.`, "ok");
+  } catch (e) {
+    setStatus(`${m.name}: ${e.message || e}`, "warn");
+  }
+  clearInterval(ask);
+  downloading.delete(id);
+}
+
 // not through call(): a download takes a while, and the rest of the window stays usable
 async function downloadInApp(m, button) {
   const id = m.nexus_id;
   if (downloading.has(id)) return;  // page.js's busy() may have re-enabled the button
   downloading.set(id, "Starting…");
   showProgress(button.closest("li"), id);
-  const ask = setInterval(async () => {
-    const now = await window.pywebview.api.download_progress(id);
-    if (!now || !downloading.has(id)) return;
-    downloading.set(id, now);
+  const ask = askProgress(id, () => {
     const li = document.querySelector(`#catalog li[data-id="${id}"]`);
     if (li) showProgress(li, id);
-  }, PROGRESS_MS);
+  });
   let failed = "";
   try {
     render(await window.pywebview.api.download_mod(id));

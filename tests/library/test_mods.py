@@ -107,6 +107,17 @@ class Refresh(unittest.TestCase):
         mods.delete(self.library, self.folder)
         self.assertEqual(os.listdir(self.library), ["not_a_mod"])
 
+    def test_a_new_version_under_another_file_name_replaces_the_mod_in_its_folder(self):
+        self._refresh(return_value=self.FOUND)
+        archive = _zip(tempfile.mkdtemp(), "QuinnQuest Full-5-v0-5-1790000000.zip",
+                       {"new/res.compressed1.pak": b"pak2"})
+        newer = dict(self.FOUND, name="QuinnQuest Full", version="v0.5", latest="v0.5")
+        with mock.patch.object(mods.nexus_files, "lookup", return_value=newer):
+            mods.import_archive(archive, self.library)
+        self.assertEqual(os.listdir(self.library), [self.folder])
+        self.assertEqual((self._record()["version"], self._record()["files"]),
+                         ("v0.5", {"res.compressed1.pak": "new/res.compressed1.pak"}))
+
     def test_offline_keeps_the_record(self):
         before = self._record()
         self.assertEqual(self._refresh(side_effect=mods.nexus_files.Offline), [])

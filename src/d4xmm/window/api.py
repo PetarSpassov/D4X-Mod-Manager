@@ -19,6 +19,11 @@ NEXUS_PAGE = "https://www.nexusmods.com/dunespicewars/mods/%d"
 NO_GAME = "Can't find the game in the Steam directory. Please adjust it in Settings."
 
 
+def _sources(folders, records):
+    """The archive each of these library folders was imported from."""
+    return [records[f].get("source") for f in folders]
+
+
 class Api:
     """pywebview hands the page every public attribute, so all but the calls start with _."""
 
@@ -61,8 +66,9 @@ class Api:
         profiles.save(self._home, data)
         return self.state()
 
-    def _install_state(self, order):
-        """{status: none, current, changed or unknown; clashes of the last install}."""
+    def _install_state(self, order, records):
+        """{status: none, current, changed or unknown; clashes of the last install}.
+        An update keeps its folder, so the archive each came from is compared too."""
         if not os.path.isfile(os.path.join(self._state_dir, deploy.RECORD)):
             return {"status": "none", "clashes": []}
         path = os.path.join(self._state_dir, LAST)
@@ -71,7 +77,9 @@ class Api:
         with open(path, encoding="utf-8") as f:
             last = json.load(f)
         ticked = [e["folder"] for e in order if e["enabled"]]
-        return {"status": "current" if ticked == last["folders"] else "changed",
+        same = ticked == last["folders"] and last.get("sources", _sources(ticked, records)) \
+            == _sources(ticked, records)
+        return {"status": "current" if same else "changed",
                 "clashes": last["clashes"]}
 
     def state(self):
@@ -83,7 +91,7 @@ class Api:
         current = settings.load(self._home)
         typed = {k: current[k] for k in settings.TYPED}
         data = profiles.load(self._home)
-        return {"mods": listed, "install": self._install_state(order),
+        return {"mods": listed, "install": self._install_state(order, records),
                 "settings": dict(typed, game_ok=settings.game_ok(current["game_dir"])),
                 "profiles": {"active": data["active"], "names": list(data["profiles"])},
                 "account": self._account or {"key": "saved" if current["nexus_key"] else "none"},
@@ -276,12 +284,16 @@ class Api:
     def install(self):
         """Merge and install the ticked mods in load order; returns install_mods' report."""
         game = self._game()
-        ticked = [e["folder"] for e in self._order(self._records()) if e["enabled"]]
+        records = self._records()
+        ticked = [e["folder"] for e in self._order(records) if e["enabled"]]
         if not ticked:
             raise RuntimeError("no mods are ticked")
         report = flow.install_mods(game, self._state_dir, self._library, ticked)
+        if (report.get("merge") or {}).get("traits_over"):
+            return report  # nothing was installed, so the last install still stands
         with open(os.path.join(self._state_dir, LAST), "w", encoding="utf-8") as f:
-            json.dump({"folders": ticked, "clashes": report.get("clashes", [])}, f, indent=1)
+            json.dump({"folders": ticked, "sources": _sources(ticked, records),
+                       "clashes": report.get("clashes", [])}, f, indent=1)
         return report
 
     def restore(self):

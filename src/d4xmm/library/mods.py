@@ -91,13 +91,25 @@ def _unpack(archive, dest):
     return files, other
 
 
+def _same_mod(library, nexus_id):
+    """The library folder already holding this Nexus mod, or None."""
+    for folder in sorted(os.listdir(library)) if nexus_id is not None else []:
+        path = os.path.join(library, folder, RECORD)
+        if not os.path.isfile(path):
+            continue
+        with open(path, encoding="utf-8") as f:
+            if json.load(f).get("nexus_id") == nexus_id:
+                return folder
+    return None
+
+
 def import_archive(archive, library):
     """Unpack a mod's zip, 7z or rar into its library folder, replacing an earlier import of it.
-
-    Returns the record written to mod.json.
-    """
+    Any version of the same Nexus mod counts, so an update keeps the folder and its load order.
+    Returns the record written to mod.json."""
     info = describe(archive)
-    folder = os.path.join(library, re.sub(r"[^\w.-]+", "_", info["file"]).strip("_.") or "mod")
+    name = re.sub(r"[^\w.-]+", "_", info["file"]).strip("_.") or "mod"
+    folder = os.path.join(library, _same_mod(library, info["nexus_id"]) or name)
     staging = folder + ".importing"
     if os.path.isdir(staging):
         shutil.rmtree(staging)
