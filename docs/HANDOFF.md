@@ -80,6 +80,9 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   and tick; the pill compares each ticked mod's archive too, so an update reads "changed". An
   install refused over the trait cap no longer records itself as the last install. Tested with
   fakes; the badge not seen.
+  The user reports: "Nexus lists no such file to download for this mod" is long enough to push
+  Install down to the left. Changed: the footer no longer wraps; the status wraps inside its own
+  box. Seen in a browser preview at 900px: one row, Install at the right. Not seen in the window.
 - Tabs Installed / Browse / Settings replace the header. Settings holds the game folder and the
   Downloads folder (typed or Choose…; empty means found from Steam / Windows' Shell Folders), kept
   in `settings.json`. No `D4X.exe` there: Settings shows an error and Install and Remove all refuse

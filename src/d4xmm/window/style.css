@@ -176,11 +176,12 @@ button.note.update:hover:not(:disabled) { background: var(--info-bg); filter: br
 .icon:hover:not(:disabled) { background: var(--line); color: var(--text); }
 .icon.armed, .icon.armed:hover:not(:disabled) { background: var(--danger); color: #f6e9e2; }
 
-footer { position: relative; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+/* one row: a long status wraps inside its own box, so the buttons stay on the right */
+footer { position: relative; display: flex; gap: 8px; align-items: center;
          border-top: 1px solid var(--line); background: var(--panel); padding: 10px 18px; }
 footer .spacer { flex: 1; }
-footer > button { white-space: nowrap; }
-#last { font-size: 13px; color: var(--muted); white-space: nowrap; }
+footer > button { white-space: nowrap; flex-shrink: 0; }
+#last { font-size: 13px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
 #last summary { cursor: pointer; padding: 4px 8px; border-radius: 6px; }
 #last summary:hover, #last[open] summary { background: var(--hover); color: var(--text); }
 #last ul { position: absolute; left: 18px; bottom: calc(100% + 6px); z-index: 5;
