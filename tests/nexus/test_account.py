@@ -71,6 +71,18 @@ class Download(unittest.TestCase):
         self.assertEqual(os.path.getsize(dest), account.CHUNK + 5)
         self.assertFalse(os.path.exists(dest + ".part"))
 
+    def test_spaces_in_the_address_are_escaped_and_progress_is_told(self):
+        dest = os.path.join(tempfile.mkdtemp(), "a.zip")
+        body = mock.MagicMock(__enter__=lambda s: io.BytesIO(b"x" * (account.CHUNK + 5)),
+                              __exit__=lambda *a: False)
+        seen = []
+        with mock.patch("urllib.request.urlopen", return_value=body) as opened:
+            account.fetch("https://cdn/7811/dsw Dyaus Anchor v1.22.zip?md5=a%2Bb&e=1", dest,
+                          lambda done, total: seen.append(done))
+        self.assertEqual(opened.call_args.args[0].full_url,
+                         "https://cdn/7811/dsw%20Dyaus%20Anchor%20v1.22.zip?md5=a%2Bb&e=1")
+        self.assertEqual(seen, [account.CHUNK, account.CHUNK + 5])
+
     def test_a_broken_download_leaves_nothing(self):
         dest = os.path.join(tempfile.mkdtemp(), "a.zip")
         with mock.patch("urllib.request.urlopen", side_effect=urllib.error.URLError("down")):

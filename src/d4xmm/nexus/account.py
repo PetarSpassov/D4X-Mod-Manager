@@ -15,6 +15,7 @@ GAME = "dunespicewars"
 # the page's heading has no anchor; a text fragment scrolls to it in Chrome, Edge and Firefox
 KEY_PAGE = "https://www.nexusmods.com/settings/api-keys#:~:text=Personal%20API%20Key"
 CHUNK = 1 << 20
+URL_SAFE = "/:?#[]@!$&'()*+,;=%"  # a URL's own syntax, and escapes it already has, stay as they are
 DOWNLOAD_TIMEOUT = 60  # per read, not for the whole file
 
 
@@ -60,14 +61,19 @@ def download_url(key, mod_id, file_id, grant=None):
     return links[0]["URI"]
 
 
-def fetch(url, dest):
-    """Save url at dest, written as dest.part and renamed once whole, so no half file is seen."""
+def fetch(url, dest, progress=lambda done, total: None):
+    """Save url at dest, written as dest.part and renamed once whole, so no half file is seen.
+    progress(bytes so far, total or None) is called after each chunk."""
     part = dest + ".part"
-    req = urllib.request.Request(url, headers=files.HEADERS)
+    # Nexus's CDN addresses carry the file name as uploaded, spaces included
+    req = urllib.request.Request(urllib.parse.quote(url, safe=URL_SAFE), headers=files.HEADERS)
     try:
         with urllib.request.urlopen(req, timeout=DOWNLOAD_TIMEOUT) as r, open(part, "wb") as f:
+            total, done = getattr(r, "length", None), 0
             while chunk := r.read(CHUNK):
                 f.write(chunk)
+                done += len(chunk)
+                progress(done, total)
     except (urllib.error.URLError, TimeoutError) as e:
         if os.path.exists(part):
             os.remove(part)  # our own half-written file, never the player's

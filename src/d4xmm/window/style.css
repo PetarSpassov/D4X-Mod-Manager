@@ -75,7 +75,9 @@ ul { list-style: none; margin: 0; padding: 0; }
 #catalog .summary { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
                     overflow: hidden; white-space: normal; }
 #catalog li.open .summary { display: none; }
-#catalog .top button { flex-shrink: 0; width: 96px; }
+#catalog .top button { flex-shrink: 0; width: 96px; white-space: nowrap; overflow: hidden;
+                       text-overflow: ellipsis; }
+#catalog .summary.progress { color: var(--accent); }
 .description { max-height: 360px; overflow-y: auto; overflow-wrap: anywhere; }
 /* [size=N]: 3 is body text, each step about a fifth bigger or smaller */
 .description .size-1 { font-size: 10px; } .description .size-2 { font-size: 12px; }

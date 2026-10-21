@@ -34,6 +34,7 @@ class Api:
         # whose key, and Premium; None: not asked yet this run
         self._account = None
         self._pending = pending_link
+        self._progress = {}  # nexus id: what its download is doing, for the page to ask
 
     def _records(self):
         """{library folder: its mod.json record} for every imported mod."""
@@ -237,18 +238,31 @@ class Api:
         current = settings.load(self._home)
         if not current["nexus_key"]:
             raise RuntimeError("Paste your Nexus API key in Settings first.")
-        found = nexus_files.pick_file(mod_id, file_id)
-        if not found or os.path.basename(found["uri"]) != found["uri"]:
-            raise RuntimeError("Nexus lists no such file to download for this mod.")
-        url = account.download_url(current["nexus_key"], mod_id, found["file_id"], grant)
-        staged = os.path.join(self._state_dir, found["uri"])
-        account.fetch(url, staged)
-        state = self.import_paths([staged])
+        try:
+            self._progress[mod_id] = "Asking Nexus for the file…"
+            found = nexus_files.pick_file(mod_id, file_id)
+            if not found or os.path.basename(found["uri"]) != found["uri"]:
+                raise RuntimeError("Nexus lists no such file to download for this mod.")
+            url = account.download_url(current["nexus_key"], mod_id, found["file_id"], grant)
+            staged = os.path.join(self._state_dir, found["uri"])
+            account.fetch(url, staged, lambda done, total: self._fetched(mod_id, done, total))
+            self._progress[mod_id] = "Importing…"
+            state = self.import_paths([staged])
+        finally:
+            self._progress.pop(mod_id, None)
         if current["downloads"] and os.path.isdir(current["downloads"]):
             shutil.move(staged, os.path.join(current["downloads"], found["uri"]))
         else:
             os.remove(staged)  # our own copy; the library has the mod's files
         return state
+
+    def _fetched(self, mod_id, done, total):
+        of = " of %.1f MB" % (total / 1e6) if total else ""
+        self._progress[mod_id] = "Downloading: %.1f MB%s" % (done / 1e6, of)
+
+    def download_progress(self, nexus_id):
+        """What the download of this mod is doing now, or None when none runs."""
+        return self._progress.get(int(nexus_id))
 
     def take_links(self):
         """Nexus's "Mod Manager Download" links come to this app from now on."""

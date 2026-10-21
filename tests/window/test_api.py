@@ -180,9 +180,14 @@ class WindowApi(unittest.TestCase):
         def url(key, mod_id, file_id, grant=None):
             asked["url"] = (key, mod_id, file_id, grant)
             return "https://cdn/a"
+
+        def fetch(url, dest, progress):
+            progress(2_500_000, 10_000_000)
+            asked["progress"] = self.api.download_progress(asked["url"][1])
+            os.rename(source, dest)
         with mock.patch("d4xmm.nexus.files.pick_file", pick), \
                 mock.patch("d4xmm.nexus.account.download_url", url), \
-                mock.patch("d4xmm.nexus.account.fetch", lambda u, dest: os.rename(source, dest)), \
+                mock.patch("d4xmm.nexus.account.fetch", fetch), \
                 mock.patch("d4xmm.nexus.files.lookup", return_value=None):
             state = start()
         self.assertEqual([m["enabled"] for m in state["mods"]], [True])
@@ -194,6 +199,8 @@ class WindowApi(unittest.TestCase):
         self._premium()
         asked = self._download(lambda: self.api.download_mod(7))
         self.assertEqual((asked["pick"], asked["url"]), ((7, None), ("k", 7, 3, None)))
+        self.assertEqual(asked["progress"], "Downloading: 2.5 MB of 10.0 MB")
+        self.assertIsNone(self.api.download_progress(7))
 
     def test_a_website_link_downloads_its_own_file_with_its_grant(self):
         settings.save(self.home, nexus_key="k")

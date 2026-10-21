@@ -180,6 +180,10 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   Asked: "Get my key" should land at the "Personal API Key" heading. Changed: the address ends
   in a text fragment (`#:~:text=Personal%20API%20Key`). Signed out, the page has no such heading
   or id to read (seen in the preview browser); whether the browser scrolls there is not seen.
+  The user, with a real Premium key, says "The app doesn't work with Premium yet": the
+  "Downloading…" text leaves its box; nothing says what the download is doing; Dyaus Anchor's
+  Download shows "Dyaus Anchor: URL can't contain control characters. '/cdn/7811/2/dsw Dyaus
+  Anchor v1.22-2…" (the address has spaces).
 - Nexus's "Mod Manager Download" links (`window/links.py`): Settings → "Use this app" writes
   this user's nxm handler (HKCU\Software\Classes\nxm) to start the app with the link, keeping
   the old command in `state/nxm_previous.json`; "Give back" restores it (or removes ours). Seen

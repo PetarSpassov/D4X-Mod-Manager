@@ -7,7 +7,9 @@ const BROWSE_ERROR = {offline: "You are offline, so Nexus's mods can't be listed
                       refused: "Nexus answered with an error. Try reloading in a while."};
 const NEXT_STATE = {undefined: "in", in: "out", out: undefined};
 let account = {key: "none"};  // Api.state()'s: whose key it is, and Premium
-const downloading = new Set();  // nexus ids being downloaded, so a re-render keeps their button
+// nexus id being downloaded: what it is doing, so a re-render keeps the card's progress
+const downloading = new Map();
+const PROGRESS_MS = 500;
 const KEY_STATE = {
   none: "Paste your personal API key to see your account here.",
   saved: "Saved. Nexus checks it the first time you press Download.",
@@ -70,6 +72,7 @@ function toggleCard(m, li) {
 
 function card(m) {
   const li = document.createElement("li");
+  li.dataset.id = m.nexus_id;
   li.innerHTML = '<div class="top"><span class="thumb"><img alt=""></span><div class="about">' +
     '<div class="title"><span class="name"></span> <span class="meta"></span></div>' +
     '<p class="stats"></p><p class="summary"></p></div><button>Download</button></div>';
@@ -95,10 +98,7 @@ function card(m) {
     if (account.premium) downloadInApp(m, button);
     else call("open_nexus_files", m.nexus_id);
   };
-  if (downloading.has(m.nexus_id)) {
-    button.disabled = true;
-    button.textContent = "Downloading…";
-  }
+  if (downloading.has(m.nexus_id)) showProgress(li, m.nexus_id);
   li.querySelector(".top").onclick = () => toggleCard(m, li);
   if (opened.has(m.nexus_id)) {
     li.classList.add("open");
@@ -126,19 +126,37 @@ function renderLinks(l) {
   $("links-toggle").onclick = () => run(l.ours ? "release_links" : "take_links");
 }
 
+// the card's summary line says what the download is doing; the button, too narrow, only waits
+function showProgress(li, id) {
+  const button = li.querySelector("button");
+  button.disabled = true;
+  button.textContent = "Wait…";
+  const line = li.querySelector(".summary");
+  line.textContent = downloading.get(id);
+  line.classList.add("progress");
+}
+
 // not through call(): a download takes a while, and the rest of the window stays usable
 async function downloadInApp(m, button) {
-  if (downloading.has(m.nexus_id)) return;  // page.js's busy() may have re-enabled the button
-  downloading.add(m.nexus_id);
-  button.disabled = true;
-  button.textContent = "Downloading…";
+  const id = m.nexus_id;
+  if (downloading.has(id)) return;  // page.js's busy() may have re-enabled the button
+  downloading.set(id, "Starting…");
+  showProgress(button.closest("li"), id);
+  const ask = setInterval(async () => {
+    const now = await window.pywebview.api.download_progress(id);
+    if (!now || !downloading.has(id)) return;
+    downloading.set(id, now);
+    const li = document.querySelector(`#catalog li[data-id="${id}"]`);
+    if (li) showProgress(li, id);
+  }, PROGRESS_MS);
   let failed = "";
   try {
-    render(await window.pywebview.api.download_mod(m.nexus_id));
+    render(await window.pywebview.api.download_mod(id));
   } catch (e) {
     failed = String(e.message || e);
   }
-  downloading.delete(m.nexus_id);
+  clearInterval(ask);
+  downloading.delete(id);
   renderCatalog();  // the card shows "In library", the button "Download" again
   if (failed) {  // in the Browse toolbar: the status line is on the Installed tab
     $("browse-count").textContent = m.name + ": " + failed;
