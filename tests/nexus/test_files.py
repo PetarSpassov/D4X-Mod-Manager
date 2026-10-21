@@ -64,10 +64,20 @@ class Lookup(unittest.TestCase):
             {"fileId": 60, "name": "Q", "version": "p", "category": "OPTIONAL", "uri": "c.zip"},
             {"fileId": 40, "name": "Q", "version": "v0.4", "category": "MAIN", "uri": "a.zip"}]})
         self.assertEqual(files.pick_file(5, mod=mod_files),
-                         {"file_id": 50, "uri": "b.zip", "version": "v0.5"})
-        self.assertEqual(files.pick_file(5, "40", mod=mod_files)["uri"], "a.zip")
+                         {"file_id": 50, "download": "b.zip", "version": "v0.5"})
+        self.assertEqual(files.pick_file(5, "40", mod=mod_files)["download"], "a.zip")
         self.assertIsNone(files.pick_file(5, 99, mod=mod_files))
         self.assertIsNone(files.pick_file(6, mod=mod_files))
+
+    def test_a_newer_upload_with_a_storage_path_is_named_and_found_by_that_name(self):
+        mod_files, _ = _fake({"5": [
+            {"fileId": 54, "name": "QuinnQuest", "version": "v0.4.2.3", "category": "MAIN",
+             "uri": "bc/ba/b1/bcbab115-91da-4c49-91e1-bacabfee5123",
+             "detectedFileExtension": "zip"}]})
+        picked = files.pick_file(5, mod=mod_files)
+        self.assertEqual(picked["download"], "QuinnQuest-5-v0.4.2.3.zip")
+        found = files.lookup(picked["download"], mod_files)
+        self.assertEqual((found["file_id"], found["version"]), (54, "v0.4.2.3"))
 
     def test_a_name_without_numbers_asks_nothing(self):
         mod_files, asked = _fake({})

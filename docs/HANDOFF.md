@@ -87,7 +87,12 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   like `bc/ba/b1/<uuid>`, with no file name and `detectedFileExtension` beside it. 3 of the 7
   catalog mods: QuinnQuest (newest main 54, the v0.4.2.3 its update badge offers), Bene Tleilaxu
   Faction, Quinn's Unofficial Patcher. Older ones (Dyaus Anchor) still carry the archive name.
-  `_download` refuses a uri with a path; `lookup` matches by uri == download name. Not fixed.
+  `_download` refuses a uri with a path; `lookup` matches by uri == download name. Changed:
+  `download_name` makes such a file's name as `<name>-<mod id>-<version>.<detectedFileExtension>`
+  and `lookup` matches either name, so the app's downloads import and refresh as found. Seen live:
+  QuinnQuest-5-v0.4.2.3.zip, Bene_Tleilaxu_Mod-9-2.rar, Quinn_s_Unofficial_Patcher-8-1.1.0.zip
+  each looked up to their file. Not seen: a real download. A browser download of such a file
+  keeps whatever name the browser gives it, which may not match.
 - Tabs Installed / Browse / Settings replace the header. Settings holds the game folder and the
   Downloads folder (typed or Choose…; empty means found from Steam / Windows' Shell Folders), kept
   in `settings.json`. No `D4X.exe` there: Settings shows an error and Install and Remove all refuse

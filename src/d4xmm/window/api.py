@@ -249,17 +249,17 @@ class Api:
         try:
             self._progress[mod_id] = "Asking Nexus for the file…"
             found = nexus_files.pick_file(mod_id, file_id)
-            if not found or os.path.basename(found["uri"]) != found["uri"]:
+            if not found or os.path.basename(found["download"]) != found["download"]:
                 raise RuntimeError("Nexus lists no such file to download for this mod.")
             url = account.download_url(current["nexus_key"], mod_id, found["file_id"], grant)
-            staged = os.path.join(self._state_dir, found["uri"])
+            staged = os.path.join(self._state_dir, found["download"])
             account.fetch(url, staged, lambda done, total: self._fetched(mod_id, done, total))
             self._progress[mod_id] = "Importing…"
             state = self.import_paths([staged])
         finally:
             self._progress.pop(mod_id, None)
         if current["downloads"] and os.path.isdir(current["downloads"]):
-            shutil.move(staged, os.path.join(current["downloads"], found["uri"]))
+            shutil.move(staged, os.path.join(current["downloads"], found["download"]))
         else:
             os.remove(staged)  # our own copy; the library has the mod's files
         return state

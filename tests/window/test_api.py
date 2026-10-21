@@ -195,7 +195,7 @@ class WindowApi(unittest.TestCase):
 
         def pick(mod_id, file_id=None):
             asked["pick"] = (mod_id, file_id)
-            return {"file_id": 3, "uri": name, "version": "1.0"}
+            return {"file_id": 3, "download": name, "version": "1.0"}
 
         def url(key, mod_id, file_id, grant=None):
             asked["url"] = (key, mod_id, file_id, grant)

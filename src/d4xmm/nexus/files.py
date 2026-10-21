@@ -17,7 +17,10 @@ HEADERS = {"User-Agent": "D4XModManager/" + __version__, "Application-Name": NAM
 ABOUT = ("creator", "summary", "picture", "downloads", "endorsements", "updated")
 QUERY = ("query($mod: ID!, $game: ID!) { mod(modId: $mod, gameId: $game) "
          "{ name summary pictureUrl uploader { name } downloads endorsements updatedAt } "
-         "modFiles(modId: $mod, gameId: $game) { fileId name version uri category } }")
+         "modFiles(modId: $mod, gameId: $game) "
+         "{ fileId name version uri category detectedFileExtension } }")
+# a newer upload's uri is a storage path (bc/ba/b1/<uuid>), not the archive's name
+PLAIN_NAME = re.compile(r"^[^/\\]+\.\w+$")
 
 
 class Offline(Exception):
@@ -56,13 +59,31 @@ def _newest_main(file_records):
     return max(mains, key=lambda f: f["fileId"]) if mains else None
 
 
+def download_name(mod_id, f):
+    """The archive's name: its uri when that is one, else made as Nexus names downloads."""
+    if PLAIN_NAME.match(f["uri"]):
+        return f["uri"]
+    stem = re.sub(r"[^\w.-]+", "_", "%s-%s-%s" % (f["name"], mod_id, f["version"])).strip("_.")
+    return "%s.%s" % (stem, f.get("detectedFileExtension") or "zip")
+
+
 def pick_file(mod_id, file_id=None, mod=_mod):
-    """{file_id, uri (the download's name), version} of the mod's file file_id, or of its newest
-    main file when file_id is None; None when there is no such file."""
+    """{file_id, download (the archive's name), version} of the mod's file file_id, or of its
+    newest main file when file_id is None; None when there is no such file."""
     records = mod(str(mod_id))["files"]
     f = (_newest_main(records) if file_id is None
          else next((r for r in records if r["fileId"] == int(file_id)), None))
-    return f and {"file_id": f["fileId"], "uri": f["uri"], "version": f["version"]}
+    return f and {"file_id": f["fileId"], "download": download_name(mod_id, f),
+                  "version": f["version"]}
+
+
+def _describe(mod_id, found, f):
+    """What the library records of file f of mod mod_id, from Nexus's answer `found`."""
+    newest = _newest_main(found["files"])
+    return {"nexus_id": int(mod_id), "file_id": f["fileId"], "name": f["name"],
+            "mod_name": found["name"] or f["name"], "version": f["version"],
+            "category": f["category"], "latest": newest["version"] if newest else None,
+            **{k: found.get(k) for k in ABOUT}}
 
 
 def lookup(file_name, mod=_mod):
@@ -73,12 +94,7 @@ def lookup(file_name, mod=_mod):
     # the mod id is one of the name's all-digit parts; each is only a candidate until uri matches
     for mod_id in dict.fromkeys(re.findall(r"(?<=-)\d+(?=-)", file_name)):
         found = mod(mod_id)
-        newest = _newest_main(found["files"])
-        latest = newest["version"] if newest else None
         for f in found["files"]:
-            if f["uri"] == file_name:
-                return {"nexus_id": int(mod_id), "file_id": f["fileId"], "name": f["name"],
-                        "mod_name": found["name"] or f["name"], "version": f["version"],
-                        "category": f["category"], "latest": latest,
-                        **{k: found.get(k) for k in ABOUT}}
+            if download_name(mod_id, f) == file_name:
+                return _describe(mod_id, found, f)
     return None
