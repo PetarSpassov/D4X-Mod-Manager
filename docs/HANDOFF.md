@@ -186,6 +186,13 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   Tested: parsing, registry take/give back on a throwaway key, the pipe handover, the download
   with fakes; the handler's command line run with a sample link. Not seen: a real click on Nexus,
   the Settings line. A second window opened normally doesn't get links; the first keeps them.
+  Found after: every Dune mod and the game say `supportsVortex: false`, and the user sees no
+  "Mod Manager Download" on its pages, so no link reaches the handler for now.
+- Nexus API policy (help.nexusmods.com/article/114): every request now carries Application-Name
+  "D4X Mod Manager" and Application-Version (`d4xmm.__version__`, 0.1.0), seen accepted live.
+  The key is checked only when typed or when Download is pressed, never at start. A personal key
+  is allowed only while testing: a public release needs registration, then Nexus's SSO slug.
+  Repo is private on GitHub (404 signed out) and has no LICENSE.
   After `cbb1f29` the user reports: the icon at the top of the window "seems quite mangled".
   Changed: `logo.ico` now holds 16, 20, 24, 32, 40, 48, 64 and 256px, each shrunk from the 256px
   one (Pillow, Lanczos, a one-off run, not a project dependency); the 256-only file is in

@@ -6,14 +6,15 @@ const tagFilter = new Map();  // tag name: "in" (the mod must have it) or "out" 
 const BROWSE_ERROR = {offline: "You are offline, so Nexus's mods can't be listed.",
                       refused: "Nexus answered with an error. Try reloading in a while."};
 const NEXT_STATE = {undefined: "in", in: "out", out: undefined};
-let account = {key: "checking"};  // Api.state()'s: whose key it is, and Premium
+let account = {key: "none"};  // Api.state()'s: whose key it is, and Premium
 const downloading = new Set();  // nexus ids being downloaded, so a re-render keeps their button
 const KEY_STATE = {
   none: "Paste your personal API key to see your account here.",
-  checking: "Checking the key with Nexus…",
-  unchecked: "Nexus couldn't be reached to check this key; it is checked again next start.",
+  saved: "Saved. Nexus checks it the first time you press Download.",
+  unchecked: "Nexus couldn't be reached to check this key; Download asks again.",
   invalid: "Nexus doesn't accept this key. Get a new one and paste it here.",
 };
+const UNCHECKED = ["saved", "unchecked"];  // a key Nexus hasn't answered for this run
 const by = key => (a, b) => {  // highest first; updated is an ISO time, so it compares as text
   const x = a[key] ?? "", y = b[key] ?? "";
   return x < y ? 1 : x > y ? -1 : 0;
@@ -87,8 +88,10 @@ function card(m) {
   const button = li.querySelector("button");
   button.title = account.premium ? "Download its newest main file and import it"
                                  : "Open its Files page on Nexus";
-  button.onclick = e => {
+  button.onclick = async e => {
     e.stopPropagation();
+    // the key is checked only on the player's action, as Nexus's API policy asks
+    if (UNCHECKED.includes(account.key)) await run("check_key");
     if (account.premium) downloadInApp(m, button);
     else call("open_nexus_files", m.nexus_id);
   };

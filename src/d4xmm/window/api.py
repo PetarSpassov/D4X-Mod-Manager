@@ -31,7 +31,8 @@ class Api:
         for folder in (self._library, self._state_dir):
             os.makedirs(folder, exist_ok=True)
         self._known = {}  # Downloads archive name: Nexus's answer, so each is asked about once
-        self._account = {"key": "checking"}  # whose key, and Premium; refresh() asks Nexus
+        # whose key, and Premium; None: not asked yet this run
+        self._account = None
         self._pending = pending_link
 
     def _records(self):
@@ -84,7 +85,8 @@ class Api:
         return {"mods": listed, "install": self._install_state(order),
                 "settings": dict(typed, game_ok=settings.game_ok(current["game_dir"])),
                 "profiles": {"active": data["active"], "names": list(data["profiles"])},
-                "account": self._account, "links": links.status()}
+                "account": self._account or {"key": "saved" if current["nexus_key"] else "none"},
+                "links": links.status()}
 
     def set_setting(self, key, value):
         """Keep one of settings.TYPED; an empty folder goes back to the one Steam or Windows has."""
@@ -185,14 +187,18 @@ class Api:
         webbrowser.open(url)
 
     def refresh(self):
-        """The key checked, and every mod's name, version and Nexus ids looked up again; the page
-        calls it on start."""
-        self._check_key()
+        """Every mod's name, version and Nexus ids looked up again; the page calls it on start."""
         mods.refresh(self._library)
         return self.state()
 
+    def check_key(self):
+        """The page asks when Download is pressed and the key isn't checked yet."""
+        self._check_key()
+        return self.state()
+
     def _check_key(self):
-        """Ask Nexus whose the key is; state() shows the answer until the key changes."""
+        """Ask Nexus whose the key is; only on the player's action (typing it, Download), as
+        Nexus's API policy asks. state() shows the answer until the key changes."""
         key = settings.load(self._home)["nexus_key"]
         if not key:
             self._account = {"key": "none"}
@@ -202,14 +208,14 @@ class Api:
         except account.InvalidKey:
             self._account = {"key": "invalid"}
         except (nexus_files.Offline, nexus_files.Refused):
-            self._account = {"key": "unchecked"}  # no answer: the next start asks again
+            self._account = {"key": "unchecked"}  # no answer: the next Download asks again
 
     def open_key_page(self):
         webbrowser.open(account.KEY_PAGE)
 
     def download_mod(self, nexus_id):
         """Premium only: the mod's newest main file downloaded and imported."""
-        if not self._account.get("premium"):
+        if not (self._account or {}).get("premium"):
             raise RuntimeError("Downloading in the app needs a Premium Nexus account.")
         return self._download(int(nexus_id))
 

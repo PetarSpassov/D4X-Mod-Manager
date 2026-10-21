@@ -6,6 +6,7 @@ import unittest
 import urllib.error
 from unittest import mock
 
+import d4xmm
 from d4xmm.nexus import account, files
 
 
@@ -23,7 +24,11 @@ class Check(unittest.TestCase):
         body = {"name": "PetarSpassov", "is_premium": True, "is_supporter": False}
         with mock.patch("urllib.request.urlopen", return_value=_answer(body)) as opened:
             self.assertEqual(account.check("k"), {"name": "PetarSpassov", "premium": True})
-        self.assertEqual(opened.call_args.args[0].get_header("Apikey"), "k")
+        sent = opened.call_args.args[0]
+        self.assertEqual(sent.get_header("Apikey"), "k")
+        # urllib keeps header names capitalised this way
+        named = (sent.get_header("Application-name"), sent.get_header("Application-version"))
+        self.assertEqual(named, ("D4X Mod Manager", d4xmm.__version__))
 
     def test_each_failure_is_named(self):
         for error, raised in ((_http_error(401), account.InvalidKey),
@@ -33,6 +38,13 @@ class Check(unittest.TestCase):
             with mock.patch("urllib.request.urlopen", side_effect=error):
                 with self.assertRaises(raised):
                     account.check("k")
+
+
+class Post(unittest.TestCase):
+    def test_the_keyless_api_is_told_the_app_too(self):
+        with mock.patch("urllib.request.urlopen", return_value=_answer({"data": {}})) as opened:
+            files.post("{ x }", {})
+        self.assertEqual(opened.call_args.args[0].get_header("Application-name"), "D4X Mod Manager")
 
 
 class Download(unittest.TestCase):

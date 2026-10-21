@@ -27,7 +27,7 @@ class NotPremium(Exception):
 
 
 def _get(path, key):
-    headers = {"apikey": key, "User-Agent": "D4XModManager", "Accept": "application/json"}
+    headers = dict(files.HEADERS, apikey=key, Accept="application/json")
     req = urllib.request.Request(API + path, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=files.TIMEOUT) as r:
@@ -63,7 +63,7 @@ def download_url(key, mod_id, file_id, grant=None):
 def fetch(url, dest):
     """Save url at dest, written as dest.part and renamed once whole, so no half file is seen."""
     part = dest + ".part"
-    req = urllib.request.Request(url, headers={"User-Agent": "D4XModManager"})
+    req = urllib.request.Request(url, headers=files.HEADERS)
     try:
         with urllib.request.urlopen(req, timeout=DOWNLOAD_TIMEOUT) as r, open(part, "wb") as f:
             while chunk := r.read(CHUNK):

@@ -4,9 +4,15 @@ import re
 import urllib.error
 import urllib.request
 
+from d4xmm import NAME, __version__
+
 API = "https://api.nexusmods.com/v2/graphql"
 GAME_ID = 7811  # Dune: Spice Wars
 TIMEOUT = 10
+# on every request to Nexus: its API policy asks apps to name themselves and their version, and
+# it answers Python's default User-Agent with 403
+HEADERS = {"User-Agent": "D4XModManager/" + __version__, "Application-Name": NAME,
+           "Application-Version": __version__}
 # what Nexus says about the mod as a whole; `updated` is an ISO time, the others text or counts
 ABOUT = ("creator", "summary", "picture", "downloads", "endorsements", "updated")
 QUERY = ("query($mod: ID!, $game: ID!) { mod(modId: $mod, gameId: $game) "
@@ -25,9 +31,7 @@ class Refused(Exception):
 def post(query, variables):
     """The answer's data, {} when Nexus found nothing. Raises Offline or Refused."""
     body = json.dumps({"query": query, "variables": variables}).encode()
-    # Nexus answers Python's default User-Agent with 403
-    req = urllib.request.Request(API, body, {"Content-Type": "application/json",
-                                             "User-Agent": "D4XModManager"})
+    req = urllib.request.Request(API, body, dict(HEADERS, **{"Content-Type": "application/json"}))
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
             return json.load(r).get("data") or {}  # no such mod: the errors leave data null

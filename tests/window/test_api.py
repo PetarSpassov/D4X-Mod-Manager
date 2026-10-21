@@ -145,7 +145,15 @@ class WindowApi(unittest.TestCase):
                 self.api.import_download(bad)
 
     def test_the_key_is_checked_when_typed_and_its_account_shown(self):
-        self.assertEqual(self.api.state()["account"], {"key": "checking"})
+        self.assertEqual(self.api.state()["account"], {"key": "none"})
+        settings.save(self.home, nexus_key="k")
+        with mock.patch("d4xmm.nexus.account.check") as check, \
+                mock.patch("d4xmm.library.mods.refresh"):
+            self.assertEqual(Api(self.home).refresh()["account"], {"key": "saved"})
+        check.assert_not_called()  # only the player's action asks Nexus about the key
+        with mock.patch("d4xmm.nexus.account.check",
+                        return_value={"name": "Ann", "premium": True}):
+            self.assertEqual(self.api.check_key()["account"]["premium"], True)
         with mock.patch("d4xmm.nexus.account.check",
                         return_value={"name": "Ann", "premium": False}):
             self.assertEqual(self.api.set_setting("nexus_key", "k")["account"],
