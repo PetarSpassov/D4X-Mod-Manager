@@ -1,4 +1,4 @@
-"""What the window's page can ask for: the mod list and its order, import, install and settings.
+"""What the window's page can ask for: the mods and their order, import, install, settings, Browse.
 
 Under one home: library/ (mods), state/ (install record, backups), profiles.json, settings.json.
 """
@@ -8,6 +8,7 @@ import webbrowser
 
 from d4xmm.install import deploy, flow
 from d4xmm.library import mods
+from d4xmm.nexus import catalog
 from d4xmm.nexus import files as nexus_files
 from d4xmm.window import profiles, settings
 
@@ -136,6 +137,19 @@ class Api:
         nexus_id = self._records()[folder].get("nexus_id")
         if nexus_id:
             webbrowser.open(NEXUS_PAGE % nexus_id)
+
+    def browse(self):
+        """{mods: Nexus's catalog for the game; error: None, "offline" or "refused"}."""
+        try:
+            return {"mods": catalog.browse(), "error": None}
+        except nexus_files.Offline:
+            return {"mods": [], "error": "offline"}
+        except nexus_files.Refused:
+            return {"mods": [], "error": "refused"}
+
+    def open_nexus_files(self, nexus_id):
+        """The mod's Files tab in the user's browser, where its Download buttons are."""
+        webbrowser.open(NEXUS_PAGE % int(nexus_id) + "?tab=files")
 
     def refresh(self):
         """Every mod's name, version and Nexus ids looked up again; the page calls it on start."""

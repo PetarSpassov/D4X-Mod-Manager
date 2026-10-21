@@ -22,19 +22,24 @@ class Refused(Exception):
     """Nexus was reached but answered with an error."""
 
 
-def _mod(mod_id):
-    """{name and each of ABOUT: the mod's own, None if missing; files: [its file records]}."""
-    body = json.dumps({"query": QUERY, "variables": {"mod": mod_id, "game": GAME_ID}}).encode()
+def post(query, variables):
+    """The answer's data, {} when Nexus found nothing. Raises Offline or Refused."""
+    body = json.dumps({"query": query, "variables": variables}).encode()
     # Nexus answers Python's default User-Agent with 403
     req = urllib.request.Request(API, body, {"Content-Type": "application/json",
                                              "User-Agent": "D4XModManager"})
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-            data = json.load(r).get("data") or {}  # no such mod: the errors leave data null
+            return json.load(r).get("data") or {}  # no such mod: the errors leave data null
     except urllib.error.HTTPError as e:  # an HTTPError is a URLError, so it is caught first
         raise Refused(str(e)) from e
     except (urllib.error.URLError, TimeoutError) as e:
         raise Offline(str(e)) from e
+
+
+def _mod(mod_id):
+    """{name and each of ABOUT: the mod's own, None if missing; files: [its file records]}."""
+    data = post(QUERY, {"mod": mod_id, "game": GAME_ID})
     found = data.get("mod") or {}
     return {"name": found.get("name"), "creator": (found.get("uploader") or {}).get("name"),
             "summary": found.get("summary"), "picture": found.get("pictureUrl"),

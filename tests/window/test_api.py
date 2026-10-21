@@ -4,6 +4,7 @@ import unittest
 import zipfile
 from unittest import mock
 
+from d4xmm.nexus import files as nexus_files
 from d4xmm.window import settings
 from d4xmm.window.api import NO_GAME, Api
 
@@ -100,6 +101,21 @@ class WindowApi(unittest.TestCase):
         with mock.patch("webbrowser.open") as opened:
             self.api.open_nexus("A")
         opened.assert_not_called()
+
+    def test_browse_gives_the_catalog(self):
+        listing = [{"nexus_id": 5, "name": "Mod A"}]
+        with mock.patch("d4xmm.nexus.catalog.browse", return_value=listing):
+            self.assertEqual(self.api.browse(), {"mods": listing, "error": None})
+
+    def test_browse_says_offline_or_refused_instead_of_failing(self):
+        for error, word in ((nexus_files.Offline, "offline"), (nexus_files.Refused, "refused")):
+            with mock.patch("d4xmm.nexus.catalog.browse", side_effect=error("x")):
+                self.assertEqual(self.api.browse(), {"mods": [], "error": word})
+
+    def test_download_opens_the_mods_files_tab(self):
+        with mock.patch("webbrowser.open") as opened:
+            self.api.open_nexus_files(5)
+        opened.assert_called_once_with("https://www.nexusmods.com/dunespicewars/mods/5?tab=files")
 
     def test_no_game_or_nothing_ticked_is_an_error_not_an_install(self):
         with self.assertRaises(RuntimeError):

@@ -25,7 +25,6 @@ and has the contents of both. This is a great success, it seems the merge is wor
 - Import looks each archive up on Nexus by exact download name (`nexus/files.py`). Seen live:
   `QuinnQuest.zip` is "not_found". A mod imported offline keeps "?" until re-imported.
 
-- Owed, asked for, not built: the Browse tab's Nexus catalog (the tab is empty).
 
 Debt: the no-console `subprocess.run` is now written three times (unpack, pak, mods).
 
@@ -128,6 +127,12 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   After `0fba8c1` the user reports: shrinking the window turns mod names into "…" though they
   lose no room. Changed: the name never shrinks; it is cut only once the grey details are gone
   (seen in a scratch page with the real stylesheet: at 250px the name keeps 170.344 of 170.344px).
+  After `1cb9fd8` the user says "Looks good now".
+- Browse lists Nexus's mods for the game, most downloaded first (`nexus/catalog.py`, `browse.js`):
+  picture, name, version, creator, stats, two lines of summary, Download (opens the Files tab) or
+  "in library" with Files. Search and Reload. Seen live from Nexus: 7 mods, paging works at 3 a
+  page. Seen in a browser preview with a fake Api: the cards, search, Download's call. Not seen in
+  the window: the tab, the browser opening, offline and refused messages.
 - One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
   Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.

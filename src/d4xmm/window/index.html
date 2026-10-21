@@ -47,7 +47,13 @@
   </footer>
 </section>
 <section id="tab-browse" class="page" hidden>
-  <main><p class="empty">The Nexus catalog will be here.</p></main>
+  <div class="toolbar">
+    <span id="browse-count"></span>
+    <span class="spacer"></span>
+    <button id="browse-reload" title="Ask Nexus again">Reload</button>
+    <input id="browse-search" type="search" placeholder="Search Nexus mods">
+  </div>
+  <main><ul id="catalog"><li class="empty">Loading…</li></ul></main>
 </section>
 <section id="tab-settings" class="page" hidden>
   <main class="settings">
@@ -72,5 +78,6 @@
 </section>
 <script src="page.js"></script>
 <script src="profiles.js"></script>
+<script src="browse.js"></script>
 </body>
 </html>

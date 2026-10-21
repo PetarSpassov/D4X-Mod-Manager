@@ -35,7 +35,8 @@ body { margin: 0; display: flex; flex-direction: column; background: var(--bg);
 
 .toolbar { display: flex; gap: 8px; padding: 0 18px 10px; align-items: center; }
 .toolbar .spacer { flex: 1; }
-#search { flex: 0 1 220px; min-width: 90px; }
+#search, #browse-search { flex: 0 1 220px; min-width: 90px; }
+#browse-count { color: var(--muted); font-size: 12px; white-space: nowrap; }
 
 main { flex: 1; min-height: 0; overflow-y: auto; padding: 0 18px; }
 ul { list-style: none; margin: 0; padding: 0; }
@@ -44,6 +45,19 @@ ul { list-style: none; margin: 0; padding: 0; }
 #mods > li { position: relative; background: var(--panel); border: 1px solid var(--line);
              border-radius: 8px; }
 #mods > li.empty { border-style: dashed; }
+#catalog { display: flex; flex-direction: column; gap: 6px; padding: 6px 0 12px; }
+#catalog > li { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 8px;
+                background: var(--panel); border: 1px solid var(--line); }
+#catalog > li.empty { display: block; border-style: dashed; }
+#catalog img { width: 120px; height: 68px; object-fit: cover; border-radius: 6px;
+               flex-shrink: 0; background: var(--line); }
+#catalog .title { margin-bottom: 2px; }
+#catalog .stats { margin-bottom: 4px; }
+/* two lines of summary: the whole of it is one click away on Nexus */
+#catalog .summary { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+                    overflow: hidden; white-space: normal; }
+#catalog button { flex-shrink: 0; }
+.note.have { background: var(--ok-bg); color: var(--ok); }
 li.off .name { color: var(--muted); }
 li.dragging { opacity: .4; }
 li.drop-before::before, li.drop-after::after { content: ""; position: absolute; left: 4px;
