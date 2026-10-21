@@ -174,6 +174,9 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   key check and download link. Tested with fakes; seen in a browser preview with a fake Premium
   Api: the account line, "Downloading…", the error in the Browse toolbar. Not seen: a real key,
   a real download, a free account's answer (403 assumed). No progress bar: one "Downloading…".
+  Asked: "Get my key" should land at the "Personal API Key" heading. Changed: the address ends
+  in a text fragment (`#:~:text=Personal%20API%20Key`). Signed out, the page has no such heading
+  or id to read (seen in the preview browser); whether the browser scrolls there is not seen.
   After `cbb1f29` the user reports: the icon at the top of the window "seems quite mangled".
   Changed: `logo.ico` now holds 16, 20, 24, 32, 40, 48, 64 and 256px, each shrunk from the 256px
   one (Pillow, Lanczos, a one-off run, not a project dependency); the 256-only file is in

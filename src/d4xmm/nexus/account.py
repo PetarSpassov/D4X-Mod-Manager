@@ -11,7 +11,8 @@ from d4xmm.nexus import files
 
 API = "https://api.nexusmods.com/v1"
 GAME = "dunespicewars"
-KEY_PAGE = "https://www.nexusmods.com/settings/api-keys"
+# the page's heading has no anchor; a text fragment scrolls to it in Chrome, Edge and Firefox
+KEY_PAGE = "https://www.nexusmods.com/settings/api-keys#:~:text=Personal%20API%20Key"
 CHUNK = 1 << 20
 DOWNLOAD_TIMEOUT = 60  # per read, not for the whole file
 
