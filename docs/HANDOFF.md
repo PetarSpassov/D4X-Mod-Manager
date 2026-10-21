@@ -162,6 +162,9 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   be offered again once its mod is deleted. Changed: a look starts 1s after the last one ends;
   every import (offered, picked or dropped) records the archive's name as handled. The archive
   stays in Downloads, untouched. Tested; not seen in the window.
+  Asked: a deleted archive downloaded again must be offered again. Changed: each look forgets
+  the recorded names no longer in the folder (imported and ×'d alike). A mod still in the
+  library is not offered again under the same archive name. Tested; not seen in the window.
   After `cbb1f29` the user reports: the icon at the top of the window "seems quite mangled".
   Changed: `logo.ico` now holds 16, 20, 24, 32, 40, 48, 64 and 256px, each shrunk from the 256px
   one (Pillow, Lanczos, a one-off run, not a project dependency); the 256-only file is in

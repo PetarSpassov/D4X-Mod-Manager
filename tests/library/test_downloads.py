@@ -49,6 +49,17 @@ class Offers(unittest.TestCase):
         self.assertEqual(downloads.offers(self.folder, [QQ], self.state, {}, self._lookup({})), [])
         self.assertEqual(self.asked, [])
 
+    def test_a_dismissed_archive_deleted_and_downloaded_again_is_offered_again(self):
+        self._file(QQ, 1)
+        downloads.dismiss(self.state, QQ)
+        lookup = self._lookup({QQ: _found("QuinnQuest")})
+        self.assertEqual(downloads.offers(self.folder, [], self.state, {}, lookup), [])
+        os.remove(os.path.join(self.folder, QQ))
+        downloads.offers(self.folder, [], self.state, {}, lookup)
+        self.assertEqual(downloads.dismissed(self.state), [])
+        self._file(QQ, 0)
+        self.assertEqual(len(downloads.offers(self.folder, [], self.state, {}, lookup)), 1)
+
     def test_each_name_is_asked_once_but_offline_is_asked_again(self):
         self._file(QQ, 1)
         known = {}

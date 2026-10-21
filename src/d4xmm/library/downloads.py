@@ -20,11 +20,24 @@ def dismissed(state_dir):
         return json.load(f)
 
 
+def _save(state_dir, names):
+    with open(os.path.join(state_dir, DISMISSED), "w", encoding="utf-8") as f:
+        json.dump(names, f, indent=1)
+
+
 def dismiss(state_dir, name):
     names = dismissed(state_dir)
     if name not in names:
-        with open(os.path.join(state_dir, DISMISSED), "w", encoding="utf-8") as f:
-            json.dump(names + [name], f, indent=1)
+        _save(state_dir, names + [name])
+
+
+def _forget_missing(state_dir, present):
+    """Drop the names no longer in the folder, so the same archive downloaded again is offered."""
+    names = dismissed(state_dir)
+    kept = [n for n in names if n in present]
+    if kept != names:
+        _save(state_dir, kept)
+    return kept
 
 
 def _answer(name, known, lookup):
@@ -43,8 +56,9 @@ def offers(folder, imported, state_dir, known, lookup=None):
     if not folder or not os.path.isdir(folder):
         return []
     lookup = lookup or nexus_files.lookup  # looked up at call time, so a test can patch it
-    skip = set(imported) | set(dismissed(state_dir))
-    names = [n for n in os.listdir(folder) if NEXUS_NAME.search(n) and n not in skip]
+    present = os.listdir(folder)
+    skip = set(imported) | set(_forget_missing(state_dir, set(present)))
+    names = [n for n in present if NEXUS_NAME.search(n) and n not in skip]
     out = []
     for name in sorted(names, key=lambda n: os.path.getmtime(os.path.join(folder, n))):
         found = _answer(name, known, lookup)
