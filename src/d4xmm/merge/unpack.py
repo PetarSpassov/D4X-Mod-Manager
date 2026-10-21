@@ -2,11 +2,12 @@
 import os
 import subprocess
 
+from d4xmm import VENDOR
+
 EXE = "quickbms_4gb_files.exe"
 SCRIPT = "d4x_res_pak.bms"
 TIMEOUT = 600
-TOOLS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..",
-                                     "vendor", "quickbms"))
+TOOLS = os.path.join(VENDOR, "quickbms")
 
 
 def unpack(pak, dest, only=None):

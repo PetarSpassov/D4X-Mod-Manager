@@ -9,6 +9,8 @@ import winreg
 from multiprocessing.connection import AuthenticationError, Client, Listener
 from urllib.parse import parse_qs
 
+from d4xmm import COMPILED
+
 ROOT = r"Software\Classes\nxm"  # under HKEY_CURRENT_USER: this user's, no admin rights needed
 PIPE = r"\\.\pipe\D4XModManager"
 AUTH = b"D4XModManager"  # keeps stray programs' messages out; not a secret
@@ -30,7 +32,7 @@ def parse(url):
 
 def command():
     """What Windows runs for a link: this app, with the link as its one argument."""
-    if getattr(sys, "frozen", False):
+    if COMPILED:
         return '"%s" "%%1"' % sys.executable
     pythonw = os.path.join(os.path.dirname(sys.executable), "pythonw.exe")
     start = "import sys; sys.path.insert(0, r'%s'); from d4xmm.window.app import main; main()"

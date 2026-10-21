@@ -2,10 +2,11 @@
 import os
 import subprocess
 
+from d4xmm import VENDOR
+
 OUT = "res.compressed1"
 TIMEOUT = 1800
-PAKBUILD = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..",
-                                        "vendor", "pakbuild", "pakBuild.hl"))
+PAKBUILD = os.path.join(VENDOR, "pakbuild", "pakBuild.hl")
 
 
 def build(folder, game_dir):

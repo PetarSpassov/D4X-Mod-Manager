@@ -8,11 +8,11 @@ import re
 import shutil
 import subprocess
 
+from d4xmm import VENDOR
 from d4xmm.game import hlboot
 from d4xmm.nexus import files as nexus_files
 
-SEVEN_ZIP = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..",
-                                         "vendor", "7zip", "7z.exe"))
+SEVEN_ZIP = os.path.join(VENDOR, "7zip", "7z.exe")
 TIMEOUT = 600
 RECORD = "mod.json"
 AUDIO_DIR = "res/Audio"

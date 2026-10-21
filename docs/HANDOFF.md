@@ -49,6 +49,9 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 
 ## Untested
 
+- The exe from `!build.bat` (Nuitka, standalone folder in `build/D4XModManager`): never built yet;
+  this machine's Visual Studio has no Windows SDK. Untested in it: the window's files and
+  `vendor/` found (`d4xmm.VENDOR`, `COMPILED`), and the nxm handler pointing at the exe.
 - Merging more than two real mods (only Community Patch + QuinnQuest, both orders, has been seen
   in the game).
 - A row two mods change is the later mod's whole row. After `141b72e` the user re-merged and says
