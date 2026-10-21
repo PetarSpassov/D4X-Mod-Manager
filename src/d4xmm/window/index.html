@@ -16,7 +16,10 @@
 <section id="tab-installed" class="page">
   <div class="toolbar">
     <span class="profile">
-      <select id="profile" title="Profile: its own load order and ticks"></select>
+      <span class="picker" id="profile-picker">
+        <button id="profile" title="Profile: its own load order and ticks"></button>
+        <ul id="profile-list" hidden></ul>
+      </span>
       <span id="profile-form" hidden>
         <input id="profile-name" placeholder="New profile name" spellcheck="false">
         <button id="profile-create">Create</button>
@@ -68,5 +71,6 @@
   </main>
 </section>
 <script src="page.js"></script>
+<script src="profiles.js"></script>
 </body>
 </html>

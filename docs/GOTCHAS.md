@@ -70,3 +70,7 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
 - **A maximised form's Bounds and pywebview's resized event give the screen size; save RestoreBounds.**
   names: `RestoreBounds`, `placement`, `window_args`
   sign: un-maximising after a restart leaves the window as big as the screen
+
+- **WebView2 draws a `<select>`'s open list itself: square, white hover, CSS ignored; build a list.**
+  names: `<select>`, `option:checked`, `profile-list`
+  sign: the closed field looks styled, the list it opens doesn't

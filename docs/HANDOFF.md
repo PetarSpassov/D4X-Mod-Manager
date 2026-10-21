@@ -111,7 +111,10 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   After `c93029c` the user reports: the dropdown's arrow sits too far right; the dropdown is sharp
   and blocky against the rounded style; the selected profile shows in all white; Import jumps when
   a new profile is being named; the mod tickboxes are small, hard to hit between the handle and
-  the row's click-to-open, and blue.
+  the row's click-to-open, and blue. After `2ca5a1c`: the field's border doesn't match the
+  other shapes; the list it opens is square, and its hover is white, not a soft highlight.
+  Now our own picker (`window/profiles.js`): a button styled like the others and a rounded list,
+  row hover, the active profile in beige. Seen only in a browser preview with a fake Api.
 - One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
   Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.

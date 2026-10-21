@@ -22,8 +22,8 @@ function setStatus(text, kind = "") {
 }
 
 function busy(on) {
-  document.querySelectorAll("button, input, select").forEach(b => { b.disabled = on; });
-  if (!on) $("profile-delete").disabled = $("profile").options.length < 2;
+  document.querySelectorAll("button, input").forEach(b => { b.disabled = on; });
+  if (!on) $("profile-delete").disabled = profileState.names.length < 2;
 }
 
 async function call(name, ...args) {
@@ -270,26 +270,6 @@ function renderSettings(s) {
   $("set-game_dir").classList.toggle("bad", !s.game_ok);
 }
 
-function renderProfiles(p) {
-  const select = $("profile");
-  select.innerHTML = "";
-  for (const name of p.names) select.add(new Option(name, name, false, name === p.active));
-  $("profile-delete").disabled = p.names.length < 2;
-}
-
-function profileForm(open) {
-  $("profile-form").hidden = !open;
-  for (const id of ["profile", "profile-new", "profile-delete"]) $(id).hidden = open;
-  if (open) {
-    $("profile-name").value = "";
-    $("profile-name").focus();
-  }
-}
-
-async function createProfile() {
-  if (await run("new_profile", $("profile-name").value)) profileForm(false);
-}
-
 function render(state) {
   mods = state.mods;
   renderSettings(state.settings);
@@ -349,15 +329,6 @@ document.querySelectorAll("[data-choose]").forEach(b => {
   b.onclick = () => run("choose_folder", b.dataset.choose);
 });
 
-$("profile").onchange = () => run("switch_profile", $("profile").value);
-$("profile-new").onclick = () => profileForm(true);
-$("profile-cancel").onclick = () => profileForm(false);
-$("profile-create").onclick = createProfile;
-$("profile-name").onkeydown = e => {
-  if (e.key === "Enter") createProfile();
-  if (e.key === "Escape") profileForm(false);
-};
-armed($("profile-delete"), () => run("delete_profile", $("profile").value));
 
 $("import").onclick = async () => { if (await run("import_mods")) setStatus(""); };
 $("search").oninput = renderList;
