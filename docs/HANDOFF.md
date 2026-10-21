@@ -183,7 +183,9 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   The user, with a real Premium key, says "The app doesn't work with Premium yet": the
   "Downloading…" text leaves its box; nothing says what the download is doing; Dyaus Anchor's
   Download shows "Dyaus Anchor: URL can't contain control characters. '/cdn/7811/2/dsw Dyaus
-  Anchor v1.22-2…" (the address has spaces).
+  Anchor v1.22-2…" (the address has spaces). Changed in `a6f423d`: the address is escaped
+  before fetching; the button says "Wait…" and the card's summary line shows "Asking Nexus…",
+  "Downloading: X MB of Y MB", "Importing…" (asked every 0.5 s). Tested with fakes; not seen.
 - Nexus's "Mod Manager Download" links (`window/links.py`): Settings → "Use this app" writes
   this user's nxm handler (HKCU\Software\Classes\nxm) to start the app with the link, keeping
   the old command in `state/nxm_previous.json`; "Give back" restores it (or removes ours). Seen
