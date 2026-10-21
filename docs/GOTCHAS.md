@@ -83,6 +83,10 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
 
 ## E — Window
 
+- **A letter in a ring never centres reliably: font metrics move it. Draw the icon in SVG.**
+  names: `info-dot`, `data-tip`, `tipped`
+  sign: the "i" in the info circle looks off-centre after every CSS nudge
+
 - **A maximised form's Bounds and pywebview's resized event give the screen size; save RestoreBounds.**
   names: `RestoreBounds`, `placement`, `window_args`
   sign: un-maximising after a restart leaves the window as big as the screen
