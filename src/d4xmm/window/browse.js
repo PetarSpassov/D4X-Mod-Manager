@@ -1,17 +1,25 @@
-// The Browse tab: Nexus's catalog for the game; loaded after page.js, whose call, meta, stats,
-// day and FOLD_MS it uses. Download opens the Files tab: the keyless API gives no download links.
+// The Browse tab: Nexus's catalog for the game; loaded after page.js, whose call, item, meta,
+// stats, day and FOLD_MS it uses. Download opens the Files tab: the keyless API has no links.
 let catalog = null;  // asked for when the tab is first opened, then on Reload
 const opened = new Set();  // nexus ids whose card is open; kept across re-renders
 const tagFilter = new Map();  // tag name: "in" (the mod must have it) or "out" (must not)
 const BROWSE_ERROR = {offline: "You are offline, so Nexus's mods can't be listed.",
                       refused: "Nexus answered with an error. Try reloading in a while."};
 const NEXT_STATE = {undefined: "in", in: "out", out: undefined};
+const by = key => (a, b) => {  // highest first; updated is an ISO time, so it compares as text
+  const x = a[key] ?? "", y = b[key] ?? "";
+  return x < y ? 1 : x > y ? -1 : 0;
+};
+const SORTS = {"Most downloaded": by("downloads"), "Most endorsed": by("endorsements"),
+               "Last updated": by("updated"),
+               "Name, A to Z": (a, b) => a.name.localeCompare(b.name)};
+let sortName = "Most downloaded";
 
 function cardDetail(m) {
   const box = document.createElement("div");
   box.className = "detail";
   box.innerHTML = '<div class="about"><p class="stats"></p><div class="tags"></div>' +
-    '<p class="description"></p></div>';
+    '<div class="description"></div></div>';  // a div: a <p> can't hold the lists
   const dates = [];
   if (m.created) dates.push("first uploaded " + day(m.created));
   if (m.updated) dates.push("updated " + day(m.updated));
@@ -24,8 +32,16 @@ function cardDetail(m) {
     chip.onclick = () => { tagFilter.set(tag, "in"); renderCatalog(); };
     box.querySelector(".tags").appendChild(chip);
   }
-  box.querySelector(".description").textContent =
-    m.description || m.summary || "Nexus has no description for this mod.";
+  const text = box.querySelector(".description");
+  // catalog.py's bbcode.to_html escaped every piece of the author's text first
+  if (m.description) text.innerHTML = m.description;
+  else text.textContent = m.summary || "Nexus has no description for this mod.";
+  text.onclick = e => {
+    const link = e.target.closest("a[href]");
+    if (!link) return;
+    e.preventDefault();  // in the user's browser, not in place of the app
+    call("open_link", link.getAttribute("href"));
+  };
   return box;
 }
 
@@ -102,10 +118,25 @@ function renderTagMenu() {
   $("tag-count").textContent = tagFilter.size || "";
 }
 
+function renderSortMenu() {
+  const list = $("sort-list");
+  list.innerHTML = "";
+  for (const name of Object.keys(SORTS)) {
+    const li = item(name, name === sortName ? "current" : "");
+    li.onclick = () => {
+      sortName = name;
+      $("sort-list").hidden = true;
+      renderCatalog();
+    };
+    list.appendChild(li);
+  }
+  $("sort").title = "Sort: " + sortName;
+}
+
 function renderCatalog() {
   const list = $("catalog");
   const query = $("browse-search").value.trim().toLowerCase();
-  const shown = catalog.mods.filter(m => shows(m, query));
+  const shown = catalog.mods.filter(m => shows(m, query)).sort(SORTS[sortName]);
   list.innerHTML = "";
   if (catalog.error) {
     list.innerHTML = '<li class="empty"></li>';
@@ -118,6 +149,7 @@ function renderCatalog() {
   $("browse-count").textContent = catalog.error ? "" :
     shown.length === total ? `${total} mods on Nexus` : `${shown.length} of ${total} mods`;
   renderTagMenu();
+  renderSortMenu();
 }
 
 async function loadCatalog() {
@@ -133,12 +165,21 @@ document.querySelector('.tab[data-tab="browse"]').addEventListener("click", () =
 });
 $("browse-reload").onclick = loadCatalog;
 $("browse-search").oninput = () => { if (catalog) renderCatalog(); };
-$("tag-filter").onclick = () => { $("tag-menu").hidden = !$("tag-menu").hidden; };
 $("tag-clear").onclick = () => { tagFilter.clear(); renderCatalog(); };
+const MENUS = [["tag-picker", "tag-filter", "tag-menu"], ["sort-picker", "sort", "sort-list"]];
+for (const [, button, menu] of MENUS) {
+  $(button).onclick = () => {
+    const open = $(menu).hidden;
+    MENUS.forEach(([, , other]) => { $(other).hidden = true; });
+    $(menu).hidden = !open;
+  };
+}
 document.addEventListener("click", e => {
-  // the path, not closest(): a click in the menu re-renders it, so its target is already gone
-  if (!e.composedPath().includes($("tag-picker"))) $("tag-menu").hidden = true;
+  // the path, not closest(): a click in a menu re-renders it, so its target is already gone
+  for (const [picker, , menu] of MENUS) {
+    if (!e.composedPath().includes($(picker))) $(menu).hidden = true;
+  }
 });
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") $("tag-menu").hidden = true;
+  if (e.key === "Escape") MENUS.forEach(([, , menu]) => { $(menu).hidden = true; });
 });

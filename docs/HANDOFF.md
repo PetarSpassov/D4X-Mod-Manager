@@ -140,6 +140,12 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   text (`catalog.plain`); reload and funnel icons; the menu cycles a tag: only, hidden, off.
   Seen in a browser preview with a fake Api and live Nexus data: equal buttons, the filter counts
   (Gameplay: 2 of 7, hidden 5 of 7), the menu staying open. Not seen in the window.
+  After `b1fa41f` the user says "This is looking great". Asked: a sort (downloads, endorsements,
+  last updated, A to Z) behind an up/down arrows icon; the open card's text formatted as on Nexus.
+  Changed: sort menu; `nexus/bbcode.py` turns the BBCode into escaped HTML (bold, italic, sizes,
+  colours, lists, links, images, spoilers); links open in the browser (`open_link`, web only).
+  Seen in the preview: each sort's order, the markup made, a link click calling open_link and the
+  page staying put. Not seen: how it looks next to Nexus's page, light theme with authors' colours.
 - One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
   Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.

@@ -117,6 +117,13 @@ class WindowApi(unittest.TestCase):
             self.api.open_nexus_files(5)
         opened.assert_called_once_with("https://www.nexusmods.com/dunespicewars/mods/5?tab=files")
 
+    def test_a_description_link_opens_only_when_it_is_a_web_address(self):
+        with mock.patch("webbrowser.open") as opened:
+            self.api.open_link("https://discord.gg/x")
+            with self.assertRaises(ValueError):
+                self.api.open_link("file:///C:/Windows/notepad.exe")
+        opened.assert_called_once_with("https://discord.gg/x")
+
     def test_no_game_or_nothing_ticked_is_an_error_not_an_install(self):
         with self.assertRaises(RuntimeError):
             self.api.install()

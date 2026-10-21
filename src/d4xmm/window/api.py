@@ -151,6 +151,12 @@ class Api:
         """The mod's Files tab in the user's browser, where its Download buttons are."""
         webbrowser.open(NEXUS_PAGE % int(nexus_id) + "?tab=files")
 
+    def open_link(self, url):
+        """A link in a mod's description, in the user's browser; only web addresses."""
+        if not url.lower().startswith(("https://", "http://")):
+            raise ValueError("not a web address: %r" % url)
+        webbrowser.open(url)
+
     def refresh(self):
         """Every mod's name, version and Nexus ids looked up again; the page calls it on start."""
         mods.refresh(self._library)

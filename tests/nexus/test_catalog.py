@@ -27,7 +27,7 @@ class Browse(unittest.TestCase):
         post, _ = _fake(1, [_node(5)])
         self.assertEqual(catalog.browse(post), [{
             "nexus_id": 5, "name": "Mod 5", "version": "1.0", "creator": "PeterQuinn98",
-            "summary": "s", "description": "Hi", "picture": "p", "thumbnail": "t",
+            "summary": "s", "description": "<b>Hi</b>", "picture": "p", "thumbnail": "t",
             "downloads": 9, "endorsements": 2, "created": "2025-07-19T00:46:49Z",
             "updated": "2026-05-28T22:22:25Z", "tags": ["Gameplay", "Overhaul"]}])
 
@@ -46,15 +46,6 @@ class Browse(unittest.TestCase):
         found = catalog.browse(post)[0]
         self.assertEqual((found["creator"], found["tags"], found["description"]), (None, [], ""))
 
-
-class Plain(unittest.TestCase):
-    def test_a_nexus_description_reads_as_text(self):
-        bbcode = ("[size=5][b]Title[/b][/size]\n<br />\n<br />\n<br />\n<br />Join the "
-                  "[url=https://discord.gg/x]Discord[/url]!\n<br />[list]\n<br />[*]One &amp; "
-                  "two\n<br />[*]Three�\xa0four\n<br />[/list]\n<br />"
-                  "[img]https://x/1.jpg[/img]")
-        self.assertEqual(catalog.plain(bbcode),
-                         "Title\n\nJoin the Discord!\n\n• One & two\n• Three four")
 
 
 if __name__ == "__main__":
