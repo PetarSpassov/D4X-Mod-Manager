@@ -125,6 +125,9 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   profile name field still gets no accent border when focused. Changed: search shrinks (seen in
   preview at 560px: its right edge matches the cards'), name and meta cut with their own "…",
   the profile field's focus rule outranks its own border rule, rows unfold and fold (~0.15s).
+  After `0fba8c1` the user reports: shrinking the window turns mod names into "…" though they
+  lose no room. Changed: the name never shrinks; it is cut only once the grey details are gone
+  (seen in a scratch page with the real stylesheet: at 250px the name keeps 170.344 of 170.344px).
 - One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
   Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.

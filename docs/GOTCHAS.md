@@ -74,3 +74,7 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
 - **WebView2 draws a `<select>`'s open list itself: square, white hover, CSS ignored; build a list.**
   names: `<select>`, `option:checked`, `profile-list`
   sign: the closed field looks styled, the list it opens doesn't
+
+- **Flex shrinks every item in proportion: a big flex-shrink still takes a sub-pixel off the rest.**
+  names: `flex-shrink`, `text-overflow`, `.name`, `.meta`
+  sign: a name ends in "…" while its neighbour still shows text

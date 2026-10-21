@@ -55,10 +55,12 @@ li.drop-after::after { bottom: -5px; }
 .line:hover { background: var(--hover); }
 li.open .line { border-bottom: 1px solid var(--line); border-radius: 8px 8px 0 0; }
 .handle { cursor: grab; color: var(--muted); user-select: none; padding: 0 2px; }
-/* name and meta each cut with their own "…", so it takes their colour; meta gives way first */
+/* name and meta each cut with their own "…", so it takes their colour. Flex shrinks in
+   proportion, so the name must not shrink at all: its max-width cuts it once meta is gone */
 .title { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 6px; }
 .name, .meta { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.meta { flex-shrink: 1000; color: var(--muted); font-size: 12px; }
+.name { flex: none; max-width: calc(100% - 6px); }
+.meta { color: var(--muted); font-size: 12px; }
 .detail { display: flex; gap: 14px; padding: 12px 14px 14px; overflow: hidden;
           animation: unfold .18s ease-out; }
 .detail.still { animation: none; }
