@@ -23,9 +23,13 @@ class Check(unittest.TestCase):
     def test_gives_the_account_name_and_whether_it_is_premium(self):
         body = {"name": "PetarSpassov", "is_premium": True, "is_supporter": False}
         with mock.patch("urllib.request.urlopen", return_value=_answer(body)) as opened:
-            self.assertEqual(account.check("k"), {"name": "PetarSpassov", "premium": True})
+            self.assertEqual(account.check({"apikey": "k"}),
+                             {"name": "PetarSpassov", "premium": True})
         sent = opened.call_args.args[0]
         self.assertEqual(sent.get_header("Apikey"), "k")
+        with mock.patch("urllib.request.urlopen", return_value=_answer(body)) as opened:
+            account.check({"Authorization": "Bearer t"})
+        self.assertEqual(opened.call_args.args[0].get_header("Authorization"), "Bearer t")
         # urllib keeps header names capitalised this way
         named = (sent.get_header("Application-name"), sent.get_header("Application-version"))
         self.assertEqual(named, ("D4X Mod Manager", d4xmm.__version__))
@@ -37,7 +41,7 @@ class Check(unittest.TestCase):
                               (urllib.error.URLError("down"), files.Offline)):
             with mock.patch("urllib.request.urlopen", side_effect=error):
                 with self.assertRaises(raised):
-                    account.check("k")
+                    account.check({"apikey": "k"})
 
 
 class Post(unittest.TestCase):
@@ -51,14 +55,14 @@ class Download(unittest.TestCase):
     def test_the_url_is_the_first_server_listed(self):
         links = [{"name": "Nexus CDN", "URI": "https://cdn/a.zip"}, {"URI": "https://b"}]
         with mock.patch("urllib.request.urlopen", return_value=_answer(links)) as opened:
-            self.assertEqual(account.download_url("k", 5, 30), "https://cdn/a.zip")
+            self.assertEqual(account.download_url({"apikey": "k"}, 5, 30), "https://cdn/a.zip")
         self.assertTrue(opened.call_args.args[0].full_url.endswith(
             "/games/dunespicewars/mods/5/files/30/download_link.json"))
 
     def test_a_website_link_grant_goes_with_the_request(self):
         links = [{"URI": "https://cdn/a.zip"}]
         with mock.patch("urllib.request.urlopen", return_value=_answer(links)) as opened:
-            account.download_url("k", 5, 30, {"key": "abc", "expires": "1700000000"})
+            account.download_url({"apikey": "k"}, 5, 30, {"key": "abc", "expires": "1700000000"})
         self.assertTrue(opened.call_args.args[0].full_url.endswith(
             "/files/30/download_link.json?key=abc&expires=1700000000"))
 

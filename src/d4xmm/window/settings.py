@@ -1,4 +1,4 @@
-"""The user's settings in settings.json under the home: folders, Nexus key, window placement.
+"""The user's settings in settings.json under the home: folders, Nexus key or login, window place.
 
 A folder not set yet is filled in from Steam or Windows each time, and saved only once changed.
 """
@@ -55,11 +55,12 @@ def _saved(home):
 
 
 def load(home):
-    """{game_dir, downloads, nexus_key, window}: saved values, the folders found when not saved."""
+    """{game_dir, downloads, nexus_key, nexus_tokens, window}: saved values, the folders found
+    when not saved. nexus_tokens: the Nexus login's, None when not logged in."""
     saved = _saved(home)
     return {"game_dir": saved.get("game_dir") or steam.find(),
             "downloads": saved.get("downloads") or downloads_dir(),
-            "nexus_key": saved.get("nexus_key"),
+            "nexus_key": saved.get("nexus_key"), "nexus_tokens": saved.get("nexus_tokens"),
             "window": saved.get("window")}
 
 

@@ -49,6 +49,13 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 
 ## Untested
 
+- Nexus login (OAuth PKCE, `nexus/oauth.py`): Settings' "Log in with Nexus" opens
+  `users.nexusmods.com/oauth/authorize` with client id `public_test` (Nexus's guide's; ours comes
+  after registration), waits on `http://127.0.0.1:8089/callback`, saves the tokens in
+  `settings.json` as `nexus_tokens`, refreshes them 60 s before expiry. A login is used before the
+  key; Log out goes back to the key. Account name and Premium come from the token's claims, not
+  verified against Nexus's public key. Api and the flow tested with fakes only; never against Nexus.
+
 - The exe from `!build.bat` (Nuitka with Zig, standalone folder `build/D4XModManager`, 81 MB).
   Seen live: it builds, starts, and opens a window titled "D4X Mod Manager". Untested in it: the
   page itself, `vendor/` found (`d4xmm.VENDOR`, `COMPILED`), import, merge, and the nxm handler.

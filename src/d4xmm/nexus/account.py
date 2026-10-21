@@ -1,6 +1,6 @@
-"""What the player's personal API key allows: whose account it is, and Premium's direct downloads.
+"""What the player's Nexus login or personal key allows: whose account, and Premium's downloads.
 
-The v1 REST API, the one that takes a key; Nexus hands out download links only to Premium.
+The v1 REST API, links for Premium only. auth: oauth.auth's header, or {"apikey": the key}.
 """
 import json
 import os
@@ -20,15 +20,15 @@ DOWNLOAD_TIMEOUT = 60  # per read, not for the whole file
 
 
 class InvalidKey(Exception):
-    """Nexus doesn't accept the key: mistyped, or deleted or regenerated on the account page."""
+    """Nexus doesn't accept the key or token: mistyped, regenerated, or access revoked."""
 
 
 class NotPremium(Exception):
     """The account is not Premium, so Nexus gives it no download links."""
 
 
-def _get(path, key):
-    headers = dict(files.HEADERS, apikey=key, Accept="application/json")
+def _get(path, auth):
+    headers = dict(files.HEADERS, Accept="application/json", **auth)
     req = urllib.request.Request(API + path, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=files.TIMEOUT) as r:
@@ -43,19 +43,19 @@ def _get(path, key):
         raise files.Offline(str(e)) from e
 
 
-def check(key):
-    """{name, premium} of the key's account. Raises InvalidKey, files.Offline or files.Refused."""
-    found = _get("/users/validate.json", key)
+def check(auth):
+    """{name, premium} of the account. Raises InvalidKey, files.Offline or files.Refused."""
+    found = _get("/users/validate.json", auth)
     return {"name": found.get("name"), "premium": bool(found.get("is_premium"))}
 
 
-def download_url(key, mod_id, file_id, grant=None):
+def download_url(auth, mod_id, file_id, grant=None):
     """Where the file downloads from: the first of the servers Nexus lists. grant: the key and
     expires of a website "Mod Manager Download" link, which lets a free account download."""
     path = "/games/%s/mods/%d/files/%d/download_link.json" % (GAME, mod_id, file_id)
     if grant:
         path += "?" + urllib.parse.urlencode({"key": grant["key"], "expires": grant["expires"]})
-    links = _get(path, key)
+    links = _get(path, auth)
     if not links:
         raise files.Refused("Nexus gave no download address")
     return links[0]["URI"]

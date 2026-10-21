@@ -10,7 +10,7 @@ import webbrowser
 from d4xmm.install import deploy, flow
 from d4xmm.library import downloads as watched
 from d4xmm.library import mods
-from d4xmm.nexus import account, catalog
+from d4xmm.nexus import account, catalog, oauth
 from d4xmm.nexus import files as nexus_files
 from d4xmm.window import links, profiles, settings
 
@@ -91,6 +91,8 @@ class Api:
         current = settings.load(self._home)
         typed = {k: current[k] for k in settings.TYPED}
         data = profiles.load(self._home)
+        if self._account is None and current["nexus_tokens"]:
+            self._check_key()  # a login's account is in its token: no request to Nexus
         return {"mods": listed, "install": self._install_state(order, records),
                 "settings": dict(typed, game_ok=settings.game_ok(current["game_dir"])),
                 "profiles": {"active": data["active"], "names": list(data["profiles"])},
@@ -208,13 +210,17 @@ class Api:
 
     def _check_key(self):
         """Ask Nexus whose the key is; only on the player's action (typing it, Download), as
-        Nexus's API policy asks. state() shows the answer until the key changes."""
-        key = settings.load(self._home)["nexus_key"]
-        if not key:
+        Nexus's API policy asks. state() shows the answer until the key changes. A login
+        is used before the key."""
+        current = settings.load(self._home)
+        if current["nexus_tokens"]:
+            self._account = dict(oauth.account(current["nexus_tokens"]), key="ok", login=True)
+            return
+        if not current["nexus_key"]:
             self._account = {"key": "none"}
             return
         try:
-            self._account = dict(account.check(key), key="ok")
+            self._account = dict(account.check({"apikey": current["nexus_key"]}), key="ok")
         except account.InvalidKey:
             self._account = {"key": "invalid"}
         except (nexus_files.Offline, nexus_files.Refused):
@@ -222,6 +228,42 @@ class Api:
 
     def open_key_page(self):
         webbrowser.open(account.KEY_PAGE)
+
+    def nexus_login(self):
+        """Nexus's login page in the browser; returns once the player accepts there."""
+        try:
+            tokens = oauth.login()
+        except oauth.LoggedOut as e:
+            raise RuntimeError("Nexus didn't log you in (%s). Try again." % e) from e
+        except OSError as e:  # http.server's bind; Offline and Refused are not OSErrors
+            raise RuntimeError("Can't wait for Nexus's answer: port %d is in use (%s)."
+                               % (oauth.PORT, e)) from e
+        settings.save(self._home, nexus_tokens=tokens)
+        self._check_key()
+        return self.state()
+
+    def nexus_logout(self):
+        """Forget the login; the key, if one is saved, is used again."""
+        settings.save(self._home, nexus_tokens=None)
+        self._account = None
+        return self.state()
+
+    def _auth(self, current):
+        """The header Nexus's v1 API needs: the login's, refreshed when due, else the key's."""
+        tokens = current["nexus_tokens"]
+        if not tokens:
+            if not current["nexus_key"]:
+                raise RuntimeError("Log in with Nexus in Settings first.")
+            return {"apikey": current["nexus_key"]}
+        try:
+            renewed = oauth.fresh(tokens)
+        except oauth.LoggedOut as e:
+            self.nexus_logout()
+            raise RuntimeError("Nexus ended the login. Log in again in Settings.") from e
+        if renewed is not tokens:
+            settings.save(self._home, nexus_tokens=renewed)
+            self._check_key()  # the new token carries the account as it is now
+        return oauth.auth(renewed)
 
     def download_mod(self, nexus_id):
         """Premium only: the mod's newest main file downloaded and imported."""
@@ -245,14 +287,13 @@ class Api:
         """The file downloaded, imported, then put in Downloads as the browser would have,
         recorded so it isn't offered. file_id None: the newest main file."""
         current = settings.load(self._home)
-        if not current["nexus_key"]:
-            raise RuntimeError("Paste your Nexus API key in Settings first.")
+        auth = self._auth(current)
         try:
             self._progress[mod_id] = "Asking Nexus for the file…"
             found = nexus_files.pick_file(mod_id, file_id)
             if not found or os.path.basename(found["download"]) != found["download"]:
                 raise RuntimeError("Nexus lists no such file to download for this mod.")
-            url = account.download_url(current["nexus_key"], mod_id, found["file_id"], grant)
+            url = account.download_url(auth, mod_id, found["file_id"], grant)
             staged = os.path.join(self._state_dir, found["download"])
             account.fetch(url, staged, lambda done, total: self._fetched(mod_id, done, total))
             self._progress[mod_id] = "Importing…"

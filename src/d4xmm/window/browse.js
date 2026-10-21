@@ -12,7 +12,7 @@ const downloading = new Map();
 const PROGRESS_MS = 500;
 const justDone = new Set();  // nexus ids whose download just succeeded, for OK_SECONDS
 const KEY_STATE = {
-  none: "Paste your personal API key to see your account here.",
+  none: "Log in with Nexus, or paste your personal API key, to see your account here.",
   saved: "Saved. Nexus checks it the first time you press Download.",
   unchecked: "Nexus couldn't be reached to check this key; Download asks again.",
   invalid: "Nexus doesn't accept this key. Get a new one and paste it here.",
@@ -119,6 +119,16 @@ function renderAccount(a) {
   line.textContent = a.key !== "ok" ? KEY_STATE[a.key] :
     `Signed in as ${a.name} · ` + (a.premium ? "Premium: Download gets mods in the app."
                                             : "Free: Download opens the mod's Files page.");
+  const toggle = $("login-toggle");
+  $("login-state").textContent = a.login ? "Logged in." : "Not logged in.";
+  toggle.textContent = a.login ? "Log out" : "Log in with Nexus";
+  toggle.title = a.login ? "Forget the login; a saved API key is used again"
+                         : "Opens Nexus's login page in your browser: accept there";
+  toggle.onclick = async () => {
+    if (a.login) return run("nexus_logout");
+    toggle.textContent = "Waiting for Nexus…";
+    if (!await run("nexus_login")) renderAccount(account);  // failed: call() said why
+  };
 }
 
 function renderLinks(l) {
