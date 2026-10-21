@@ -57,9 +57,11 @@ function note(m) {
 
 // 16px stroke icons drawn in currentColor, so they follow the theme and the armed red
 const ICON = {
-  folder: '<path d="M2 4.5h4l1.5 1.5H14v6.5H2z"/>',
+  folder: '<path d="M2 12.5V4a1 1 0 0 1 1-1h3l1.5 1.5H13a1 1 0 0 1 1 1v1"/>' +
+          '<path d="M2 12.5 3.6 7.6a1 1 0 0 1 .95-.7H14.6a.6.6 0 0 1 .57.8l-1.4 4.3a1 1 0 0 1' +
+          '-.95.7H3a1 1 0 0 1-1-1z"/>',
   nexus: '<path d="M9 2h5v5M14 2 7.5 8.5M12 9.5V14H2V4h4.5"/>',
-  bin: '<path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4M6.5 6.5v5M9.5 6.5v5"/>',
+  bin: '<path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4"/>',  // the profile bin's too
 };
 
 function disarm() {
@@ -72,7 +74,11 @@ function disarm() {
 // a first click turns the button red, a second does act(); any other click disarms it
 function armed(button, act) {
   button.onclick = () => {
-    if (button.classList.contains("armed")) { act(); return; }
+    if (button.classList.contains("armed")) {
+      disarm();
+      act();
+      return;
+    }
     disarm();
     button.dataset.title = button.title;
     button.classList.add("armed");

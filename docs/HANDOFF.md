@@ -115,6 +115,11 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   other shapes; the list it opens is square, and its hover is white, not a soft highlight.
   Now our own picker (`window/profiles.js`): a button styled like the others and a rounded list,
   row hover, the active profile in beige. Seen only in a browser preview with a fake Api.
+  After `8ac1665` the user reports: the bins' red is too aggressive; mod rows use another bin
+  icon than profiles; the folder icon feels flat; the profile bin stays red after a delete; the
+  picker changes width with the name; the focused "New profile name" border isn't the app's colour.
+  Changed: a darker rust red, one bin icon, a folder drawn open, bins disarm when they delete, a
+  170px picker, accent focus borders on every text field. Preview only.
 - One ticked mod is installed as shipped: its paks and files copied, no merge (`install/flow.py`).
   Tested with a fake library only; not seen in the game.
 - Row placement and merged separators as seen in the CastleDB editor after a real merge.

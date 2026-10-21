@@ -2,14 +2,14 @@
   --bg: #f4f1ec; --panel: #fffdf9; --text: #26221d; --muted: #776f63; --line: #e2dbcf;
   --accent: #b5651d; --accent-text: #fff; --hover: #f1ebe1;
   --warn: #9a3412; --warn-bg: #fdecdf; --ok: #3f6212; --ok-bg: #ecf3dc;
-  --info: #1e4e8c; --info-bg: #e3edf9; --danger: #c62828; --sand: #8a6a35;
+  --info: #1e4e8c; --info-bg: #e3edf9; --danger: #a8463a; --sand: #8a6a35;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #1a1815; --panel: #23201c; --text: #ece6dc; --muted: #9c9385; --line: #37322b;
     --accent: #d98a3d; --accent-text: #1a1815; --hover: #2c2823;
     --warn: #fdba74; --warn-bg: #3a2416; --ok: #bef264; --ok-bg: #26301a;
-    --info: #93c5fd; --info-bg: #1b2a3d; --danger: #d23b3b; --sand: #d8c39a;
+    --info: #93c5fd; --info-bg: #1b2a3d; --danger: #8f3a2f; --sand: #d8c39a;
   }
 }
 * { box-sizing: border-box; }
@@ -82,7 +82,7 @@ li.open .line { border-bottom: 1px solid var(--line); border-radius: 8px 8px 0 0
 .icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4;
             stroke-linecap: round; stroke-linejoin: round; }
 .icon:hover:not(:disabled) { background: var(--line); color: var(--text); }
-.icon.armed, .icon.armed:hover:not(:disabled) { background: var(--danger); color: #fff; }
+.icon.armed, .icon.armed:hover:not(:disabled) { background: var(--danger); color: #f6e9e2; }
 
 footer { position: relative; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
          border-top: 1px solid var(--line); background: var(--panel); padding: 10px 18px; }
@@ -121,7 +121,7 @@ footer > button { white-space: nowrap; }
 .profile { margin-right: 8px; }
 #profile-form[hidden], .profile [hidden] { display: none; }
 .picker { position: relative; }
-#profile { max-width: 200px; padding-right: 30px; text-align: left; overflow: hidden;
+#profile { width: 170px; padding-right: 30px; text-align: left; overflow: hidden;
            text-overflow: ellipsis; white-space: nowrap;
            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' \
 viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%239c9385' stroke-width='1.5' \
@@ -146,5 +146,9 @@ button, input[type=search], .field input, #profile-name { font: inherit; border:
 button { cursor: pointer; }
 button:hover:not(:disabled) { background: var(--hover); }
 button:disabled { opacity: .5; cursor: default; }
+/* the browser's own focus ring is a blue that is nowhere else in the app */
+input:focus { outline: none; border-color: var(--accent); }
+.tick input:focus { outline: none; }
+button:focus-visible { outline: 1px solid var(--accent); outline-offset: 1px; }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 button.primary:hover:not(:disabled) { background: var(--accent); filter: brightness(1.08); }
