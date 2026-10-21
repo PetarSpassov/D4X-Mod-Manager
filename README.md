@@ -11,7 +11,16 @@ This project is written with an AI coding assistant (Claude Code); its working r
 
 ## Open the app
 
-Double-click `!app.bat` in this folder. It needs Python 3 with `pywebview` installed.
+From the Windows build: unzip it anywhere and run `D4XModManager.exe`. Keep the folder whole;
+the exe uses the `vendor` folder beside it. Nothing else to install.
+
+From source: double-click `!app.bat` in this folder. It needs Python 3 with `pywebview` installed.
+
+## Build the exe
+
+`!build.bat` compiles the app with [Nuitka](https://nuitka.net) (`pip install nuitka`) into
+`build\D4XModManager`, then copies `vendor`, `LICENSE` and this README beside the exe. It
+compiles with Zig (`--zig`), which Nuitka keeps in its own cache; no Visual Studio needed.
 
 ## Run the tests
 
