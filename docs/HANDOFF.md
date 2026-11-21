@@ -60,6 +60,18 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   in a browser preview with a fake Api: Link and the badge open the Files page, Settings shows
   Game folder and Downloads folder only. Not seen in the window or the exe. A key or login saved
   earlier stays in `settings.json`, unread; an nxm handler taken earlier stays in the registry.
+  After `9d4871a` the user says "this seems to work". Reports: a mod downloaded in the browser and
+  imported has no details or picture, and is named as the zip. Seen in their library:
+  `QuinnQuest 5 v0.4.2.3 2026-10-21T13-46Z KXNV26MRz.zip` recorded `not_found`. Seen live from
+  Nexus: mod 5's file 54 is "QuinnQuest" v0.4.2.3 (uri a storage path); mod 8's file 71 is
+  "Quinn's Unofficial Patcher" 1.6.0, downloaded as `Quinn's Unofficial Patcher 8 1.6.0
+  2026-11-19T15-44Z uUJGrfkjc.zip`. `lookup` read the mod id only between dashes, and the
+  Downloads watcher (`NEXUS_NAME`) matched only dashed names, so neither was found or offered.
+  Changed: `files.SPACED_NAME` reads such a name; `lookup` picks the file by its name and version
+  (mod 5's main and optional files share v0.4.2.3), and the watcher offers spaced names. Seen live
+  on the user's two zips: QuinnQuest found as mod 5 file 54, the Patcher as mod 8 file 71, both
+  offered. Not seen in the window: the offer bar, or the library entry taking its name and picture
+  (refresh at start looks a record without ids up again by its archive name, `mods.refresh`).
 - The exe from `!build.bat` (Nuitka with Zig, standalone folder `build/D4XModManager`, 81 MB).
   Seen live: it builds, starts, and opens a window titled "D4X Mod Manager". Untested in it: the
   page itself, `vendor/` found (`d4xmm.VENDOR`, `COMPILED`), import and merge.

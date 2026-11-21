@@ -21,6 +21,8 @@ QUERY = ("query($mod: ID!, $game: ID!) { mod(modId: $mod, gameId: $game) "
          "{ fileId name version uri category detectedFileExtension } }")
 # a newer upload's uri is a storage path (bc/ba/b1/<uuid>), not the archive's name
 PLAIN_NAME = re.compile(r"^[^/\\]+\.\w+$")
+# Nexus's newer download name: <file name> <mod id> <version> <upload time> <code>.<ext>
+SPACED_NAME = re.compile(r"^(.+) (\d+) (\S+) \d{4}-\d\d-\d\dT[\d-]+Z \w+\.(zip|7z|rar)$", re.I)
 
 
 class Offline(Exception):
@@ -89,6 +91,13 @@ def lookup(file_name, mod=_mod):
 
     Raises Offline when Nexus can't be reached, Refused when it answers with an error.
     """
+    spaced = SPACED_NAME.match(file_name)
+    if spaced:  # its file name and version pick the file: a mod's files can share a version
+        name, mod_id, version = spaced.group(1, 2, 3)
+        found = mod(mod_id)
+        f = next((r for r in found["files"]
+                  if r["name"] == name and r["version"] == version), None)
+        return f and _describe(mod_id, found, f)
     # the mod id is one of the name's all-digit parts; each is only a candidate until uri matches
     for mod_id in dict.fromkeys(re.findall(r"(?<=-)\d+(?=-)", file_name)):
         found = mod(mod_id)

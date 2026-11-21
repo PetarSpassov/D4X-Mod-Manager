@@ -16,6 +16,18 @@ def _fake(listing, name=None, **about):
 
 
 class Lookup(unittest.TestCase):
+    def test_a_spaced_download_name_is_found_by_its_file_name_and_version(self):
+        mod_files, asked = _fake({"5": [
+            {"fileId": 54, "name": "QuinnQuest", "version": "v0.4.2.3", "category": "MAIN",
+             "uri": "bc/ba/b1/x"},
+            {"fileId": 55, "name": "QuinnQuest - No Fog Adjustment", "version": "v0.4.2.3",
+             "category": "OPTIONAL", "uri": "82/b1/fe/y"}]})
+        found = files.lookup("QuinnQuest 5 v0.4.2.3 2026-10-21T13-46Z KXNV26MRz.zip", mod_files)
+        self.assertEqual((found["nexus_id"], found["file_id"]), (5, 54))
+        self.assertIsNone(files.lookup("QuinnQuest 5 v9 2026-10-21T13-46Z KXNV26MRz.zip",
+                                       mod_files))
+        self.assertEqual(asked, ["5", "5"])
+
     def test_matches_the_exact_download_name(self):
         mod_files, asked = _fake({"5": [
             {"fileId": 18, "name": "QuinnQuest", "version": "v0.2.2", "category": "OLD_VERSION",

@@ -1,6 +1,6 @@
 """Archives in the Downloads folder that are Dune: Spice Wars mods from Nexus, not yet imported.
 
-A browser gives a download Nexus's name (<name>-<mod id>-<version>-<time>) only once complete.
+A browser gives a download Nexus's name (dashed, or the newer SPACED_NAME) only once complete.
 """
 import json
 import os
@@ -58,7 +58,8 @@ def offers(folder, imported, state_dir, known, lookup=None):
     lookup = lookup or nexus_files.lookup  # looked up at call time, so a test can patch it
     present = os.listdir(folder)
     skip = set(imported) | set(_forget_missing(state_dir, set(present)))
-    names = [n for n in present if NEXUS_NAME.search(n) and n not in skip]
+    names = [n for n in present if n not in skip
+             and (NEXUS_NAME.search(n) or nexus_files.SPACED_NAME.match(n))]
     out = []
     for name in sorted(names, key=lambda n: os.path.getmtime(os.path.join(folder, n))):
         found = _answer(name, known, lookup)

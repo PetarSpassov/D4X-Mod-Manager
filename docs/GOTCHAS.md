@@ -81,6 +81,10 @@ a bold title (≤120 characters), `names:` (≤6 backticked subjects no other ru
   names: `uri`, `download_name`, `lookup`, `detectedFileExtension`
   sign: "Nexus lists no such file to download for this mod" on a mod whose Files tab has a main file
 
+- **Nexus now names browser downloads `<file name> <mod id> <version> <time> <code>.zip`, spaced.**
+  names: `SPACED_NAME`, `NEXUS_NAME`, `offers`
+  sign: a fresh browser download imports as "not on Nexus", named as the zip, and is never offered
+
 ## E — Window
 
 - **A letter in a ring never centres reliably: font metrics move it. Draw the icon in SVG.**

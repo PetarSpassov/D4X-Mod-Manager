@@ -7,6 +7,7 @@ from d4xmm.nexus import files as nexus_files
 
 QQ = "QuinnQuest-5-v0-4-2-2-1780006924.zip"
 CP = "community_patch-1-0-1-4-1760743071.7z"
+QP = "Quinn's Unofficial Patcher 8 1.6.0 2026-11-19T15-44Z uUJGrfkjc.zip"  # Nexus's newer name
 
 
 def _found(name):
@@ -34,13 +35,13 @@ class Offers(unittest.TestCase):
 
     def test_offers_new_nexus_archives_of_this_game_oldest_first(self):
         for name, age in ((QQ, 1), (CP, 2), ("Other-9-1-1700000000.zip", 3),
-                          ("notes.zip", 4), (QQ + ".crdownload", 5)):
+                          ("notes.zip", 4), (QQ + ".crdownload", 5), (QP, 6)):
             self._file(name, age)
         lookup = self._lookup({QQ: _found("QuinnQuest"), CP: _found("Community Patch"),
-                               "Other-9-1-1700000000.zip": None})
+                               "Other-9-1-1700000000.zip": None, QP: _found("Patcher")})
         self.assertEqual([o["name"] for o in downloads.offers(self.folder, [], self.state, {},
                                                               lookup)],
-                         ["Community Patch", "QuinnQuest"])
+                         ["Patcher", "Community Patch", "QuinnQuest"])
 
     def test_imported_and_dismissed_archives_are_not_offered_or_asked_about(self):
         self._file(QQ, 1)
