@@ -6,7 +6,7 @@ set PYTHONPATH=%~dp0src
 python -m nuitka --mode=standalone --python-flag=-m --zig ^
   --include-package-data=d4xmm ^
   --windows-console-mode=disable --windows-icon-from-ico=src\d4xmm\window\logo.ico ^
-  --product-name="D4X Mod Manager" --product-version=0.1.0 --file-version=0.1.0 ^
+  --product-name="D4X Mod Manager" --product-version=1.0.0 --file-version=1.0.0 ^
   --company-name="Petar Spassov" --file-description="D4X Mod Manager" ^
   --output-dir=build\nuitka --output-filename=D4XModManager.exe ^
   src\d4xmm || exit /b 1
