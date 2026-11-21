@@ -33,6 +33,18 @@ class Target(unittest.TestCase):
         self.assertIsNone(mods.target("res.pak"))
 
 
+class LoadsGameFiles(unittest.TestCase):
+    def test_only_an_archive_holding_a_file_the_game_loads_counts(self):
+        folder = tempfile.mkdtemp()
+        mod = _zip(folder, "mod.zip", {"MyMod/res.compressed1.pak": b"1", "readme.txt": b"r"})
+        tool = _zip(folder, "tool.zip", {"Patcher/Patcher.exe": b"x", "Patcher/a.dll": b"y"})
+        broken = os.path.join(folder, "broken.zip")
+        with open(broken, "wb") as f:
+            f.write(b"not an archive")
+        self.assertEqual([mods.loads_game_files(p) for p in (mod, tool, broken)],
+                         [True, False, False])
+
+
 class Describe(unittest.TestCase):
     def _describe(self, path, **lookup):
         with mock.patch.object(mods.nexus_files, "lookup", **lookup) as asked:

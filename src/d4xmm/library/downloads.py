@@ -6,6 +6,7 @@ import json
 import os
 import re
 
+from d4xmm.library import mods
 from d4xmm.nexus import files as nexus_files
 
 NEXUS_NAME = re.compile(r"-\d+(-.+)?-\d{9,}\.(zip|7z|rar)$", re.IGNORECASE)
@@ -40,9 +41,13 @@ def _forget_missing(state_dir, present):
     return kept
 
 
-def _answer(name, known, lookup):
-    """Nexus's record of name, None when it isn't this game's; known keeps the answers."""
+def _answer(folder, name, known, lookup):
+    """Nexus's record of name, None when it isn't this game's or holds no file the game loads
+    (a tool: Import would refuse it); known keeps the answers."""
     if name not in known:
+        if not mods.loads_game_files(os.path.join(folder, name)):
+            known[name] = None
+            return None
         try:
             known[name] = lookup(name)
         except (nexus_files.Offline, nexus_files.Refused):
@@ -50,19 +55,22 @@ def _answer(name, known, lookup):
     return known[name]
 
 
+def _nexus_named(name):
+    return bool(NEXUS_NAME.search(name) or nexus_files.SPACED_NAME.match(name))
+
+
 def offers(folder, imported, state_dir, known, lookup=None):
-    """[{file, name, version}] for each new Dune mod archive in folder, oldest first; imported
-    and dismissed names are skipped. known: {name: Nexus's answer}, kept by the caller."""
+    """[{file, name, version}] for each new Dune mod archive in folder holding a file the game
+    loads, oldest first; imported and dismissed names are skipped. known: kept by the caller."""
     if not folder or not os.path.isdir(folder):
         return []
     lookup = lookup or nexus_files.lookup  # looked up at call time, so a test can patch it
     present = os.listdir(folder)
     skip = set(imported) | set(_forget_missing(state_dir, set(present)))
-    names = [n for n in present if n not in skip
-             and (NEXUS_NAME.search(n) or nexus_files.SPACED_NAME.match(n))]
+    names = [n for n in present if n not in skip and _nexus_named(n)]
     out = []
     for name in sorted(names, key=lambda n: os.path.getmtime(os.path.join(folder, n))):
-        found = _answer(name, known, lookup)
+        found = _answer(folder, name, known, lookup)
         if found:
             out.append({"file": name, "name": found["mod_name"], "version": found["version"]})
     return out

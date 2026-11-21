@@ -60,13 +60,25 @@ def describe(archive, ids=None):
             **{k: found[k] for k in nexus_files.ABOUT}, "nexus": "found"}
 
 
+def _seven_zip(*args):
+    return subprocess.run([SEVEN_ZIP, *args], capture_output=True, text=True, errors="replace",
+                          stdin=subprocess.DEVNULL, timeout=TIMEOUT,
+                          creationflags=subprocess.CREATE_NO_WINDOW)  # no console from pythonw
+
+
+def loads_game_files(archive):
+    """Whether the archive holds a file the game loads, by its listing; nothing is unpacked.
+    False for one 7-Zip can't read: import would refuse it too."""
+    run = _seven_zip("l", "-slt", "-ba", archive)
+    paths = [line[7:].replace("\\", "/") for line in run.stdout.splitlines()
+             if line.startswith("Path = ")]
+    return run.returncode == 0 and any(target(p) for p in paths)
+
+
 def _extract(archive, dest):
     """Extract any archive 7-Zip reads into dest; return the files written, relative, with /."""
     os.makedirs(dest)
-    run = subprocess.run([SEVEN_ZIP, "x", "-y", "-bso0", "-bsp0", "-o" + dest, archive],
-                         capture_output=True, text=True, errors="replace",
-                         stdin=subprocess.DEVNULL, timeout=TIMEOUT,
-                         creationflags=subprocess.CREATE_NO_WINDOW)  # no console from pythonw
+    run = _seven_zip("x", "-y", "-bso0", "-bsp0", "-o" + dest, archive)
     if run.returncode != 0:
         raise ModImportError("7-Zip could not unpack %s: %s"
                              % (os.path.basename(archive), run.stderr.strip()[-300:]))

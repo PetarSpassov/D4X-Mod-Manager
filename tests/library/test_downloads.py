@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+from unittest import mock
 
 from d4xmm.library import downloads
 from d4xmm.nexus import files as nexus_files
@@ -18,6 +19,10 @@ class Offers(unittest.TestCase):
     def setUp(self):
         self.folder, self.state = tempfile.mkdtemp(), tempfile.mkdtemp()
         self.asked = []
+        # the archives here are empty stand-ins; listing real ones is test_mods' job
+        patch = mock.patch.object(downloads.mods, "loads_game_files", return_value=True)
+        patch.start()
+        self.addCleanup(patch.stop)
 
     def _file(self, name, age):
         path = os.path.join(self.folder, name)
@@ -42,6 +47,17 @@ class Offers(unittest.TestCase):
         self.assertEqual([o["name"] for o in downloads.offers(self.folder, [], self.state, {},
                                                               lookup)],
                          ["Patcher", "Community Patch", "QuinnQuest"])
+
+    def test_an_archive_with_no_game_files_is_not_offered_or_looked_up(self):
+        self._file(QQ, 1)
+        self._file(QP, 2)
+        known = {}
+        lookup = self._lookup({QQ: _found("QuinnQuest"), QP: _found("Patcher")})
+        with mock.patch.object(downloads.mods, "loads_game_files",
+                               side_effect=lambda path: not path.endswith(QP)):
+            offered = downloads.offers(self.folder, [], self.state, known, lookup)
+        self.assertEqual([o["name"] for o in offered], ["QuinnQuest"])
+        self.assertEqual((self.asked, known[QP]), ([QQ], None))  # kept: not listed again
 
     def test_imported_and_dismissed_archives_are_not_offered_or_asked_about(self):
         self._file(QQ, 1)

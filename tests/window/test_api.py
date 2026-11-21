@@ -147,7 +147,7 @@ class WindowApi(unittest.TestCase):
     def test_a_download_offered_is_imported_by_name_or_dismissed(self):
         settings.save(self.home, downloads=self.zips)
         os.rename(self._zip("A"), os.path.join(self.zips, "A-7-1-0-1752884636.zip"))
-        open(os.path.join(self.zips, "B-8-1-1752884636.zip"), "w").close()
+        os.rename(self._zip("B"), os.path.join(self.zips, "B-8-1-1752884636.zip"))
         found = {"nexus_id": 7, "file_id": 2, "name": "A", "mod_name": "Mod A", "version": "1",
                  "category": "MAIN", "latest": "1", **dict.fromkeys(nexus_files.ABOUT)}
         with mock.patch("d4xmm.nexus.files.lookup", return_value=found):
