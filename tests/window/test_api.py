@@ -10,6 +10,8 @@ from d4xmm.window import settings
 from d4xmm.window.api import NO_GAME, Api
 from tests.nexus.test_oauth import token
 
+REGISTERED = mock.patch("d4xmm.window.api.REGISTERED", True)  # the key, login and download paths
+
 
 class WindowApi(unittest.TestCase):
     def setUp(self):
@@ -165,6 +167,23 @@ class WindowApi(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.api.import_download(bad)
 
+    def test_unregistered_no_key_login_or_download_reaches_nexus(self):
+        tokens = {"access_token": token(["premium"]), "refresh_token": "r", "expires_at": 0}
+        settings.save(self.home, nexus_key="k", nexus_tokens=tokens)
+        with mock.patch("d4xmm.nexus.account.check") as check, \
+                mock.patch("d4xmm.nexus.oauth.login") as login, \
+                mock.patch("d4xmm.window.links.take") as take:
+            self.assertEqual(self.api.state()["registered"], False)
+            self.assertEqual(self.api.check_key()["account"], {"key": "none"})
+            for start in (self.api.nexus_login, lambda: self.api.download_mod(7),
+                          self.api.take_links, lambda: self.api.download_link(
+                              "nxm://dunespicewars/mods/7/files/3?key=a&expires=1")):
+                with self.assertRaisesRegex(RuntimeError, "registered"):
+                    start()
+        for fake in (check, login, take):
+            fake.assert_not_called()
+
+    @REGISTERED
     def test_the_key_is_checked_when_typed_and_its_account_shown(self):
         self.assertEqual(self.api.state()["account"], {"key": "none"})
         settings.save(self.home, nexus_key="k")
@@ -184,6 +203,7 @@ class WindowApi(unittest.TestCase):
                              {"key": "invalid"})
         self.assertEqual(self.api.set_setting("nexus_key", "")["account"], {"key": "none"})
 
+    @REGISTERED
     def test_a_login_comes_before_the_key_and_its_token_is_renewed_when_due(self):
         settings.save(self.home, nexus_key="k")
         tokens = {"access_token": token(["premium"]), "refresh_token": "r", "expires_at": 0}
@@ -237,6 +257,7 @@ class WindowApi(unittest.TestCase):
         self.assertEqual(self.api.downloads(), [])
         return asked
 
+    @REGISTERED
     def test_premium_download_imports_the_newest_main_file_and_keeps_it_in_downloads(self):
         self._premium()
         asked = self._download(lambda: self.api.download_mod(7))
@@ -245,6 +266,7 @@ class WindowApi(unittest.TestCase):
         self.assertEqual(asked["progress"], "Downloading: 2.5 MB of 10.0 MB")
         self.assertIsNone(self.api.download_progress(7))
 
+    @REGISTERED
     def test_a_website_link_downloads_its_own_file_with_its_grant(self):
         settings.save(self.home, nexus_key="k")
         link = "nxm://dunespicewars/mods/7/files/3?key=abc&expires=17&user_id=1"
@@ -253,6 +275,7 @@ class WindowApi(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "another game"):
             self.api.download_link("nxm://skyrim/mods/7/files/3?key=abc&expires=17")
 
+    @REGISTERED
     def test_without_premium_a_key_or_a_file_nothing_downloads(self):
         with self.assertRaisesRegex(RuntimeError, "Premium"):
             self.api.download_mod(7)

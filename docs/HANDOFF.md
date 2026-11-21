@@ -24,6 +24,8 @@ and has the contents of both. This is a great success, it seems the merge is wor
   flipped to the other one".
 - Import looks each archive up on Nexus by exact download name (`nexus/files.py`). Seen live:
   `QuinnQuest.zip` is "not_found". A mod imported offline keeps "?" until re-imported.
+- Nexus hasn't answered in over a month, so `api.REGISTERED` is False: no key, login or download
+  until Nexus registers the app (see "Unregistered" below). Not seen in the window or the exe.
 
 
 Debt: the no-console `subprocess.run` is now written three times (unpack, pak, mods).
@@ -49,6 +51,14 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 
 ## Untested
 
+- Unregistered (`api.REGISTERED = False`): Nexus support's reply (pasted by the user) says the
+  keyless GraphQL API needs no registration if the app doesn't download. The API policy says a
+  public app registers before it uses players' keys. Browse's button is "Link"; it and the update
+  badge open the mod's Files page. Settings hides the login, API key and nxm rows. The Api refuses
+  key checks, login, downloads and taking nxm links. True brings it all back. Tested: `test_api`
+  (the unregistered test fails with it True). Seen in a browser preview with a fake Api: Link and
+  the badge open the Files page, the six rows hidden. Not seen in the window or the exe. A key,
+  login or nxm handler saved earlier stays in settings and the registry, unused.
 - Nexus login (OAuth PKCE, `nexus/oauth.py`): Settings' "Log in with Nexus" opens
   `users.nexusmods.com/oauth/authorize` with client id `public_test` (Nexus's guide's; ours comes
   after registration), waits on `http://127.0.0.1:8089/callback`, saves the tokens in

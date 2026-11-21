@@ -52,8 +52,8 @@ function note(m) {
   }
   if (m.latest && m.latest !== m.version) {
     return {cls: "update", text: "update: " + m.latest,
-            title: "A newer main file is on Nexus. Click to get it: Premium downloads it here, " +
-                   "Free opens its Files page."};
+            title: "A newer main file is on Nexus. Click to get it: " + (registered
+              ? "Premium downloads it here, Free opens its Files page." : "opens its Files page.")};
   }
   return null;
 }
@@ -286,6 +286,7 @@ function renderSettings(s) {
 
 function render(state) {
   mods = state.mods;
+  renderRegistered(state.registered);  // first: the notes and cards below read it
   renderSettings(state.settings);
   renderAccount(state.account);
   renderLinks(state.links);

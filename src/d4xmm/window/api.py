@@ -17,6 +17,15 @@ from d4xmm.window import links, profiles, settings
 LAST = "last_install.json"  # under state/: the folders installed and who overrode whom
 NEXUS_PAGE = "https://www.nexusmods.com/dunespicewars/mods/%d"
 NO_GAME = "Can't find the game in the Steam directory. Please adjust it in Settings."
+# Nexus's API policy wants an app registered before it uses players' keys, logins or downloads;
+# until then only the keyless lookups run, and Browse's Link opens the mod's page instead
+REGISTERED = False
+UNREGISTERED = "Nexus hasn't registered this app yet: download from the mod's page on Nexus."
+
+
+def _registered():
+    if not REGISTERED:
+        raise RuntimeError(UNREGISTERED)
 
 
 def _sources(folders, records):
@@ -97,7 +106,7 @@ class Api:
                 "settings": dict(typed, game_ok=settings.game_ok(current["game_dir"])),
                 "profiles": {"active": data["active"], "names": list(data["profiles"])},
                 "account": self._account or {"key": "saved" if current["nexus_key"] else "none"},
-                "links": links.status()}
+                "links": links.status(), "registered": REGISTERED}
 
     def set_setting(self, key, value):
         """Keep one of settings.TYPED; an empty folder goes back to the one Steam or Windows has."""
@@ -213,6 +222,9 @@ class Api:
         Nexus's API policy asks. state() shows the answer until the key changes. A login
         is used before the key."""
         current = settings.load(self._home)
+        if not REGISTERED:
+            self._account = {"key": "none"}
+            return
         if current["nexus_tokens"]:
             self._account = dict(oauth.account(current["nexus_tokens"]), key="ok", login=True)
             return
@@ -231,6 +243,7 @@ class Api:
 
     def nexus_login(self):
         """Nexus's login page in the browser; returns once the player accepts there."""
+        _registered()
         try:
             tokens = oauth.login()
         except oauth.LoggedOut as e:
@@ -267,12 +280,14 @@ class Api:
 
     def download_mod(self, nexus_id):
         """Premium only: the mod's newest main file downloaded and imported."""
+        _registered()
         if not (self._account or {}).get("premium"):
             raise RuntimeError("Downloading in the app needs a Premium Nexus account.")
         return self._download(int(nexus_id))
 
     def download_link(self, url):
         """A website "Mod Manager Download" link: its file downloaded and imported."""
+        _registered()
         link = links.parse(url)
         if link["game"] != account.GAME:
             raise RuntimeError("That link is for another game's mod.")
@@ -316,6 +331,7 @@ class Api:
 
     def take_links(self):
         """Nexus's "Mod Manager Download" links come to this app from now on."""
+        _registered()
         links.take(self._state_dir)
         return self.state()
 

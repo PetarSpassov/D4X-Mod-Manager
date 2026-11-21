@@ -7,6 +7,7 @@ const BROWSE_ERROR = {offline: "You are offline, so Nexus's mods can't be listed
                       refused: "Nexus answered with an error. Try reloading in a while."};
 const NEXT_STATE = {undefined: "in", in: "out", out: undefined};
 let account = {key: "none"};  // Api.state()'s: whose key it is, and Premium
+let registered = false;  // Api.state()'s: until Nexus registers the app, no key, login or download
 // nexus id being downloaded: what it is doing, so a re-render keeps the card's progress
 const downloading = new Map();
 const PROGRESS_MS = 500;
@@ -89,10 +90,12 @@ function card(m) {
   li.querySelector(".stats").textContent = stats(m);
   li.querySelector(".summary").textContent = m.summary || "";
   const button = li.querySelector("button");
-  button.title = account.premium ? "Download its newest main file and import it"
-                                 : "Open its Files page on Nexus";
+  if (!registered) button.textContent = "Link";
+  button.title = registered && account.premium ? "Download its newest main file and import it"
+    : "Open its Files page on Nexus: download there, and the app offers to import it";
   button.onclick = async e => {
     e.stopPropagation();
+    if (!registered) return call("open_nexus_files", m.nexus_id);
     // the key is checked only on the player's action, as Nexus's API policy asks
     if (UNCHECKED.includes(account.key)) await run("check_key");
     if (account.premium) downloadInApp(m, button);
@@ -130,6 +133,11 @@ function renderAccount(a) {
   };
 }
 
+function renderRegistered(on) {
+  registered = on;
+  document.querySelectorAll(".registered-only").forEach(e => { e.hidden = !on; });
+}
+
 function renderLinks(l) {
   $("links-state").textContent = l.ours ? "Its downloads come to this app." :
     (l.other ? `Its downloads go to ${l.other}.` : "No program takes its downloads.") +
@@ -163,8 +171,8 @@ function askProgress(id, show) {
 // a library row's update badge: Premium downloads the newest main file, Free opens its Files page
 async function updateMod(m) {
   const id = m.nexus_id;
-  if (UNCHECKED.includes(account.key)) await run("check_key");
-  if (!account.premium) return call("open_nexus_files", id);
+  if (registered && UNCHECKED.includes(account.key)) await run("check_key");
+  if (!registered || !account.premium) return call("open_nexus_files", id);
   if (downloading.has(id)) return;
   downloading.set(id, "Starting…");
   setStatus(`${m.name}: starting the update…`);
