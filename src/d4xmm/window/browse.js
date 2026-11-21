@@ -64,7 +64,8 @@ function card(m) {
   li.dataset.id = m.nexus_id;
   li.innerHTML = '<div class="top"><span class="thumb"><img alt=""></span><div class="about">' +
     '<div class="title"><span class="name"></span> <span class="meta"></span></div>' +
-    '<p class="stats"></p><p class="summary"></p></div><button title="Open its Files page on ' +
+    '<p class="stats"></p><p class="summary"></p></div><button class="primary" title="Open ' +
+    'its Files page on ' +
     'Nexus: download there, and the app offers to import it">Link</button></div>';
   const img = li.querySelector("img");
   if (m.thumbnail || m.picture) img.src = m.thumbnail || m.picture;
