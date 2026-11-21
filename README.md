@@ -37,12 +37,10 @@ For anyone reviewing the code: everything the app reads, writes, runs or sends, 
 
 | What | Where | Code |
 |---|---|---|
-| Network | Only `api.nexusmods.com` (mod lookups, key check, download links) and the download address Nexus returns. Images in mod descriptions load from where the author hosts them. | `src/d4xmm/nexus/` |
-| Nexus API key | Typed by the player, sent only to Nexus in the `apikey` header, saved as plain text in the settings file below | `nexus/account.py`, `window/settings.py` |
+| Network | Only `api.nexusmods.com`'s keyless GraphQL API (mod lookups and the mod list), with no key or login. Mods are downloaded in the player's browser from Nexus's pages. Images in mod descriptions load from where the author hosts them. | `src/d4xmm/nexus/` |
 | Its own files | `%LOCALAPPDATA%\D4XModManager`: settings, the mod library, backups of replaced game files | `window/app.py` |
 | Game folder | Writes the installed files; restore puts back each backup and removes only files it installed, leaving any changed since | `install/deploy.py` |
 | Registry, read | Steam's install path and the Downloads folder, under the current user | `game/steam.py`, `window/settings.py` |
-| Registry, written | The `nxm` link handler, under the current user, only when the player turns on Nexus links; the handler it replaced is kept and put back when turned off | `window/links.py` |
 | Programs run | `7z.exe` to unpack archives; `quickbms_4gb_files.exe` to unpack paks; the game's own `D4X.exe` (a HashLink runtime) running `pakBuild.hl` to build the merged pak. No console, no shell. | `library/mods.py`, `merge/unpack.py`, `merge/pak.py` |
 
 ## Credits

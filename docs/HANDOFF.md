@@ -24,8 +24,8 @@ and has the contents of both. This is a great success, it seems the merge is wor
   flipped to the other one".
 - Import looks each archive up on Nexus by exact download name (`nexus/files.py`). Seen live:
   `QuinnQuest.zip` is "not_found". A mod imported offline keeps "?" until re-imported.
-- Nexus hasn't answered in over a month, so `api.REGISTERED` is False: no key, login or download
-  until Nexus registers the app (see "Unregistered" below). Not seen in the window or the exe.
+- Nexus hasn't answered in over a month: the key, login, download and nxm code is taken out
+  (tag `nexus-downloads` holds it). Not seen in the window or the exe.
 
 
 Debt: the no-console `subprocess.run` is now written three times (unpack, pak, mods).
@@ -51,31 +51,18 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 
 ## Untested
 
-- Unregistered (`api.REGISTERED = False`): Nexus support's reply (pasted by the user) says the
-  keyless GraphQL API needs no registration if the app doesn't download. The API policy says a
-  public app registers before it uses players' keys. Browse's button is "Link"; it and the update
-  badge open the mod's Files page. Settings hides the login, API key and nxm rows. The Api refuses
-  key checks, login, downloads and taking nxm links. True brings it all back. Tested: `test_api`
-  (the unregistered test fails with it True). Seen in a browser preview with a fake Api: Link and
-  the badge open the Files page, the six rows hidden. Not seen in the window or the exe. A key,
-  login or nxm handler saved earlier stays in settings and the registry, unused.
-- Nexus login (OAuth PKCE, `nexus/oauth.py`): Settings' "Log in with Nexus" opens
-  `users.nexusmods.com/oauth/authorize` with client id `public_test` (Nexus's guide's; ours comes
-  after registration), waits on `http://127.0.0.1:8089/callback`, saves the tokens in
-  `settings.json` as `nexus_tokens`, refreshes them 60 s before expiry. A login is used before the
-  key; Log out goes back to the key. Account name and Premium come from the token's claims, not
-  verified against Nexus's public key. Api and the flow tested with fakes only. The user tried
-  Log in: Nexus's page showed "WHOOPS! An error has occurred / Client authentication failed due
-  to unknown client, no client authentication included, or unsupported authentication method."
-  Nothing past the authorize page has run against Nexus.
-- Settings' Nexus lines: login row ("Not logged in." beside its button), the API key's info icon
-  (SVG ring, instant tip "Optional. Used as a fallback when not logged in"), links line "Downloading
-  from them needs a Nexus login or API key." After `3e5f037` the user says of the icon "it works
-  now". The login row's alignment and the links line were not reported.
-
+- No Nexus key, login, in-app download or nxm handler: Nexus support's reply (pasted by the user)
+  says the keyless GraphQL API needs no registration if the app doesn't download; the API policy
+  wants a public app registered before it uses players' keys. Browse's button is "Link"; it and the
+  update badge open the mod's Files page. Settings holds only the two folders. The code
+  (`nexus/account.py`, `nexus/oauth.py`, `window/links.py`, the Api's calls, Settings' rows and
+  the info icon) is in tag `nexus-downloads`; the files also sit in `todelete/`. Tests pass; seen
+  in a browser preview with a fake Api: Link and the badge open the Files page, Settings shows
+  Game folder and Downloads folder only. Not seen in the window or the exe. A key or login saved
+  earlier stays in `settings.json`, unread; an nxm handler taken earlier stays in the registry.
 - The exe from `!build.bat` (Nuitka with Zig, standalone folder `build/D4XModManager`, 81 MB).
   Seen live: it builds, starts, and opens a window titled "D4X Mod Manager". Untested in it: the
-  page itself, `vendor/` found (`d4xmm.VENDOR`, `COMPILED`), import, merge, and the nxm handler.
+  page itself, `vendor/` found (`d4xmm.VENDOR`, `COMPILED`), import and merge.
 - Merging more than two real mods (only Community Patch + QuinnQuest, both orders, has been seen
   in the game).
 - A row two mods change is the later mod's whole row. After `141b72e` the user re-merged and says
@@ -98,8 +85,7 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   window loads it with 4 rows and the pill "Installed" (installed before `last_install.json`
   existed). Drag and the menu seen only in a browser preview with a fake Api. File drop, delete,
   open folder/Nexus and the update note: not seen in the window.
-  Asked: the update badge should get the update. Changed: it is a button; Premium downloads the
-  newest main file with progress in the status line, Free opens the Files page. Any version of
+  The update badge is a button that opens the mod's Files page. Any version of
   the same Nexus mod imports into the folder already holding it (`_same_mod`), keeping its place
   and tick; the pill compares each ticked mod's archive too, so an update reads "changed". An
   install refused over the trait cap no longer records itself as the last install. Tested with
@@ -111,18 +97,16 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   like `bc/ba/b1/<uuid>`, with no file name and `detectedFileExtension` beside it. 3 of the 7
   catalog mods: QuinnQuest (newest main 54, the v0.4.2.3 its update badge offers), Bene Tleilaxu
   Faction, Quinn's Unofficial Patcher. Older ones (Dyaus Anchor) still carry the archive name.
-  `_download` refuses a uri with a path; `lookup` matches by uri == download name. Changed:
+  `lookup` matched by uri == download name. Changed:
   `download_name` makes such a file's name as `<name>-<mod id>-<version>.<detectedFileExtension>`
-  and `lookup` matches either name, so the app's downloads import and refresh as found. Seen live:
+  and `lookup` matches either name. Seen live:
   QuinnQuest-5-v0.4.2.3.zip, Bene_Tleilaxu_Mod-9-2.rar, Quinn_s_Unofficial_Patcher-8-1.1.0.zip
   each looked up to their file. Not seen: a real download. A browser download of such a file
   keeps whatever name the browser gives it, which may not match.
   The user asked whether that is foolproof; it isn't by name alone (a renamed file, a re-upload
   of the same name). Changed: `files.by_ids`; refresh looks a record up by its stored nexus_id
-  and file_id once it has them, and the app's own downloads import by ids. Seen live on a copy
+  and file_id once it has them. Seen live on a copy
   of the user's library: both mods refreshed by id, no lookup by name.
-  After `ce58156` the user reports, of the Premium download in the exe: "it works". Not said:
-  which mod, whether it was a newer upload (storage-path uri), or the update badge's download.
 - Tabs Installed / Browse / Settings replace the header. Settings holds the game folder and the
   Downloads folder (typed or Choose…; empty means found from Steam / Windows' Shell Folders), kept
   in `settings.json`. No `D4X.exe` there: Settings shows an error and Install and Remove all refuse
@@ -143,8 +127,7 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   again to delete" stays after the menu is closed and reopened; the tabs jitter when clicked.
   Changed for that: a dragged row's drop and edge scroll now work over the whole page (the toolbar
   above the list included); closing the menu disarms Delete; all tabs share one weight. Settings
-  has a Nexus API key field (kept as typed in `settings.json`, unused by any lookup so far) and no
-  folder hint. Seen in a browser preview with a fake Api with synthetic drag events; not by mouse.
+  has no folder hint. Seen in a browser preview with a fake Api with synthetic drag events; not by mouse.
 - A trial the user may drop: the ⋯ menu is replaced by three icons per row (folder, open on Nexus,
   bin). The bin turns red on the first click and deletes on the second; any other click disarms
   it. Seen only in a browser preview with a fake Api.
@@ -181,13 +164,13 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   (seen in a scratch page with the real stylesheet: at 250px the name keeps 170.344 of 170.344px).
   After `1cb9fd8` the user says "Looks good now".
 - Browse lists Nexus's mods for the game, most downloaded first (`nexus/catalog.py`, `browse.js`):
-  picture, name, version, creator, stats, two lines of summary, Download (opens the Files tab) or
-  "in library" with Files. Search and Reload. Seen live from Nexus: 7 mods, paging works at 3 a
-  page. Seen in a browser preview with a fake Api: the cards, search, Download's call. Not seen in
+  picture, name, version, creator, stats, two lines of summary, Link (opens the Files tab).
+  Search and Reload. Seen live from Nexus: 7 mods, paging works at 3 a
+  page. Seen in a browser preview with a fake Api: the cards, search, Link's call. Not seen in
   the window: the tab, the browser opening, offline and refused messages.
   After `75003af` the user says "Looks good", and reports: Files plus "in library" make widths
   uneven; summaries are cut off. Asked: open a card for more (tags, full text), a reload icon, a
-  tag filter that includes and excludes. Changed: one 96px Download on every card, "✓ In library"
+  tag filter that includes and excludes. Changed: one 96px button on every card, "✓ In library"
   on the picture; a click opens the card: tags (a click filters), dates, the full description as
   text (`catalog.plain`); reload and funnel icons; the menu cycles a tag: only, hidden, off.
   Seen in a browser preview with a fake Api and live Nexus data: equal buttons, the filter counts
@@ -209,7 +192,6 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   this game's (asked once per name; offline asks again). A bar under the tabs offers each:
   Import (ticked at the end, as any import) or × (never again, `state/dismissed_downloads.json`).
   Tested with fakes; seen in a browser preview: offers, ×, Import. Not seen: a real download.
-  Not built: the optional nxm:// "Download with mod manager" handler (needs the API key).
   After `c74c467` the user says "Looks great". Asked: look every 1s; an imported archive must not
   be offered again once its mod is deleted. Changed: a look starts 1s after the last one ends;
   every import (offered, picked or dropped) records the archive's name as handled. The archive
@@ -217,42 +199,8 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   Asked: a deleted archive downloaded again must be offered again. Changed: each look forgets
   the recorded names no longer in the folder (imported and ×'d alike). A mod still in the
   library is not offered again under the same archive name. Tested; not seen in the window.
-- The Nexus key (`nexus/account.py`, v1 REST API): checked when typed and at start; Settings says
-  "Signed in as X · Premium/Free", or that it isn't accepted, or that Nexus couldn't be reached.
-  "Get my key" opens nexusmods.com/settings/api-keys (where the old account-page address now
-  redirects; the page itself not seen). Premium: Download fetches the newest main file (`.part`,
-  renamed whole), imports it, then puts the zip in Downloads, recorded so it isn't offered. Free
-  or no key: Download opens the Files page as before. Seen live: a wrong key gets 401 from both
-  key check and download link. Tested with fakes; seen in a browser preview with a fake Premium
-  Api: the account line, "Downloading…", the error in the Browse toolbar. Not seen: a real key,
-  a real download, a free account's answer (403 assumed). No progress bar: one "Downloading…".
-  Asked: "Get my key" should land at the "Personal API Key" heading. Changed: the address ends
-  in a text fragment (`#:~:text=Personal%20API%20Key`). Signed out, the page has no such heading
-  or id to read (seen in the preview browser); whether the browser scrolls there is not seen.
-  The user, with a real Premium key, says "The app doesn't work with Premium yet": the
-  "Downloading…" text leaves its box; nothing says what the download is doing; Dyaus Anchor's
-  Download shows "Dyaus Anchor: URL can't contain control characters. '/cdn/7811/2/dsw Dyaus
-  Anchor v1.22-2…" (the address has spaces). Changed in `a6f423d`: the address is escaped
-  before fetching; the button says "Wait…" and the card's summary line shows "Asking Nexus…",
-  "Downloading: X MB of Y MB", "Importing…" (asked every 0.5 s). After `a6f423d` the user says
-  "It downloads now, the progress text shows". Asked: a green "Installed!" for 5 s on success.
-  Changed: the card's summary line shows it for OK_SECONDS. Asked then: "Added to library." in
-  its place (a download doesn't install) and "Working…" for "Wait…". Changed; not seen.
-- Nexus's "Mod Manager Download" links (`window/links.py`): Settings → "Use this app" writes
-  this user's nxm handler (HKCU\Software\Classes\nxm) to start the app with the link, keeping
-  the old command in `state/nxm_previous.json`; "Give back" restores it (or removes ours). Seen
-  live: this machine's handler before is `nxmhandler.exe` (Mod Organizer's). A start with a link
-  hands it to the open window over a named pipe and exits; with none open, the window opens and
-  downloads it. The link's key and expires go with the download-link request (needs the API key).
-  Tested: parsing, registry take/give back on a throwaway key, the pipe handover, the download
-  with fakes; the handler's command line run with a sample link. Not seen: a real click on Nexus,
-  the Settings line. A second window opened normally doesn't get links; the first keeps them.
-  Found after: every Dune mod and the game say `supportsVortex: false`, and the user sees no
-  "Mod Manager Download" on its pages, so no link reaches the handler for now.
 - Nexus API policy (help.nexusmods.com/article/114): every request now carries Application-Name
   "D4X Mod Manager" and Application-Version (`d4xmm.__version__`, 0.1.0), seen accepted live.
-  The key is checked only when typed or when Download is pressed, never at start. A personal key
-  is allowed only while testing: a public release needs registration, then Nexus's SSO slug.
   Repo is private on GitHub (404 signed out). Licence: MIT, the user's choice (`LICENSE`, in the
   root where GitHub looks). `pakBuild.hl` holds `hxd.fmt.pak.Build` (Heaps, MIT, by its class
   names), shipped with Heaps' notice in `vendor/pakbuild/LICENSE`. Copyright "Petar Spassov".

@@ -17,8 +17,7 @@ class Settings(unittest.TestCase):
 
     def test_unsaved_folders_are_found_and_saved_ones_win(self):
         self.assertEqual(settings.load(self.home),
-                         {"game_dir": "C:\\Steam\\D4X", "downloads": "C:\\dl", "nexus_key": None,
-                          "nexus_tokens": None, "window": None})
+                         {"game_dir": "C:\\Steam\\D4X", "downloads": "C:\\dl", "window": None})
         settings.save(self.home, game_dir="D:\\D4X")
         settings.save(self.home, window={"width": 900, "maximized": True})
         loaded = settings.load(self.home)

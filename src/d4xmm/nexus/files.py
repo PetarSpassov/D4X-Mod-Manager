@@ -67,16 +67,6 @@ def download_name(mod_id, f):
     return "%s.%s" % (stem, f.get("detectedFileExtension") or "zip")
 
 
-def pick_file(mod_id, file_id=None, mod=_mod):
-    """{file_id, download (the archive's name), version} of the mod's file file_id, or of its
-    newest main file when file_id is None; None when there is no such file."""
-    records = mod(str(mod_id))["files"]
-    f = (_newest_main(records) if file_id is None
-         else next((r for r in records if r["fileId"] == int(file_id)), None))
-    return f and {"file_id": f["fileId"], "download": download_name(mod_id, f),
-                  "version": f["version"]}
-
-
 def _describe(mod_id, found, f):
     """What the library records of file f of mod mod_id, from Nexus's answer `found`."""
     newest = _newest_main(found["files"])

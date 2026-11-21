@@ -52,8 +52,7 @@ function note(m) {
   }
   if (m.latest && m.latest !== m.version) {
     return {cls: "update", text: "update: " + m.latest,
-            title: "A newer main file is on Nexus. Click to get it: " + (registered
-              ? "Premium downloads it here, Free opens its Files page." : "opens its Files page.")};
+            title: "A newer main file is on Nexus. Click to open its Files page."};
   }
   return null;
 }
@@ -177,7 +176,10 @@ function row(m, i) {
     tag.className = "note " + n.cls;
     tag.textContent = n.text;
     tag.title = n.title;
-    if (n.cls === "update") tag.onclick = e => { e.stopPropagation(); updateMod(m); };
+    if (n.cls === "update") tag.onclick = e => {
+      e.stopPropagation();
+      call("open_nexus_files", m.nexus_id);
+    };
     line.appendChild(tag);
   }
   icons(m, line);
@@ -276,7 +278,7 @@ function renderLast(install) {
 }
 
 function renderSettings(s) {
-  for (const key of ["game_dir", "downloads", "nexus_key"]) {
+  for (const key of ["game_dir", "downloads"]) {
     const input = $("set-" + key);
     if (document.activeElement !== input) input.value = s[key] || "";
   }
@@ -286,10 +288,7 @@ function renderSettings(s) {
 
 function render(state) {
   mods = state.mods;
-  renderRegistered(state.registered);  // first: the notes and cards below read it
   renderSettings(state.settings);
-  renderAccount(state.account);
-  renderLinks(state.links);
   renderProfiles(state.profiles);
   const pill = $("install-state");
   pill.textContent = STATUS[state.install.status];

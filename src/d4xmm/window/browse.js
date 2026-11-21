@@ -1,24 +1,11 @@
-// The Browse tab, Nexus's catalog, and the Nexus lines in Settings (key, link handler); loaded
-// after page.js, whose call, run, item, meta, stats, day and FOLD_MS it uses.
+// The Browse tab, Nexus's catalog; loaded after page.js, whose call, run, item, meta, stats, day
+// and FOLD_MS it uses.
 let catalog = null;  // asked for when the tab is first opened, then on Reload
 const opened = new Set();  // nexus ids whose card is open; kept across re-renders
 const tagFilter = new Map();  // tag name: "in" (the mod must have it) or "out" (must not)
 const BROWSE_ERROR = {offline: "You are offline, so Nexus's mods can't be listed.",
                       refused: "Nexus answered with an error. Try reloading in a while."};
 const NEXT_STATE = {undefined: "in", in: "out", out: undefined};
-let account = {key: "none"};  // Api.state()'s: whose key it is, and Premium
-let registered = false;  // Api.state()'s: until Nexus registers the app, no key, login or download
-// nexus id being downloaded: what it is doing, so a re-render keeps the card's progress
-const downloading = new Map();
-const PROGRESS_MS = 500;
-const justDone = new Set();  // nexus ids whose download just succeeded, for OK_SECONDS
-const KEY_STATE = {
-  none: "Log in with Nexus, or paste your personal API key, to see your account here.",
-  saved: "Saved. Nexus checks it the first time you press Download.",
-  unchecked: "Nexus couldn't be reached to check this key; Download asks again.",
-  invalid: "Nexus doesn't accept this key. Get a new one and paste it here.",
-};
-const UNCHECKED = ["saved", "unchecked"];  // a key Nexus hasn't answered for this run
 const by = key => (a, b) => {  // highest first; updated is an ISO time, so it compares as text
   const x = a[key] ?? "", y = b[key] ?? "";
   return x < y ? 1 : x > y ? -1 : 0;
@@ -77,7 +64,8 @@ function card(m) {
   li.dataset.id = m.nexus_id;
   li.innerHTML = '<div class="top"><span class="thumb"><img alt=""></span><div class="about">' +
     '<div class="title"><span class="name"></span> <span class="meta"></span></div>' +
-    '<p class="stats"></p><p class="summary"></p></div><button>Download</button></div>';
+    '<p class="stats"></p><p class="summary"></p></div><button title="Open its Files page on ' +
+    'Nexus: download there, and the app offers to import it">Link</button></div>';
   const img = li.querySelector("img");
   if (m.thumbnail || m.picture) img.src = m.thumbnail || m.picture;
   else img.remove();
@@ -89,131 +77,16 @@ function card(m) {
   li.querySelector(".meta").textContent = meta(m);
   li.querySelector(".stats").textContent = stats(m);
   li.querySelector(".summary").textContent = m.summary || "";
-  const button = li.querySelector("button");
-  if (!registered) button.textContent = "Link";
-  button.title = registered && account.premium ? "Download its newest main file and import it"
-    : "Open its Files page on Nexus: download there, and the app offers to import it";
-  button.onclick = async e => {
+  li.querySelector("button").onclick = e => {
     e.stopPropagation();
-    if (!registered) return call("open_nexus_files", m.nexus_id);
-    // the key is checked only on the player's action, as Nexus's API policy asks
-    if (UNCHECKED.includes(account.key)) await run("check_key");
-    if (account.premium) downloadInApp(m, button);
-    else call("open_nexus_files", m.nexus_id);
+    call("open_nexus_files", m.nexus_id);
   };
-  if (downloading.has(m.nexus_id)) showProgress(li, m.nexus_id);
-  if (justDone.has(m.nexus_id)) {
-    li.querySelector(".summary").textContent = "Added to library.";
-    li.querySelector(".summary").classList.add("done");
-  }
   li.querySelector(".top").onclick = () => toggleCard(m, li);
   if (opened.has(m.nexus_id)) {
     li.classList.add("open");
     li.appendChild(cardDetail(m)).classList.add("still");
   }
   return li;
-}
-
-function renderAccount(a) {
-  account = a;
-  const line = $("key-state");
-  line.className = a.key === "invalid" ? "error" : "hint";
-  line.textContent = a.key !== "ok" ? KEY_STATE[a.key] :
-    `Signed in as ${a.name} · ` + (a.premium ? "Premium: Download gets mods in the app."
-                                            : "Free: Download opens the mod's Files page.");
-  const toggle = $("login-toggle");
-  $("login-state").textContent = a.login ? "Logged in." : "Not logged in.";
-  toggle.textContent = a.login ? "Log out" : "Log in with Nexus";
-  toggle.title = a.login ? "Forget the login; a saved API key is used again"
-                         : "Opens Nexus's login page in your browser: accept there";
-  toggle.onclick = async () => {
-    if (a.login) return run("nexus_logout");
-    toggle.textContent = "Waiting for Nexus…";
-    if (!await run("nexus_login")) renderAccount(account);  // failed: call() said why
-  };
-}
-
-function renderRegistered(on) {
-  registered = on;
-  document.querySelectorAll(".registered-only").forEach(e => { e.hidden = !on; });
-}
-
-function renderLinks(l) {
-  $("links-state").textContent = l.ours ? "Its downloads come to this app." :
-    (l.other ? `Its downloads go to ${l.other}.` : "No program takes its downloads.") +
-    " Downloading from them needs a Nexus login or API key.";
-  $("links-toggle").textContent = l.ours ? "Give back" : "Use this app";
-  $("links-toggle").title = l.ours ? "Hand the links back to the program that had them"
-                                   : "Windows sends Nexus's mod manager links here";
-  $("links-toggle").onclick = () => run(l.ours ? "release_links" : "take_links");
-}
-
-// the card's summary line says what the download is doing; the button, too narrow, only waits
-function showProgress(li, id) {
-  const button = li.querySelector("button");
-  button.disabled = true;
-  button.textContent = "Working…";
-  const line = li.querySelector(".summary");
-  line.textContent = downloading.get(id);
-  line.classList.add("progress");
-}
-
-// every PROGRESS_MS: what the download of id is doing goes in `downloading`, then show() runs
-function askProgress(id, show) {
-  return setInterval(async () => {
-    const now = await window.pywebview.api.download_progress(id);
-    if (!now || !downloading.has(id)) return;
-    downloading.set(id, now);
-    show();
-  }, PROGRESS_MS);
-}
-
-// a library row's update badge: Premium downloads the newest main file, Free opens its Files page
-async function updateMod(m) {
-  const id = m.nexus_id;
-  if (registered && UNCHECKED.includes(account.key)) await run("check_key");
-  if (!registered || !account.premium) return call("open_nexus_files", id);
-  if (downloading.has(id)) return;
-  downloading.set(id, "Starting…");
-  setStatus(`${m.name}: starting the update…`);
-  const ask = askProgress(id, () => setStatus(`${m.name}: ${downloading.get(id)}`));
-  try {
-    render(await window.pywebview.api.download_mod(id));
-    setStatus(`${m.name} ${m.latest} added to library.`, "ok");
-  } catch (e) {
-    setStatus(`${m.name}: ${e.message || e}`, "warn");
-  }
-  clearInterval(ask);
-  downloading.delete(id);
-}
-
-// not through call(): a download takes a while, and the rest of the window stays usable
-async function downloadInApp(m, button) {
-  const id = m.nexus_id;
-  if (downloading.has(id)) return;  // page.js's busy() may have re-enabled the button
-  downloading.set(id, "Starting…");
-  showProgress(button.closest("li"), id);
-  const ask = askProgress(id, () => {
-    const li = document.querySelector(`#catalog li[data-id="${id}"]`);
-    if (li) showProgress(li, id);
-  });
-  let failed = "";
-  try {
-    render(await window.pywebview.api.download_mod(id));
-  } catch (e) {
-    failed = String(e.message || e);
-  }
-  clearInterval(ask);
-  downloading.delete(id);
-  if (!failed) {
-    justDone.add(id);
-    setTimeout(() => { justDone.delete(id); renderCatalog(); }, OK_SECONDS * 1000);
-  }
-  renderCatalog();  // the card shows "In library", the button "Download" again
-  if (failed) {  // in the Browse toolbar: the status line is on the Installed tab
-    $("browse-count").textContent = m.name + ": " + failed;
-    $("browse-count").className = "error";
-  }
 }
 
 function shows(m, query) {
@@ -275,7 +148,6 @@ function renderCatalog() {
   }
   shown.forEach(m => list.appendChild(card(m)));
   const total = catalog.mods.length;
-  $("browse-count").className = "";
   $("browse-count").textContent = catalog.error ? "" :
     shown.length === total ? `${total} mods on Nexus` : `${shown.length} of ${total} mods`;
   renderTagMenu();
@@ -294,7 +166,6 @@ document.querySelector('.tab[data-tab="browse"]').addEventListener("click", () =
   else loadCatalog();
 });
 $("browse-reload").onclick = loadCatalog;
-$("get-key").onclick = () => call("open_key_page");
 $("browse-search").oninput = () => { if (catalog) renderCatalog(); };
 $("tag-clear").onclick = () => { tagFilter.clear(); renderCatalog(); };
 const MENUS = [["tag-picker", "tag-filter", "tag-menu"], ["sort-picker", "sort", "sort-list"]];

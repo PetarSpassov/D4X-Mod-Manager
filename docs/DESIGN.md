@@ -38,17 +38,13 @@ replaces its old copy. Zip, 7z and rar are all unpacked by the 7-Zip in `vendor/
 
 1. **Browse** in the app through Nexus's public API, with no key needed (checked live: it lists the
    game's mods with name, summary, picture and download count).
-2. **Download** opens the mod's Files page in the user's browser.
-3. Then one of two ways in:
-   - **Watched folder:** the manager watches the Downloads folder (filled in from Windows, user can
-     change it) and offers to import a new zip that matches a mod. A zip can also be imported by hand.
-   - **"Download with mod manager" button** (optional): the manager registers as the handler for
-     Nexus's `nxm://` links. It needs the user's personal API key, pasted once from their Nexus account
-     page. There is no login screen. Windows allows one handler at a time, so this can take over from
-     Vortex. Registering is an opt-in button.
+2. **Link** opens the mod's Files page in the user's browser, where the user downloads it.
+3. **Watched folder:** the manager watches the Downloads folder (filled in from Windows, user can
+   change it) and offers to import a new zip that matches a mod. A zip can also be imported by hand.
 
-Before a public release, the app is registered with Nexus (support@nexusmods.com), as their API
-policy asks.
+The app uses only Nexus's keyless GraphQL API. Nexus support says that needs no registration when
+the app doesn't download; a key, login, in-app download or `nxm://` handler needs the app
+registered first. Those were built and taken out; tag `nexus-downloads` holds them.
 
 ## Installing
 

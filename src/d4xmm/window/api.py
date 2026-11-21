@@ -4,28 +4,18 @@ Under one home: library/ (mods), state/ (install record, backups), profiles.json
 """
 import json
 import os
-import shutil
 import webbrowser
 
 from d4xmm.install import deploy, flow
 from d4xmm.library import downloads as watched
 from d4xmm.library import mods
-from d4xmm.nexus import account, catalog, oauth
+from d4xmm.nexus import catalog
 from d4xmm.nexus import files as nexus_files
-from d4xmm.window import links, profiles, settings
+from d4xmm.window import profiles, settings
 
 LAST = "last_install.json"  # under state/: the folders installed and who overrode whom
 NEXUS_PAGE = "https://www.nexusmods.com/dunespicewars/mods/%d"
 NO_GAME = "Can't find the game in the Steam directory. Please adjust it in Settings."
-# Nexus's API policy wants an app registered before it uses players' keys, logins or downloads;
-# until then only the keyless lookups run, and Browse's Link opens the mod's page instead
-REGISTERED = False
-UNREGISTERED = "Nexus hasn't registered this app yet: download from the mod's page on Nexus."
-
-
-def _registered():
-    if not REGISTERED:
-        raise RuntimeError(UNREGISTERED)
 
 
 def _sources(folders, records):
@@ -36,19 +26,14 @@ def _sources(folders, records):
 class Api:
     """pywebview hands the page every public attribute, so all but the calls start with _."""
 
-    def __init__(self, home, pick_archives=None, pick_folder=None, pending_link=None):
-        """pick_archives() returns the chosen paths, pick_folder(start) one folder or None;
-        pending_link: the nxm:// link the app was started with."""
+    def __init__(self, home, pick_archives=None, pick_folder=None):
+        """pick_archives() returns the chosen paths, pick_folder(start) one folder or None."""
         self._home, self._pick_archives, self._pick_folder = home, pick_archives, pick_folder
         self._library = os.path.join(home, "library")
         self._state_dir = os.path.join(home, "state")
         for folder in (self._library, self._state_dir):
             os.makedirs(folder, exist_ok=True)
         self._known = {}  # Downloads archive name: Nexus's answer, so each is asked about once
-        # whose key, and Premium; None: not asked yet this run
-        self._account = None
-        self._pending = pending_link
-        self._progress = {}  # nexus id: what its download is doing, for the page to ask
 
     def _records(self):
         """{library folder: its mod.json record} for every imported mod."""
@@ -100,13 +85,9 @@ class Api:
         current = settings.load(self._home)
         typed = {k: current[k] for k in settings.TYPED}
         data = profiles.load(self._home)
-        if self._account is None and current["nexus_tokens"]:
-            self._check_key()  # a login's account is in its token: no request to Nexus
         return {"mods": listed, "install": self._install_state(order, records),
                 "settings": dict(typed, game_ok=settings.game_ok(current["game_dir"])),
-                "profiles": {"active": data["active"], "names": list(data["profiles"])},
-                "account": self._account or {"key": "saved" if current["nexus_key"] else "none"},
-                "links": links.status(), "registered": REGISTERED}
+                "profiles": {"active": data["active"], "names": list(data["profiles"])}}
 
     def set_setting(self, key, value):
         """Keep one of settings.TYPED; an empty folder goes back to the one Steam or Windows has."""
@@ -116,8 +97,6 @@ class Api:
         if value and key in settings.FOLDERS:
             value = os.path.normpath(value)
         settings.save(self._home, **{key: value})
-        if key == "nexus_key":
-            self._check_key()
         return self.state()
 
     def choose_folder(self, key):
@@ -144,12 +123,11 @@ class Api:
     def import_mods(self):
         return self.import_paths(self._pick_archives() or [])
 
-    def import_paths(self, paths, ids=None):
-        """Import each archive, ticked at the end of the active profile; also for dropped files.
-        ids: the (mod id, file id) of a single archive the app downloaded itself."""
+    def import_paths(self, paths):
+        """Import each archive, ticked at the end of the active profile; also for dropped files."""
         before = set(self._records())
         for path in paths:
-            mods.import_archive(path, self._library, ids)
+            mods.import_archive(path, self._library)
             # deleting the mod later mustn't bring its archive back as a new download
             watched.dismiss(self._state_dir, os.path.basename(path))
 
@@ -210,133 +188,6 @@ class Api:
     def refresh(self):
         """Every mod's name, version and Nexus ids looked up again; the page calls it on start."""
         mods.refresh(self._library)
-        return self.state()
-
-    def check_key(self):
-        """The page asks when Download is pressed and the key isn't checked yet."""
-        self._check_key()
-        return self.state()
-
-    def _check_key(self):
-        """Ask Nexus whose the key is; only on the player's action (typing it, Download), as
-        Nexus's API policy asks. state() shows the answer until the key changes. A login
-        is used before the key."""
-        current = settings.load(self._home)
-        if not REGISTERED:
-            self._account = {"key": "none"}
-            return
-        if current["nexus_tokens"]:
-            self._account = dict(oauth.account(current["nexus_tokens"]), key="ok", login=True)
-            return
-        if not current["nexus_key"]:
-            self._account = {"key": "none"}
-            return
-        try:
-            self._account = dict(account.check({"apikey": current["nexus_key"]}), key="ok")
-        except account.InvalidKey:
-            self._account = {"key": "invalid"}
-        except (nexus_files.Offline, nexus_files.Refused):
-            self._account = {"key": "unchecked"}  # no answer: the next Download asks again
-
-    def open_key_page(self):
-        webbrowser.open(account.KEY_PAGE)
-
-    def nexus_login(self):
-        """Nexus's login page in the browser; returns once the player accepts there."""
-        _registered()
-        try:
-            tokens = oauth.login()
-        except oauth.LoggedOut as e:
-            raise RuntimeError("Nexus didn't log you in (%s). Try again." % e) from e
-        except OSError as e:  # http.server's bind; Offline and Refused are not OSErrors
-            raise RuntimeError("Can't wait for Nexus's answer: port %d is in use (%s)."
-                               % (oauth.PORT, e)) from e
-        settings.save(self._home, nexus_tokens=tokens)
-        self._check_key()
-        return self.state()
-
-    def nexus_logout(self):
-        """Forget the login; the key, if one is saved, is used again."""
-        settings.save(self._home, nexus_tokens=None)
-        self._account = None
-        return self.state()
-
-    def _auth(self, current):
-        """The header Nexus's v1 API needs: the login's, refreshed when due, else the key's."""
-        tokens = current["nexus_tokens"]
-        if not tokens:
-            if not current["nexus_key"]:
-                raise RuntimeError("Log in with Nexus in Settings first.")
-            return {"apikey": current["nexus_key"]}
-        try:
-            renewed = oauth.fresh(tokens)
-        except oauth.LoggedOut as e:
-            self.nexus_logout()
-            raise RuntimeError("Nexus ended the login. Log in again in Settings.") from e
-        if renewed is not tokens:
-            settings.save(self._home, nexus_tokens=renewed)
-            self._check_key()  # the new token carries the account as it is now
-        return oauth.auth(renewed)
-
-    def download_mod(self, nexus_id):
-        """Premium only: the mod's newest main file downloaded and imported."""
-        _registered()
-        if not (self._account or {}).get("premium"):
-            raise RuntimeError("Downloading in the app needs a Premium Nexus account.")
-        return self._download(int(nexus_id))
-
-    def download_link(self, url):
-        """A website "Mod Manager Download" link: its file downloaded and imported."""
-        _registered()
-        link = links.parse(url)
-        if link["game"] != account.GAME:
-            raise RuntimeError("That link is for another game's mod.")
-        return self._download(link["mod_id"], link["file_id"], link["grant"])
-
-    def pending_link(self):
-        """The link the app was started with, once; the page asks when it is ready."""
-        url, self._pending = self._pending, None
-        return url
-
-    def _download(self, mod_id, file_id=None, grant=None):
-        """The file downloaded, imported, then put in Downloads as the browser would have,
-        recorded so it isn't offered. file_id None: the newest main file."""
-        current = settings.load(self._home)
-        auth = self._auth(current)
-        try:
-            self._progress[mod_id] = "Asking Nexus for the file…"
-            found = nexus_files.pick_file(mod_id, file_id)
-            if not found or os.path.basename(found["download"]) != found["download"]:
-                raise RuntimeError("Nexus lists no such file to download for this mod.")
-            url = account.download_url(auth, mod_id, found["file_id"], grant)
-            staged = os.path.join(self._state_dir, found["download"])
-            account.fetch(url, staged, lambda done, total: self._fetched(mod_id, done, total))
-            self._progress[mod_id] = "Importing…"
-            state = self.import_paths([staged], (mod_id, found["file_id"]))
-        finally:
-            self._progress.pop(mod_id, None)
-        if current["downloads"] and os.path.isdir(current["downloads"]):
-            shutil.move(staged, os.path.join(current["downloads"], found["download"]))
-        else:
-            os.remove(staged)  # our own copy; the library has the mod's files
-        return state
-
-    def _fetched(self, mod_id, done, total):
-        of = " of %.1f MB" % (total / 1e6) if total else ""
-        self._progress[mod_id] = "Downloading: %.1f MB%s" % (done / 1e6, of)
-
-    def download_progress(self, nexus_id):
-        """What the download of this mod is doing now, or None when none runs."""
-        return self._progress.get(int(nexus_id))
-
-    def take_links(self):
-        """Nexus's "Mod Manager Download" links come to this app from now on."""
-        _registered()
-        links.take(self._state_dir)
-        return self.state()
-
-    def release_links(self):
-        links.release(self._state_dir)
         return self.state()
 
     def install(self):

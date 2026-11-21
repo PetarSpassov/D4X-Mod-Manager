@@ -103,11 +103,11 @@ def _same_mod(library, nexus_id):
     return None
 
 
-def import_archive(archive, library, ids=None):
+def import_archive(archive, library):
     """Unpack a mod's zip, 7z or rar into its library folder, replacing an earlier import of it.
     Any version of the same Nexus mod counts, so an update keeps the folder and its load order.
-    ids: its (mod id, file id) when known. Returns the record written to mod.json."""
-    info = describe(archive, ids)
+    Returns the record written to mod.json."""
+    info = describe(archive)
     name = re.sub(r"[^\w.-]+", "_", info["file"]).strip("_.") or "mod"
     folder = os.path.join(library, _same_mod(library, info["nexus_id"]) or name)
     staging = folder + ".importing"

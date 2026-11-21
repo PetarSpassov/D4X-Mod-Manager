@@ -4,13 +4,9 @@ import unittest
 import zipfile
 from unittest import mock
 
-from d4xmm.nexus import account, oauth
 from d4xmm.nexus import files as nexus_files
 from d4xmm.window import settings
 from d4xmm.window.api import NO_GAME, Api
-from tests.nexus.test_oauth import token
-
-REGISTERED = mock.patch("d4xmm.window.api.REGISTERED", True)  # the key, login and download paths
 
 
 class WindowApi(unittest.TestCase):
@@ -167,129 +163,6 @@ class WindowApi(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.api.import_download(bad)
 
-    def test_unregistered_no_key_login_or_download_reaches_nexus(self):
-        tokens = {"access_token": token(["premium"]), "refresh_token": "r", "expires_at": 0}
-        settings.save(self.home, nexus_key="k", nexus_tokens=tokens)
-        with mock.patch("d4xmm.nexus.account.check") as check, \
-                mock.patch("d4xmm.nexus.oauth.login") as login, \
-                mock.patch("d4xmm.window.links.take") as take:
-            self.assertEqual(self.api.state()["registered"], False)
-            self.assertEqual(self.api.check_key()["account"], {"key": "none"})
-            for start in (self.api.nexus_login, lambda: self.api.download_mod(7),
-                          self.api.take_links, lambda: self.api.download_link(
-                              "nxm://dunespicewars/mods/7/files/3?key=a&expires=1")):
-                with self.assertRaisesRegex(RuntimeError, "registered"):
-                    start()
-        for fake in (check, login, take):
-            fake.assert_not_called()
-
-    @REGISTERED
-    def test_the_key_is_checked_when_typed_and_its_account_shown(self):
-        self.assertEqual(self.api.state()["account"], {"key": "none"})
-        settings.save(self.home, nexus_key="k")
-        with mock.patch("d4xmm.nexus.account.check") as check, \
-                mock.patch("d4xmm.library.mods.refresh"):
-            self.assertEqual(Api(self.home).refresh()["account"], {"key": "saved"})
-        check.assert_not_called()  # only the player's action asks Nexus about the key
-        with mock.patch("d4xmm.nexus.account.check",
-                        return_value={"name": "Ann", "premium": True}):
-            self.assertEqual(self.api.check_key()["account"]["premium"], True)
-        with mock.patch("d4xmm.nexus.account.check",
-                        return_value={"name": "Ann", "premium": False}):
-            self.assertEqual(self.api.set_setting("nexus_key", "k")["account"],
-                             {"key": "ok", "name": "Ann", "premium": False})
-        with mock.patch("d4xmm.nexus.account.check", side_effect=account.InvalidKey("401")):
-            self.assertEqual(self.api.set_setting("nexus_key", "bad")["account"],
-                             {"key": "invalid"})
-        self.assertEqual(self.api.set_setting("nexus_key", "")["account"], {"key": "none"})
-
-    @REGISTERED
-    def test_a_login_comes_before_the_key_and_its_token_is_renewed_when_due(self):
-        settings.save(self.home, nexus_key="k")
-        tokens = {"access_token": token(["premium"]), "refresh_token": "r", "expires_at": 0}
-        with mock.patch("d4xmm.nexus.oauth.login", return_value=tokens):
-            self.assertEqual(self.api.nexus_login()["account"],
-                             {"key": "ok", "name": "Ann", "premium": True, "login": True})
-        self.assertEqual(Api(self.home).state()["account"]["login"], True)  # kept on restart
-        renewed = dict(tokens, access_token=token(["member"], "Bo"), expires_at=99)
-        with mock.patch("d4xmm.nexus.oauth.fresh", return_value=renewed):
-            asked = self._download(lambda: self.api.download_link(
-                "nxm://dunespicewars/mods/7/files/3?key=abc&expires=17"))
-        self.assertEqual(asked["url"][0], {"Authorization": "Bearer " + renewed["access_token"]})
-        self.assertEqual(settings.load(self.home)["nexus_tokens"], renewed)
-        self.assertEqual(self.api.state()["account"]["name"], "Bo")
-        with mock.patch("d4xmm.nexus.oauth.fresh", side_effect=oauth.LoggedOut("400")):
-            with self.assertRaisesRegex(RuntimeError, "Log in again"):
-                self.api.download_link("nxm://dunespicewars/mods/7/files/3?key=a&expires=1")
-        self.assertIsNone(settings.load(self.home)["nexus_tokens"])  # back to the key
-        self.assertEqual(self.api.state()["account"], {"key": "saved"})
-
-    def _premium(self):
-        with mock.patch("d4xmm.nexus.account.check", return_value={"name": "A", "premium": True}):
-            self.api.set_setting("nexus_key", "k")
-
-    def _download(self, start):
-        """start() with Nexus faked: file 3 of mod 7 downloads as A's zip; returns the state
-        and how the file and its address were asked for."""
-        settings.save(self.home, downloads=self.zips)
-        name, source, asked = "A-7-1-0-1752884636.zip", self._zip("A"), {}
-
-        def pick(mod_id, file_id=None):
-            asked["pick"] = (mod_id, file_id)
-            return {"file_id": 3, "download": name, "version": "1.0"}
-
-        def url(key, mod_id, file_id, grant=None):
-            asked["url"] = (key, mod_id, file_id, grant)
-            return "https://cdn/a"
-
-        def fetch(url, dest, progress):
-            progress(2_500_000, 10_000_000)
-            asked["progress"] = self.api.download_progress(asked["url"][1])
-            os.rename(source, dest)
-        with mock.patch("d4xmm.nexus.files.pick_file", pick), \
-                mock.patch("d4xmm.nexus.account.download_url", url), \
-                mock.patch("d4xmm.nexus.account.fetch", fetch), \
-                mock.patch("d4xmm.nexus.files.by_ids",
-                           lambda *ids: asked.setdefault("ids", ids) and None):
-            state = start()
-        self.assertEqual([m["enabled"] for m in state["mods"]], [True])
-        self.assertTrue(os.path.isfile(os.path.join(self.zips, name)))
-        self.assertEqual(self.api.downloads(), [])
-        return asked
-
-    @REGISTERED
-    def test_premium_download_imports_the_newest_main_file_and_keeps_it_in_downloads(self):
-        self._premium()
-        asked = self._download(lambda: self.api.download_mod(7))
-        self.assertEqual((asked["pick"], asked["url"]), ((7, None), ({"apikey": "k"}, 7, 3, None)))
-        self.assertEqual(asked["ids"], (7, 3))  # its own download is known by ids, not by name
-        self.assertEqual(asked["progress"], "Downloading: 2.5 MB of 10.0 MB")
-        self.assertIsNone(self.api.download_progress(7))
-
-    @REGISTERED
-    def test_a_website_link_downloads_its_own_file_with_its_grant(self):
-        settings.save(self.home, nexus_key="k")
-        link = "nxm://dunespicewars/mods/7/files/3?key=abc&expires=17&user_id=1"
-        asked = self._download(lambda: self.api.download_link(link))
-        self.assertEqual(asked["url"], ({"apikey": "k"}, 7, 3, {"key": "abc", "expires": "17"}))
-        with self.assertRaisesRegex(RuntimeError, "another game"):
-            self.api.download_link("nxm://skyrim/mods/7/files/3?key=abc&expires=17")
-
-    @REGISTERED
-    def test_without_premium_a_key_or_a_file_nothing_downloads(self):
-        with self.assertRaisesRegex(RuntimeError, "Premium"):
-            self.api.download_mod(7)
-        with self.assertRaisesRegex(RuntimeError, "Log in"):
-            self.api.download_link("nxm://dunespicewars/mods/7/files/3?key=a&expires=1")
-        self._premium()
-        with mock.patch("d4xmm.nexus.files.pick_file", return_value=None):
-            with self.assertRaisesRegex(RuntimeError, "no such file"):
-                self.api.download_mod(7)
-
-    def test_the_start_link_is_given_once(self):
-        api = Api(self.home, pending_link="nxm://x")
-        self.assertEqual((api.pending_link(), api.pending_link()), ("nxm://x", None))
-
     def test_no_game_or_nothing_ticked_is_an_error_not_an_install(self):
         with self.assertRaises(RuntimeError):
             self.api.install()
@@ -314,12 +187,6 @@ class WindowApi(unittest.TestCase):
         self.assertEqual(state["settings"]["downloads"], "C:\\dl")
         with self.assertRaises(ValueError):
             self.api.set_setting("window", "x")
-
-    def test_the_nexus_key_is_kept_as_typed_and_cleared_when_empty(self):
-        self.assertIsNone(self.api.state()["settings"]["nexus_key"])
-        self.assertEqual(self.api.set_setting("nexus_key", " abc/def= ")["settings"]["nexus_key"],
-                         "abc/def=")
-        self.assertIsNone(self.api.set_setting("nexus_key", "")["settings"]["nexus_key"])
 
     def test_the_page_sees_only_the_calls(self):
         public = sorted(n for n in vars(self.api) if not n.startswith("_"))
