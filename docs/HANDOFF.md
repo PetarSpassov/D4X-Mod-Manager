@@ -83,7 +83,13 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
 - The exe from `!build.bat` (Nuitka with Zig, standalone folder `build/D4XModManager`, 81 MB).
   Seen live: it builds, starts, and opens a window titled "D4X Mod Manager". Rebuilt at
   `a4ea665`, 82 MB, zipped as `build/D4XModManager-0.1.0.zip` (40 MB, SHA-256 `91DD45B0…4954F414`);
-  seen live: it opens its window, and no removed key, login or nxm code is in the folder. Untested in it: the
+  seen live: it opens its window, and no removed key, login or nxm code is in the folder.
+  The user reports, in that exe: the bar offers "QuinnQuest - Conquest Additions and Overhauls
+  v0.4.2.3", and its Import shows "not a download: 'QuinnQuest 5 v0.4.2.3 2026-10-21T13-46Z
+  KXNV26MRz.zip'". Found: `import_download` checked only the dashed `NEXUS_NAME`. Changed: it
+  uses the bar's own check (`downloads.nexus_named`). Rebuilt and re-zipped (SHA-256
+  `9405BDBE…EEB013AD`); seen live: it opens its window and the build carries `nexus_named`. The
+  bar's Import in the exe not seen. Untested in it: the
   page itself, `vendor/` found (`d4xmm.VENDOR`, `COMPILED`), import and merge.
 - Merging more than two real mods (only Community Patch + QuinnQuest, both orders, has been seen
   in the game).

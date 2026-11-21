@@ -55,7 +55,8 @@ def _answer(folder, name, known, lookup):
     return known[name]
 
 
-def _nexus_named(name):
+def nexus_named(name):
+    """Whether name is one Nexus gives a download, dashed or the newer spaced one."""
     return bool(NEXUS_NAME.search(name) or nexus_files.SPACED_NAME.match(name))
 
 
@@ -67,7 +68,7 @@ def offers(folder, imported, state_dir, known, lookup=None):
     lookup = lookup or nexus_files.lookup  # looked up at call time, so a test can patch it
     present = os.listdir(folder)
     skip = set(imported) | set(_forget_missing(state_dir, set(present)))
-    names = [n for n in present if n not in skip and _nexus_named(n)]
+    names = [n for n in present if n not in skip and nexus_named(n)]
     out = []
     for name in sorted(names, key=lambda n: os.path.getmtime(os.path.join(folder, n))):
         found = _answer(folder, name, known, lookup)

@@ -144,7 +144,7 @@ class Api:
 
     def import_download(self, name):
         """Import one archive the Downloads folder offered, by its name there."""
-        if os.path.basename(name) != name or not watched.NEXUS_NAME.search(name):
+        if os.path.basename(name) != name or not watched.nexus_named(name):
             raise ValueError("not a download: %r" % name)
         return self.import_paths([os.path.join(settings.load(self._home)["downloads"], name)])
 

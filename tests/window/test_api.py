@@ -163,6 +163,13 @@ class WindowApi(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.api.import_download(bad)
 
+    def test_a_download_with_nexus_s_spaced_name_imports(self):
+        settings.save(self.home, downloads=self.zips)
+        name = "A 7 1.0 2026-10-21T13-46Z KXNV26MRz.zip"
+        os.rename(self._zip("A"), os.path.join(self.zips, name))
+        with mock.patch("d4xmm.nexus.files.lookup", return_value=None):
+            self.assertEqual(len(self.api.import_download(name)["mods"]), 1)
+
     def test_no_game_or_nothing_ticked_is_an_error_not_an_install(self):
         with self.assertRaises(RuntimeError):
             self.api.install()
