@@ -98,8 +98,10 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   `C:\Users\GamingPC\Downloads\Games\Steam\steamapps\common\D4X`. Rebuilt at `023b9e9` and
   re-zipped; seen live: it opens its window. The user says "It works, the game folder is
   capitalised now". Version then set to 1.0.0 (`08b3324`, `__init__.py` and `!build.bat`), rebuilt
-  and zipped as `build/D4XModManager-1.0.0.zip` (SHA-256 `F11FEA59…ADBEB066`); seen live: the exe's
-  properties read 1.0.0.0 and it opens its window. Untested in it: the
+  and zipped as `build/D4XModManager-1.0.0.zip`; seen live: the exe's properties read 1.0.0.0
+  and it opens its window. The user: extracting nests a D4XModManager folder inside one named
+  almost the same. Re-zipped with the folder's contents at the zip's top (SHA-256
+  `82FF22D6…EE0C8208F`); seen live: 59 files, as the folder, `D4XModManager.exe` at the top. Untested in it: the
   page itself, `vendor/` found (`d4xmm.VENDOR`, `COMPILED`), import and merge.
 - Merging more than two real mods (only Community Patch + QuinnQuest, both orders, has been seen
   in the game).
