@@ -5,7 +5,7 @@ or rules must change this file too (pre-commit).
 
 ## State
 
-**► WE ARE ON:** release zip built (build/D4XModManager-0.1.0.zip); next: the user tests the exe, uploads it, and decides on the repo's visibility and the Nexus email *(moved only by `python .claude/tools/on.py`)*
+**► WE ARE ON:** release 1.0.0 zip built (build/D4XModManager-1.0.0.zip); next: the user uploads it, and decides on the repo's visibility and the Nexus email *(moved only by `python .claude/tools/on.py`)*
 
 **► LAST KNOWN GOOD:** `42ea256`: "Both show the right version, merging them boots the game correctly
 and has the contents of both. This is a great success, it seems the merge is working for now."
@@ -96,8 +96,10 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   Steam's registry `SteamPath` is `c:/users/gamingpc/downloads/games/steam`. Changed:
   `steam.find` returns `os.path.realpath` of the folder, the casing on disk. Seen live: it gives
   `C:\Users\GamingPC\Downloads\Games\Steam\steamapps\common\D4X`. Rebuilt at `023b9e9` and
-  re-zipped (SHA-256 `B65BF4DE…F754D777`); seen live: it opens its window. The Settings field's
-  casing in the exe not seen. Untested in it: the
+  re-zipped; seen live: it opens its window. The user says "It works, the game folder is
+  capitalised now". Version then set to 1.0.0 (`08b3324`, `__init__.py` and `!build.bat`), rebuilt
+  and zipped as `build/D4XModManager-1.0.0.zip` (SHA-256 `F11FEA59…ADBEB066`); seen live: the exe's
+  properties read 1.0.0.0 and it opens its window. Untested in it: the
   page itself, `vendor/` found (`d4xmm.VENDOR`, `COMPILED`), import and merge.
 - Merging more than two real mods (only Community Patch + QuinnQuest, both orders, has been seen
   in the game).
@@ -236,7 +238,7 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   the recorded names no longer in the folder (imported and ×'d alike). A mod still in the
   library is not offered again under the same archive name. Tested; not seen in the window.
 - Nexus API policy (help.nexusmods.com/article/114): every request now carries Application-Name
-  "D4X Mod Manager" and Application-Version (`d4xmm.__version__`, 0.1.0), seen accepted live.
+  "D4X Mod Manager" and Application-Version (`d4xmm.__version__`, now 1.0.0), seen accepted live.
   Repo is private on GitHub (404 signed out). Licence: MIT, the user's choice (`LICENSE`, in the
   root where GitHub looks). `pakBuild.hl` holds `hxd.fmt.pak.Build` (Heaps, MIT, by its class
   names), shipped with Heaps' notice in `vendor/pakbuild/LICENSE`. Copyright "Petar Spassov".
