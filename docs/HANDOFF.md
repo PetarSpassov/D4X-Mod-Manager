@@ -89,7 +89,14 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   KXNV26MRz.zip'". Found: `import_download` checked only the dashed `NEXUS_NAME`. Changed: it
   uses the bar's own check (`downloads.nexus_named`). Rebuilt and re-zipped (SHA-256
   `9405BDBE…EEB013AD`); seen live: it opens its window and the build carries `nexus_named`. The
-  bar's Import in the exe not seen. Untested in it: the
+  bar's Import in the exe not seen. After `8a25e53` the user says "It works, the import goes
+  through now". Reports: Settings' Game folder reads
+  `c:\users\gamingpc\downloads\games\steam\steamapps\common\D4X`, all lowercase but `D4X`, while
+  Downloads reads `C:\Users\GamingPC\Downloads`, and their other apps show the same. Seen live:
+  Steam's registry `SteamPath` is `c:/users/gamingpc/downloads/games/steam`. Changed:
+  `steam.find` returns `os.path.realpath` of the folder, the casing on disk. Seen live: it gives
+  `C:\Users\GamingPC\Downloads\Games\Steam\steamapps\common\D4X`. Not rebuilt: the user's open
+  window locked `build/`, so the zip is still `9405BDBE…`, without this change. Untested in it: the
   page itself, `vendor/` found (`d4xmm.VENDOR`, `COMPILED`), import and merge.
 - Merging more than two real mods (only Community Patch + QuinnQuest, both orders, has been seen
   in the game).

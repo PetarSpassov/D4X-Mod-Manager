@@ -52,5 +52,6 @@ def find():
     for lib in libraries(steam):
         folder = game_folder(lib)
         if folder and os.path.isdir(folder):
-            return folder
+            # Steam keeps its own path lowercased in the registry; the disk has the real casing
+            return os.path.realpath(folder)
     return None
