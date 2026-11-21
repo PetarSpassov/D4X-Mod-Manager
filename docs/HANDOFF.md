@@ -5,7 +5,7 @@ or rules must change this file too (pre-commit).
 
 ## State
 
-**► WE ARE ON:** exe packaged (Nuitka/Zig, build/ zips) and the Nexus email drafted; next: the user tests the exe, then sends the email *(moved only by `python .claude/tools/on.py`)*
+**► WE ARE ON:** release zip built (build/D4XModManager-0.1.0.zip); next: the user tests the exe, uploads it, and decides on the repo's visibility and the Nexus email *(moved only by `python .claude/tools/on.py`)*
 
 **► LAST KNOWN GOOD:** `42ea256`: "Both show the right version, merging them boots the game correctly
 and has the contents of both. This is a great success, it seems the merge is working for now."
@@ -77,10 +77,13 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   nothing to install; manual import stays. Changed: before asking Nexus, the watcher lists the
   archive with 7-Zip (`mods.loads_game_files`, nothing unpacked) and offers it only if a file in
   it is one the game loads; the answer is kept per name. Seen live in the user's Downloads: the
-  Patcher zip (one entry, no game file) is not offered; QuinnQuest and Dyaus Anchor are. Not seen
-  in the window; the Toolkit and Infinite Solari archives not looked at.
+  Patcher zip (one entry, no game file) is not offered; QuinnQuest and Dyaus Anchor are. After
+  `a4ea665` the user says "It works, the Patcher isn't offered anymore". The Toolkit and Infinite
+  Solari archives not looked at.
 - The exe from `!build.bat` (Nuitka with Zig, standalone folder `build/D4XModManager`, 81 MB).
-  Seen live: it builds, starts, and opens a window titled "D4X Mod Manager". Untested in it: the
+  Seen live: it builds, starts, and opens a window titled "D4X Mod Manager". Rebuilt at
+  `a4ea665`, 82 MB, zipped as `build/D4XModManager-0.1.0.zip` (40 MB, SHA-256 `91DD45B0…4954F414`);
+  seen live: it opens its window, and no removed key, login or nxm code is in the folder. Untested in it: the
   page itself, `vendor/` found (`d4xmm.VENDOR`, `COMPILED`), import and merge.
 - Merging more than two real mods (only Community Patch + QuinnQuest, both orders, has been seen
   in the game).
