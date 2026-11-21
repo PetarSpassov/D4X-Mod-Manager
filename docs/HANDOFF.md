@@ -205,9 +205,6 @@ Debt: the no-console `subprocess.run` is now written three times (unpack, pak, m
   After `1cb9fd8` the user says "Looks good now".
 - Browse lists Nexus's mods for the game, most downloaded first (`nexus/catalog.py`, `browse.js`):
   picture, name, version, creator, stats, two lines of summary, Link (opens the Files tab).
-  A trial the user asked for: Link has Install's `primary` style (orange, dark text), and is
-  64px wide, not 96 ("Link is a small word"); seen in a browser preview with a fake Api, not in
-  the window; the 1.0.0 zip has neither.
   Search and Reload. Seen live from Nexus: 7 mods, paging works at 3 a
   page. Seen in a browser preview with a fake Api: the cards, search, Link's call. Not seen in
   the window: the tab, the browser opening, offline and refused messages.
